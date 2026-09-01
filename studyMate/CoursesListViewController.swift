@@ -151,6 +151,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as? CourseCell {
             cell.configure(with: course)
+            cell.animateGlideIn(delayIndex: indexPath.row)
             return cell
         }
         
@@ -159,6 +160,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         let (total, completed, _) = CoreDataManager.shared.getCourseProgress(course: course)
         cell.detailTextLabel?.text = "\(completed)/\(total) lessons completed"
         cell.accessoryType = .disclosureIndicator
+        cell.animateGlideIn(delayIndex: indexPath.row)
         return cell
     }
     

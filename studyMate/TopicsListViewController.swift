@@ -202,6 +202,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TopicCell", for: indexPath) as? TopicCell {
             cell.configure(with: topic)
+            cell.animateGlideIn(delayIndex: indexPath.row)
             return cell
         }
         
@@ -210,6 +211,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         let (total, completed, _) = CoreDataManager.shared.getTopicProgress(topic: topic)
         cell.detailTextLabel?.text = "\(completed)/\(total) lessons completed"
         cell.accessoryType = .disclosureIndicator
+        cell.animateGlideIn(delayIndex: indexPath.row)
         return cell
     }
     

@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Helpful Swift extensions for UI styling, Haptics, Loading HUD, and Date formatting.
+//  Purpose: Helpful Swift extensions for UI styling, Micro-Animations, Haptics, Loading HUD, and Date formatting.
 //
 
 import UIKit
@@ -15,6 +15,13 @@ extension Date {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        return formatter.string(from: self)
+    }
+    
+    /// Returns today's formatted greeting string (e.g. "Tuesday, Sep 1")
+    func formattedGreetingDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
         return formatter.string(from: self)
     }
     
@@ -76,7 +83,7 @@ extension UIViewController {
         present(alert, animated: true)
     }
     
-    /// Shows a subtle Toast / HUD message for 1.5 seconds
+    /// Shows a modern floating Toast badge with smooth spring entry
     func showToast(message: String) {
         let toastLabel = UILabel()
         toastLabel.text = message
@@ -92,13 +99,15 @@ extension UIViewController {
         toastLabel.frame = CGRect(x: (self.view.frame.width - width) / 2, y: self.view.frame.height - 140, width: width, height: 40)
         self.view.addSubview(toastLabel)
         
-        UIView.animate(withDuration: 0.25, animations: {
+        toastLabel.transform = CGAffineTransform(scaleX: 0.8, y: 0.8).concatenating(CGAffineTransform(translationX: 0, y: 15))
+        
+        UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.8, options: .curveEaseOut, animations: {
             toastLabel.alpha = 1.0
-            toastLabel.transform = CGAffineTransform(translationX: 0, y: -8)
+            toastLabel.transform = .identity
         }) { _ in
-            UIView.animate(withDuration: 0.25, delay: 1.5, options: .curveEaseOut, animations: {
+            UIView.animate(withDuration: 0.25, delay: 1.6, options: .curveEaseIn, animations: {
                 toastLabel.alpha = 0.0
-                toastLabel.transform = .identity
+                toastLabel.transform = CGAffineTransform(translationX: 0, y: -10)
             }) { _ in
                 toastLabel.removeFromSuperview()
             }
@@ -106,25 +115,55 @@ extension UIViewController {
     }
 }
 
-// MARK: - UIView Styling Helpers
+// MARK: - UIView Styling & Animation Helpers
 extension UIView {
     /// Adds rounded corner, subtle border, and soft modern card shadow
-    func applyCardStyle(cornerRadius: CGFloat = 14.0) {
+    func applyCardStyle(cornerRadius: CGFloat = 16.0) {
         self.layer.cornerRadius = cornerRadius
         self.layer.masksToBounds = false
         self.backgroundColor = .secondarySystemGroupedBackground
         self.layer.borderWidth = 0.5
-        self.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
+        self.layer.borderColor = UIColor.separator.withAlphaComponent(0.25).cgColor
         self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.05
+        self.layer.shadowOpacity = 0.04
         self.layer.shadowOffset = CGSize(width: 0, height: 3)
-        self.layer.shadowRadius = 6
+        self.layer.shadowRadius = 8
     }
     
-    /// Adds a pill badge shape
-    func applyPillStyle() {
-        self.layer.cornerRadius = self.bounds.height / 2
-        self.layer.masksToBounds = true
+    /// Subtle pulse animation for celebratory triggers
+    func pulse() {
+        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+        pulseAnimation.duration = 0.15
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 1.06
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = 1
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        self.layer.add(pulseAnimation, forKey: "pulse")
+    }
+    
+    /// Adds subtle shake effect for error indications
+    func shake() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        animation.timingFunction = CAMediaTimingFunction(name: .linear)
+        animation.duration = 0.4
+        animation.values = [-12.0, 12.0, -8.0, 8.0, -4.0, 4.0, 0.0]
+        self.layer.add(animation, forKey: "shake")
+    }
+}
+
+// MARK: - UITableViewCell Micro-Animations
+extension UITableViewCell {
+    /// Plays a fluid stagger entrance animation when cells are loaded
+    func animateGlideIn(delayIndex: Int = 0) {
+        self.alpha = 0.0
+        self.transform = CGAffineTransform(translationX: 0, y: 20)
+        
+        let delay = Double(min(delayIndex, 8)) * 0.04
+        UIView.animate(withDuration: 0.4, delay: delay, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.6, options: [.curveEaseOut, .allowUserInteraction], animations: {
+            self.alpha = 1.0
+            self.transform = .identity
+        }, completion: nil)
     }
 }
 
@@ -141,7 +180,7 @@ extension UITableView {
         
         let config = UIImage.SymbolConfiguration(pointSize: 48, weight: .light)
         let imageView = UIImageView(image: UIImage(systemName: iconName, withConfiguration: config))
-        imageView.tintColor = .systemGray3
+        imageView.tintColor = .systemPurple
         
         let titleLabel = UILabel()
         titleLabel.text = title

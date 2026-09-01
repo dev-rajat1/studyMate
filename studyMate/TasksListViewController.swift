@@ -201,6 +201,7 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
                 self?.loadTasks()
                 self?.setupHeaderBanner()
             }
+            cell.animateGlideIn(delayIndex: indexPath.row)
             return cell
         }
         
@@ -208,6 +209,7 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
         cell.textLabel?.text = task.title
         cell.detailTextLabel?.text = task.notes?.isEmpty == false ? "📝 \(task.notes ?? "")" : "No notes yet"
         cell.accessoryType = task.isDone ? .checkmark : .none
+        cell.animateGlideIn(delayIndex: indexPath.row)
         return cell
     }
     
