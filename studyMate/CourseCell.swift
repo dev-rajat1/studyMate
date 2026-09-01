@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Custom UITableViewCell for displaying a Course with color badge & module/lesson progress.
+//  Purpose: Custom UITableViewCell for displaying a Course with refined typography, height, and spacing.
 //
 
 import UIKit
@@ -24,11 +24,17 @@ class CourseCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         
-        cardContainerView?.applyCardStyle(cornerRadius: 14)
+        cardContainerView?.applyCardStyle(cornerRadius: 16)
         colorTagView?.layer.cornerRadius = 2.5
         colorTagView?.layer.masksToBounds = true
-        progressBar?.layer.cornerRadius = 3
+        
+        progressBar?.layer.cornerRadius = 2.5
         progressBar?.clipsToBounds = true
+        
+        nameLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        topicCountLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        topicCountLabel?.textColor = .secondaryLabel
+        progressLabel?.font = .systemFont(ofSize: 12, weight: .bold)
     }
     
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
@@ -41,10 +47,11 @@ class CourseCell: UITableViewCell {
     
     /// Configures cell with Course data and calculated progress
     func configure(with course: Course) {
+        let courseName = course.name ?? "Untitled Course"
         if let nameLabel = nameLabel {
-            nameLabel.text = course.name ?? "Untitled Course"
+            nameLabel.text = courseName
         } else {
-            textLabel?.text = course.name ?? "Untitled Course"
+            textLabel?.text = courseName
         }
         
         let modulesCount = (course.topics as? Set<Topic>)?.count ?? 0

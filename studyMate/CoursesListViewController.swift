@@ -54,7 +54,8 @@ class CoursesListViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 100
+        tableView.estimatedRowHeight = 112
+        tableView.contentInset = UIEdgeInsets(top: 6, left: 0, bottom: 20, right: 0)
     }
     
     // MARK: - Data Management

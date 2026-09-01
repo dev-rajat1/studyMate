@@ -119,50 +119,53 @@
                                 <rect key="frame" x="0.0" y="59" width="393" height="759"/>
                                 <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="CourseCell" rowHeight="100" id="cell-course" customClass="CourseCell" customModule="studyMate" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="50" width="393" height="100"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="CourseCell" rowHeight="112" id="cell-course" customClass="CourseCell" customModule="studyMate" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="50" width="393" height="112"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="cell-course" id="cv-course">
-                                            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="112"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="v-course-card">
-                                                    <rect key="frame" x="16" y="6" width="361" height="88"/>
+                                                    <rect key="frame" x="16" y="8" width="361" height="96"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="v-course-color">
-                                                            <rect key="frame" x="14" y="16" width="5" height="56"/>
+                                                            <rect key="frame" x="16" y="16" width="5" height="64"/>
                                                             <color key="backgroundColor" systemColor="systemBlueColor"/>
                                                             <constraints>
-                                                                <constraint firstAttribute="width" constant="5" id="w-course-color"/>
+                                                                <constraint firstAttribute="width" constant="5" id="w-course-col"/>
                                                             </constraints>
                                                         </view>
-                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="sv-course">
-                                                            <rect key="frame" x="31" y="14" width="314" height="60"/>
+                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sv-course">
+                                                            <rect key="frame" x="35" y="14" width="310" height="68"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Computer Science 101" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-course-name">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="314" height="20.333333333333332"/>
-                                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                                                    <rect key="frame" x="0.0" y="0.0" width="310" height="21.666666666666668"/>
+                                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
                                                                     <nil key="textColor"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
-                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="4 Topics  •  12 Tasks Done" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-course-subtitle">
-                                                                    <rect key="frame" x="0.0" y="26.333333333333336" width="314" height="15.666666666666664"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="📚 4 Modules  •  12/20 Lessons Done" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-course-subtitle">
+                                                                    <rect key="frame" x="0.0" y="29.666666666666664" width="310" height="17"/>
+                                                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                     <color key="textColor" systemColor="secondaryLabelColor"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
-                                                                <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sv-course-prog">
-                                                                    <rect key="frame" x="0.0" y="48" width="314" height="12"/>
+                                                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="sv-course-prog">
+                                                                    <rect key="frame" x="0.0" y="54.666666666666664" width="310" height="13.333333333333336"/>
                                                                     <subviews>
                                                                         <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="pv-course">
-                                                                            <rect key="frame" x="0.0" y="4" width="272" height="4"/>
+                                                                            <rect key="frame" x="0.0" y="4" width="260" height="5"/>
+                                                                            <constraints>
+                                                                                <constraint firstAttribute="height" constant="5" id="h-course-pv"/>
+                                                                            </constraints>
                                                                         </progressView>
                                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="50%" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-course-percent">
-                                                                            <rect key="frame" x="280" y="0.0" width="34" height="12"/>
+                                                                            <rect key="frame" x="270" y="0.0" width="40" height="13.333333333333334"/>
                                                                             <constraints>
-                                                                                <constraint firstAttribute="width" constant="34" id="w-course-percent"/>
+                                                                                <constraint firstAttribute="width" constant="40" id="w-course-percent"/>
                                                                             </constraints>
-                                                                            <fontDescription key="fontDescription" type="system" weight="bold" pointSize="11"/>
+                                                                            <fontDescription key="fontDescription" type="system" weight="bold" pointSize="12"/>
                                                                             <color key="textColor" systemColor="secondaryLabelColor"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
@@ -173,21 +176,21 @@
                                                     </subviews>
                                                     <color key="backgroundColor" systemColor="secondarySystemGroupedBackgroundColor"/>
                                                     <constraints>
-                                                        <constraint firstItem="v-course-color" firstAttribute="leading" secondItem="v-course-card" secondAttribute="leading" constant="14" id="c-course-col-l"/>
+                                                        <constraint firstItem="v-course-color" firstAttribute="leading" secondItem="v-course-card" secondAttribute="leading" constant="16" id="c-course-col-l"/>
                                                         <constraint firstItem="v-course-color" firstAttribute="top" secondItem="v-course-card" secondAttribute="top" constant="16" id="c-course-col-t"/>
                                                         <constraint firstAttribute="bottom" secondItem="v-course-color" secondAttribute="bottom" constant="16" id="c-course-col-b"/>
-                                                        <constraint firstItem="sv-course" firstAttribute="leading" secondItem="v-course-color" secondAttribute="trailing" constant="12" id="c-course-sv-l"/>
+                                                        <constraint firstItem="sv-course" firstAttribute="leading" secondItem="v-course-color" secondAttribute="trailing" constant="14" id="c-course-sv-l"/>
                                                         <constraint firstAttribute="trailing" secondItem="sv-course" secondAttribute="trailing" constant="16" id="c-course-sv-r"/>
                                                         <constraint firstItem="sv-course" firstAttribute="top" secondItem="v-course-card" secondAttribute="top" constant="14" id="c-course-sv-t"/>
-                                                        <constraint firstAttribute="bottom" secondItem="sv-course-card" secondAttribute="bottom" constant="14" id="c-course-sv-b"/>
+                                                        <constraint firstAttribute="bottom" secondItem="sv-course" secondAttribute="bottom" constant="14" id="c-course-sv-b"/>
                                                     </constraints>
                                                 </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="v-course-card" firstAttribute="leading" secondItem="cv-course" secondAttribute="leading" constant="16" id="c-course-crd-l"/>
                                                 <constraint firstAttribute="trailing" secondItem="v-course-card" secondAttribute="trailing" constant="16" id="c-course-crd-r"/>
-                                                <constraint firstItem="v-course-card" firstAttribute="top" secondItem="cv-course" secondAttribute="top" constant="6" id="c-course-crd-t"/>
-                                                <constraint firstAttribute="bottom" secondItem="v-course-card" secondAttribute="bottom" constant="6" id="c-course-crd-b"/>
+                                                <constraint firstItem="v-course-card" firstAttribute="top" secondItem="cv-course" secondAttribute="top" constant="8" id="c-course-crd-t"/>
+                                                <constraint firstAttribute="bottom" secondItem="v-course-card" secondAttribute="bottom" constant="8" id="c-course-crd-b"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
