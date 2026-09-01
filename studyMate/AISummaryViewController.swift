@@ -65,7 +65,7 @@ class AISummaryViewController: UIViewController {
         }
     }
     
-    // MARK: - AI Content Generation (async/await)
+    // MARK: - AI Content Generation
     private func fetchAIContent() {
         guard !isLoading else { return }
         
@@ -74,29 +74,35 @@ class AISummaryViewController: UIViewController {
         // Show Loading State
         setLoadingState(true, message: isSummaryMode ? "🤖 Generating study summary..." : "🎯 Generating practice quiz questions...")
         
-        Task {
-            do {
-                if isSummaryMode {
-                    let result = try await AIService.shared.generateSummary(for: self.topic)
-                    await MainActor.run {
-                        self.loadedSummaryText = result
-                        self.displayContent(result)
+        if isSummaryMode {
+            AIService.shared.generateSummary(for: self.topic) { [weak self] result in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let summary):
+                        self.loadedSummaryText = summary
+                        self.displayContent(summary)
                         self.setLoadingState(false, message: "Summary generated successfully!")
-                        // Auto-save generated summary to Core Data
-                        CoreDataManager.shared.saveAISummary(content: result, for: self.topic)
-                    }
-                } else {
-                    let result = try await AIService.shared.generateQuiz(for: self.topic)
-                    await MainActor.run {
-                        self.loadedQuizText = result
-                        self.displayContent(result)
-                        self.setLoadingState(false, message: "Quiz generated successfully!")
+                        CoreDataManager.shared.saveAISummary(content: summary, for: self.topic)
+                    case .failure(let error):
+                        self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
+                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your internet connection or settings, then tap 'Regenerate' to try again."
                     }
                 }
-            } catch {
-                await MainActor.run {
-                    self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
-                    self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your internet connection or settings, then tap 'Regenerate' to try again."
+            }
+        } else {
+            AIService.shared.generateQuiz(for: self.topic) { [weak self] result in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let quiz):
+                        self.loadedQuizText = quiz
+                        self.displayContent(quiz)
+                        self.setLoadingState(false, message: "Quiz generated successfully!")
+                    case .failure(let error):
+                        self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
+                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your internet connection or settings, then tap 'Regenerate' to try again."
+                    }
                 }
             }
         }

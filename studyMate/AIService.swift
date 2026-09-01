@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Handles AI Notes Summarization and Quiz Generation using Google Gemini API (gemini-3.7-flash) with URLSession & async/await.
+//  Purpose: Handles AI Notes Summarization and Quiz Generation using Google Gemini API (gemini-3.7-flash) with URLSession dataTask.
 //
 
 import Foundation
@@ -19,9 +19,10 @@ class AIService {
     
     // MARK: - Generate AI Summary
     /// Generates a structured revision summary for a given Topic and its task notes using Gemini AI
-    func generateSummary(for topic: Topic) async throws -> String {
+    func generateSummary(for topic: Topic, completion: @escaping (Result<String, APIError>) -> Void) {
         guard UserDefaultsManager.shared.isAIEnabled else {
-            throw APIError.aiDisabled
+            completion(.failure(.aiDisabled))
+            return
         }
         
         let topicTitle = topic.title ?? "General Topic"
@@ -52,22 +53,26 @@ class AIService {
         """
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            do {
-                return try await callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model)
-            } catch {
-                print("⚠️ Gemini API call failed (\(error.localizedDescription)), falling back to smart simulation...")
-                return try await generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent)
+            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model) { [weak self] result in
+                switch result {
+                case .success(let text):
+                    completion(.success(text))
+                case .failure(let error):
+                    print("⚠️ Gemini API call failed (\(error.localizedDescription)), falling back to smart simulation...")
+                    self?.generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent, completion: completion)
+                }
             }
         } else {
-            return try await generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent)
+            generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent, completion: completion)
         }
     }
     
     // MARK: - Generate AI Quiz
     /// Generates 3-4 interactive practice quiz questions with explanations for revision
-    func generateQuiz(for topic: Topic) async throws -> String {
+    func generateQuiz(for topic: Topic, completion: @escaping (Result<String, APIError>) -> Void) {
         guard UserDefaultsManager.shared.isAIEnabled else {
-            throw APIError.aiDisabled
+            completion(.failure(.aiDisabled))
+            return
         }
         
         let topicTitle = topic.title ?? "General Topic"
@@ -94,23 +99,27 @@ class AIService {
         """
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            do {
-                return try await callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model)
-            } catch {
-                print("⚠️ Gemini API call failed (\(error.localizedDescription)), falling back to smart simulation...")
-                return try await generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks)
+            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model) { [weak self] result in
+                switch result {
+                case .success(let text):
+                    completion(.success(text))
+                case .failure(let error):
+                    print("⚠️ Gemini API call failed (\(error.localizedDescription)), falling back to smart simulation...")
+                    self?.generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks, completion: completion)
+                }
             }
         } else {
-            return try await generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks)
+            generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks, completion: completion)
         }
     }
     
-    // MARK: - Google Gemini REST API Call (URLSession + async/await)
-    private func callGeminiAPI(prompt: String, apiKey: String, model: String) async throws -> String {
+    // MARK: - Google Gemini REST API Call (URLSession dataTask)
+    private func callGeminiAPI(prompt: String, apiKey: String, model: String, completion: @escaping (Result<String, APIError>) -> Void) {
         let endpointString = "\(geminiBaseURL)/\(model):generateContent?key=\(apiKey)"
         
         guard let url = URL(string: endpointString) else {
-            throw APIError.invalidURL
+            completion(.failure(.invalidURL))
+            return
         }
         
         var request = URLRequest(url: url)
@@ -133,96 +142,122 @@ class AIService {
             ]
         ]
         
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.serverError("Invalid server response.")
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+        } catch {
+            completion(.failure(.decodingFailed))
+            return
         }
         
-        guard (200...299).contains(httpResponse.statusCode) else {
-            // Attempt to parse error message from Gemini JSON
-            if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let errorObj = errorJson["error"] as? [String: Any],
-               let message = errorObj["message"] as? String {
-                throw APIError.serverError(message)
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            if let _ = error {
+                completion(.failure(.noInternet))
+                return
             }
-            throw APIError.serverError("HTTP \(httpResponse.statusCode)")
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(.serverError("Invalid server response.")))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(.missingData))
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Attempt to parse error message from Gemini JSON
+                if let errorJson = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let errorObj = errorJson["error"] as? [String: Any],
+                   let message = errorObj["message"] as? String {
+                    completion(.failure(.serverError(message)))
+                    return
+                }
+                completion(.failure(.serverError("HTTP \(httpResponse.statusCode)")))
+                return
+            }
+            
+            // Parse Gemini Response: candidates[0].content.parts[0].text
+            guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let candidates = json["candidates"] as? [[String: Any]],
+                  let firstCandidate = candidates.first,
+                  let content = firstCandidate["content"] as? [String: Any],
+                  let parts = content["parts"] as? [[String: Any]],
+                  let firstPart = parts.first,
+                  let generatedText = firstPart["text"] as? String else {
+                completion(.failure(.decodingFailed))
+                return
+            }
+            
+            let trimmedText = generatedText.trimmingCharacters(in: .whitespacesAndNewlines)
+            completion(.success(trimmedText))
         }
         
-        // Parse Gemini Response: candidates[0].content.parts[0].text
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let candidates = json["candidates"] as? [[String: Any]],
-              let firstCandidate = candidates.first,
-              let content = firstCandidate["content"] as? [String: Any],
-              let parts = content["parts"] as? [[String: Any]],
-              let firstPart = parts.first,
-              let generatedText = firstPart["text"] as? String else {
-            throw APIError.decodingFailed
-        }
-        
-        return generatedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        task.resume()
     }
     
     // MARK: - Smart Offline Simulation (Fallback)
-    private func generateSimulatedSummary(topicTitle: String, tasks: Set<Task>, notes: String) async throws -> String {
-        try await Task.sleep(nanoseconds: 1_200_000_000)
-        
-        let taskTitles = tasks.map { "• \($0.title ?? "Task")" }.joined(separator: "\n")
-        
-        return """
-        📚 AI Study Summary: \(topicTitle)
-        
-        📌 Overview:
-        This topic covers the fundamental principles and implementation details of "\(topicTitle)". Mastering these concepts will solidify your understanding and practical problem-solving skills.
-        
-        🎯 Key Topics & Tasks:
-        \(taskTitles.isEmpty ? "• Core concepts and foundational exercises" : taskTitles)
-        
-        💡 Important Notes & Takeaways:
-        \(notes.isEmpty ? "• Focus on mastering core terminology, time complexities, and real-world trade-offs.\n• Practice writing code without auto-completion for better retention." : notes)
-        
-        ⚡ Pro Study Tip:
-        Use the Feynman Technique: Try explaining this topic in simple terms to a peer without looking at the notes!
-        """
+    private func generateSimulatedSummary(topicTitle: String, tasks: Set<Task>, notes: String, completion: @escaping (Result<String, APIError>) -> Void) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1.2) {
+            let taskTitles = tasks.map { "• \($0.title ?? "Task")" }.joined(separator: "\n")
+            
+            let summary = """
+            📚 AI Study Summary: \(topicTitle)
+            
+            📌 Overview:
+            This topic covers the fundamental principles and implementation details of "\(topicTitle)". Mastering these concepts will solidify your understanding and practical problem-solving skills.
+            
+            🎯 Key Topics & Tasks:
+            \(taskTitles.isEmpty ? "• Core concepts and foundational exercises" : taskTitles)
+            
+            💡 Important Notes & Takeaways:
+            \(notes.isEmpty ? "• Focus on mastering core terminology, time complexities, and real-world trade-offs.\n• Practice writing code without auto-completion for better retention." : notes)
+            
+            ⚡ Pro Study Tip:
+            Use the Feynman Technique: Try explaining this topic in simple terms to a peer without looking at the notes!
+            """
+            
+            completion(.success(summary))
+        }
     }
     
-    private func generateSimulatedQuiz(topicTitle: String, tasks: Set<Task>) async throws -> String {
-        try await Task.sleep(nanoseconds: 1_200_000_000)
-        
-        let sampleTaskName = tasks.first?.title ?? "Core Concept"
-        
-        return """
-        📝 Practice Quiz: \(topicTitle)
-        
-        Q1. What is the primary purpose of studying "\(topicTitle)"?
-        A) To optimize execution and code maintainability
-        B) To increase code complexity unnecessarily
-        C) Only for theoretical examinations
-        D) None of the above
-        ✅ Answer: A
-        💡 Explanation: Understanding "\(topicTitle)" helps in writing efficient, scalable, and maintainable software.
-        
-        ------------------------------------------
-        
-        Q2. In the context of "\(sampleTaskName)", what is the best practice?
-        A) Ignoring edge cases
-        B) Validating inputs and handling error states gracefully
-        C) Running heavy computations on the main thread
-        D) Hardcoding values
-        ✅ Answer: B
-        💡 Explanation: Defensive programming and proper error handling ensure application stability.
-        
-        ------------------------------------------
-        
-        Q3. How often should you revise this topic for long-term retention?
-        A) Never again
-        B) Spaced repetition (Day 1, Day 3, Day 7)
-        C) Only before the exam night
-        D) Once a year
-        ✅ Answer: B
-        💡 Explanation: Spaced repetition is scientifically proven to boost memory retention by over 80%.
-        """
+    private func generateSimulatedQuiz(topicTitle: String, tasks: Set<Task>, completion: @escaping (Result<String, APIError>) -> Void) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1.2) {
+            let sampleTaskName = tasks.first?.title ?? "Core Concept"
+            
+            let quiz = """
+            📝 Practice Quiz: \(topicTitle)
+            
+            Q1. What is the primary purpose of studying "\(topicTitle)"?
+            A) To optimize execution and code maintainability
+            B) To increase code complexity unnecessarily
+            C) Only for theoretical examinations
+            D) None of the above
+            ✅ Answer: A
+            💡 Explanation: Understanding "\(topicTitle)" helps in writing efficient, scalable, and maintainable software.
+            
+            ------------------------------------------
+            
+            Q2. In the context of "\(sampleTaskName)", what is the best practice?
+            A) Ignoring edge cases
+            B) Validating inputs and handling error states gracefully
+            C) Running heavy computations on the main thread
+            D) Hardcoding values
+            ✅ Answer: B
+            💡 Explanation: Defensive programming and proper error handling ensure application stability.
+            
+            ------------------------------------------
+            
+            Q3. How often should you revise this topic for long-term retention?
+            A) Never again
+            B) Spaced repetition (Day 1, Day 3, Day 7)
+            C) Only before the exam night
+            D) Once a year
+            ✅ Answer: B
+            💡 Explanation: Spaced repetition is scientifically proven to boost memory retention by over 80%.
+            """
+            
+            completion(.success(quiz))
+        }
     }
 }
