@@ -17,6 +17,7 @@ class TaskCell: UITableViewCell {
     @IBOutlet weak var cardContainerView: UIView?
     
     /// Closure callback invoked when the checkbox button is tapped
+    var onToggleDone: (() -> Void)?
     var onToggleCompletion: (() -> Void)?
     
     override func awakeFromNib() {
@@ -104,6 +105,7 @@ class TaskCell: UITableViewCell {
             }
         }
         
+        onToggleDone?()
         onToggleCompletion?()
     }
 }
