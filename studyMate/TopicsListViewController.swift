@@ -175,10 +175,10 @@ class TopicsListViewController: UIViewController {
             
             HapticHelper.success()
             if isEditing, let topic = existingTopic {
-                CoreDataManager.shared.updateTopic(topic, title: title)
+                CoreDataManager.shared.updateTopic(topic, title: title, deadline: topic.deadline)
                 self?.showToast(message: "Module updated!")
             } else if let course = self?.course {
-                CoreDataManager.shared.createTopic(title: title, course: course)
+                CoreDataManager.shared.createTopic(title: title, deadline: nil, course: course)
                 self?.showToast(message: "📖 Module Created!")
             }
             

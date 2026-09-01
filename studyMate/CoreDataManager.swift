@@ -101,7 +101,7 @@ class CoreDataManager {
     
     /// Creates a new topic under a course
     @discardableResult
-    func createTopic(title: String, deadline: Date?, course: Course) -> Topic {
+    func createTopic(title: String, deadline: Date? = nil, course: Course) -> Topic {
         let topic = Topic(context: context)
         topic.id = UUID()
         topic.title = title
@@ -112,9 +112,11 @@ class CoreDataManager {
     }
     
     /// Updates an existing topic
-    func updateTopic(_ topic: Topic, title: String, deadline: Date?) {
+    func updateTopic(_ topic: Topic, title: String, deadline: Date? = nil) {
         topic.title = title
-        topic.deadline = deadline
+        if let deadline = deadline {
+            topic.deadline = deadline
+        }
         saveContext()
     }
     
@@ -141,7 +143,7 @@ class CoreDataManager {
     
     /// Creates a new task under a topic
     @discardableResult
-    func createTask(title: String, notes: String?, isDone: Bool = false, topic: Topic) -> Task {
+    func createTask(title: String, notes: String? = nil, isDone: Bool = false, topic: Topic) -> Task {
         let task = Task(context: context)
         task.id = UUID()
         task.title = title
@@ -153,7 +155,7 @@ class CoreDataManager {
     }
     
     /// Updates an existing task
-    func updateTask(_ task: Task, title: String, notes: String?, isDone: Bool) {
+    func updateTask(_ task: Task, title: String, notes: String? = nil, isDone: Bool = false) {
         task.title = title
         task.notes = notes
         task.isDone = isDone
