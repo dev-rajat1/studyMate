@@ -951,7 +951,7 @@
                                     <constraint firstItem="sv-settings-container" firstAttribute="leading" secondItem="sv-settings-scroll" secondAttribute="leading" constant="16" id="c-settings-sc-l"/>
                                     <constraint firstAttribute="bottom" secondItem="sv-settings-container" secondAttribute="bottom" constant="16" id="c-settings-sc-b"/>
                                     <constraint firstAttribute="trailing" secondItem="sv-settings-container" secondAttribute="trailing" constant="16" id="c-settings-sc-r"/>
-                                    <constraint firstItem="sv-settings-container" firstAttribute="width" secondItem="sv-settings-scroll" secondAttribute="width" constant="-32" id="c-stats-sc-w"/>
+                                    <constraint firstItem="sv-settings-container" firstAttribute="width" secondItem="sv-settings-scroll" secondAttribute="width" constant="-32" id="c-settings-sc-w"/>
                                 </constraints>
                             </scrollView>
                         </subviews>
