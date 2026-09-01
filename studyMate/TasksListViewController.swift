@@ -115,12 +115,6 @@ class TasksListViewController: UIViewController {
             aiVC.topic = self.topic
             let nav = UINavigationController(rootViewController: aiVC)
             nav.modalPresentationStyle = .pageSheet
-            if #available(iOS 15.0, *) {
-                if let sheet = nav.sheetPresentationController {
-                    sheet.detents = [.medium(), .large()]
-                    sheet.prefersGrabberVisible = true
-                }
-            }
             present(nav, animated: true)
         }
     }
