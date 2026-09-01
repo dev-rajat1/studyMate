@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Full-Screen Rich Notes Reader & Editor with Top Important Toggle, Multi-Page Pagination, and Formatting Toolbar.
+//  Purpose: Full-Screen Rich Notes Reader & Editor with Top Important Toggle, Bottom Format Bar, and Bottom Pagination.
 //
 
 import UIKit
@@ -25,8 +25,11 @@ class TaskDetailViewController: UIViewController {
     private var pages: [String] = [""]
     private var currentPageIndex: Int = 0
     
-    // Pagination UI Elements
+    // Bottom Toolbars
+    private let bottomContainerView = UIView()
+    private let formatToolbar = UIToolbar()
     private let paginationContainer = UIView()
+    
     private let prevPageButton = UIButton(type: .system)
     private let nextPageButton = UIButton(type: .system)
     private let pageIndicatorLabel = UILabel()
@@ -41,14 +44,15 @@ class TaskDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupPaginationBar()
-        setupFormattingToolbar()
+        setupBottomControls()
+        setupFormattingAccessoryView()
         populateExistingData()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = taskToEdit == nil ? "New Lesson Notes" : (taskToEdit?.title ?? "Lesson Notes")
+        // Simple & Clean Title as requested: "Notes"
+        title = "Notes"
         view.backgroundColor = .systemGroupedBackground
         
         // Navigation Bar Buttons
@@ -67,7 +71,7 @@ class TaskDetailViewController: UIViewController {
             action: #selector(saveTapped)
         )
         
-        // Top Header "Mark Completed / Important" Button
+        // Top Header "Mark as Important / Completed" Toggle
         completionBarButton = UIBarButtonItem(
             image: UIImage(systemName: isCompletedState ? "checkmark.circle.fill" : "checkmark.circle"),
             style: .plain,
@@ -78,7 +82,8 @@ class TaskDetailViewController: UIViewController {
         
         navigationItem.rightBarButtonItems = [saveBtn, completionBarButton]
         
-        // Title Text Field (Compact & Modern)
+        // Title Text Field (Compact)
+        titleTextField?.placeholder = "Lesson / Note Title"
         titleTextField?.layer.cornerRadius = 10
         titleTextField?.backgroundColor = .secondarySystemGroupedBackground
         titleTextField?.font = .systemFont(ofSize: 16, weight: .semibold)
@@ -92,8 +97,40 @@ class TaskDetailViewController: UIViewController {
         notesTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
     }
     
-    // MARK: - Pagination UI Setup
-    private func setupPaginationBar() {
+    // MARK: - Bottom Controls: Format Bar above Pagination Bar
+    private func setupBottomControls() {
+        bottomContainerView.translatesAutoresizingMaskIntoConstraints = false
+        bottomContainerView.backgroundColor = .clear
+        view.addSubview(bottomContainerView)
+        
+        // 1. Format Bar (Bold, Italic, Highlight, Size, Dismiss)
+        formatToolbar.translatesAutoresizingMaskIntoConstraints = false
+        formatToolbar.barStyle = .default
+        formatToolbar.isTranslucent = true
+        formatToolbar.tintColor = .systemBlue
+        formatToolbar.layer.cornerRadius = 10
+        formatToolbar.clipsToBounds = true
+        
+        let boldBtn = UIBarButtonItem(title: "𝐁", style: .plain, target: self, action: #selector(formatBold))
+        let italicBtn = UIBarButtonItem(title: "𝐼", style: .plain, target: self, action: #selector(formatItalic))
+        let highlightBtn = UIBarButtonItem(title: "🖍️", style: .plain, target: self, action: #selector(formatHighlight))
+        let sizeBtn = UIBarButtonItem(title: "Tᴛ", style: .plain, target: self, action: #selector(formatSizeHeading))
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneBtn = UIBarButtonItem(image: UIImage(systemName: "keyboard.chevron.compact.down"), style: .plain, target: self, action: #selector(dismissKeyboard))
+        
+        formatToolbar.items = [
+            boldBtn,
+            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
+            italicBtn,
+            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
+            highlightBtn,
+            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
+            sizeBtn,
+            flexSpace,
+            doneBtn
+        ]
+        
+        // 2. Pagination Bar (at the very bottom)
         paginationContainer.translatesAutoresizingMaskIntoConstraints = false
         paginationContainer.applyCardStyle(cornerRadius: 10)
         paginationContainer.backgroundColor = .secondarySystemGroupedBackground
@@ -111,36 +148,52 @@ class TaskDetailViewController: UIViewController {
         pageIndicatorLabel.textColor = .systemPurple
         pageIndicatorLabel.textAlignment = .center
         
-        addPageButton.setTitle("➕ Add Page", for: .normal)
+        addPageButton.setTitle("➕ Page", for: .normal)
         addPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
         addPageButton.addTarget(self, action: #selector(addPageTapped), for: .touchUpInside)
         
-        let stack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
-        stack.axis = .horizontal
-        stack.distribution = .equalSpacing
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        let pagStack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
+        pagStack.axis = .horizontal
+        pagStack.distribution = .equalSpacing
+        pagStack.alignment = .center
+        pagStack.translatesAutoresizingMaskIntoConstraints = false
+        paginationContainer.addSubview(pagStack)
         
-        paginationContainer.addSubview(stack)
-        view.addSubview(paginationContainer)
+        bottomContainerView.addSubview(formatToolbar)
+        bottomContainerView.addSubview(paginationContainer)
         
-        guard let titleField = titleTextField else { return }
+        guard let notesView = notesTextView else { return }
         
         NSLayoutConstraint.activate([
-            paginationContainer.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 8),
-            paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            bottomContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            bottomContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            bottomContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -6),
+            
+            // Format Bar (Top of bottom container)
+            formatToolbar.topAnchor.constraint(equalTo: bottomContainerView.topAnchor),
+            formatToolbar.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor),
+            formatToolbar.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor),
+            formatToolbar.heightAnchor.constraint(equalToConstant: 40),
+            
+            // Pagination Bar (Directly below Format Bar)
+            paginationContainer.topAnchor.constraint(equalTo: formatToolbar.bottomAnchor, constant: 6),
+            paginationContainer.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor),
+            paginationContainer.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor),
+            paginationContainer.bottomAnchor.constraint(equalTo: bottomContainerView.bottomAnchor),
             paginationContainer.heightAnchor.constraint(equalToConstant: 38),
             
-            stack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -12),
-            stack.topAnchor.constraint(equalTo: paginationContainer.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor)
+            pagStack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 12),
+            pagStack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -12),
+            pagStack.topAnchor.constraint(equalTo: paginationContainer.topAnchor),
+            pagStack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor),
+            
+            // Ensure notes view does not overlap bottom container
+            notesView.bottomAnchor.constraint(lessThanOrEqualTo: bottomContainerView.topAnchor, constant: -8)
         ])
     }
     
-    // MARK: - Text Formatting Bar (Above Keyboard)
-    private func setupFormattingToolbar() {
+    // MARK: - Keyboard Accessory Formatting View
+    private func setupFormattingAccessoryView() {
         guard let textView = notesTextView else { return }
         
         let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44))
@@ -150,11 +203,8 @@ class TaskDetailViewController: UIViewController {
         
         let boldBtn = UIBarButtonItem(title: "𝐁", style: .plain, target: self, action: #selector(formatBold))
         let italicBtn = UIBarButtonItem(title: "𝐼", style: .plain, target: self, action: #selector(formatItalic))
-        let headingBtn = UIBarButtonItem(title: "H2", style: .plain, target: self, action: #selector(formatHeading))
-        let bulletBtn = UIBarButtonItem(title: "• List", style: .plain, target: self, action: #selector(formatBullet))
-        let checkBtn = UIBarButtonItem(title: "☑ Task", style: .plain, target: self, action: #selector(formatChecklist))
-        let tipBtn = UIBarButtonItem(title: "💡 Tip", style: .plain, target: self, action: #selector(formatTip))
-        let pinBtn = UIBarButtonItem(title: "📌 Note", style: .plain, target: self, action: #selector(formatPin))
+        let highlightBtn = UIBarButtonItem(title: "🖍️ Highlight", style: .plain, target: self, action: #selector(formatHighlight))
+        let sizeBtn = UIBarButtonItem(title: "Tᴛ Size", style: .plain, target: self, action: #selector(formatSizeHeading))
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneBtn = UIBarButtonItem(image: UIImage(systemName: "keyboard.chevron.compact.down"), style: .done, target: self, action: #selector(dismissKeyboard))
         
@@ -163,20 +213,13 @@ class TaskDetailViewController: UIViewController {
             UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
             italicBtn,
             UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-            headingBtn,
+            highlightBtn,
             UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-            bulletBtn,
-            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-            checkBtn,
-            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-            tipBtn,
-            UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-            pinBtn,
+            sizeBtn,
             flexSpace,
             doneBtn
         ]
         toolbar.sizeToFit()
-        
         textView.inputAccessoryView = toolbar
     }
     
@@ -188,19 +231,18 @@ class TaskDetailViewController: UIViewController {
             updateCompletionButtonAppearance()
             
             if let rawNotes = task.notes, !rawNotes.isEmpty {
-                // Split multi-page notes if delimiter exists
                 if rawNotes.contains(pageDelimiter) {
                     pages = rawNotes.components(separatedBy: pageDelimiter)
                 } else {
                     pages = [rawNotes]
                 }
             } else {
-                pages = ["## Summary\n• \n\n💡 Key Concept:\n\n📌 Formulas / Definitions:\n"]
+                pages = ["## Key Summary\n• \n\n💡 Highlight:\n\n📌 Notes:\n"]
             }
         } else {
             isCompletedState = false
             updateCompletionButtonAppearance()
-            pages = ["## Summary\n• \n\n💡 Key Concept:\n\n📌 Formulas / Definitions:\n"]
+            pages = ["## Key Summary\n• \n\n💡 Highlight:\n\n📌 Notes:\n"]
         }
         
         currentPageIndex = 0
@@ -272,7 +314,7 @@ class TaskDetailViewController: UIViewController {
         completionBarButton.tintColor = isCompletedState ? .systemGreen : .systemGray3
     }
     
-    // MARK: - Formatting Actions
+    // MARK: - Essential Formatting Actions (Bold, Italic, Highlight, Size)
     
     @objc private func formatBold() {
         wrapSelectedText(prefix: "**", suffix: "**", placeholder: "bold text")
@@ -282,24 +324,12 @@ class TaskDetailViewController: UIViewController {
         wrapSelectedText(prefix: "*", suffix: "*", placeholder: "italic text")
     }
     
-    @objc private func formatHeading() {
-        insertTextAtCursor(text: "\n## Key Topic: ")
+    @objc private func formatHighlight() {
+        wrapSelectedText(prefix: "== ", suffix: " ==", placeholder: "highlighted point")
     }
     
-    @objc private func formatBullet() {
-        insertTextAtCursor(text: "\n• ")
-    }
-    
-    @objc private func formatChecklist() {
-        insertTextAtCursor(text: "\n[ ] ")
-    }
-    
-    @objc private func formatTip() {
-        insertTextAtCursor(text: "\n💡 Pro Tip: ")
-    }
-    
-    @objc private func formatPin() {
-        insertTextAtCursor(text: "\n📌 Important Note: ")
+    @objc private func formatSizeHeading() {
+        insertTextAtCursor(text: "\n## Large Heading: ")
     }
     
     @objc private func dismissKeyboard() {
@@ -336,7 +366,7 @@ class TaskDetailViewController: UIViewController {
     // MARK: - Save & Dismiss
     @IBAction @objc func saveTapped(_ sender: Any) {
         guard let title = titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
-            showAlert(title: "Missing Title", message: "Please enter a title for this study lesson or notes.")
+            showAlert(title: "Missing Title", message: "Please enter a title for this note.")
             return
         }
         

@@ -447,10 +447,10 @@
                             <constraint firstItem="tf-detail-title" firstAttribute="top" secondItem="sa-task-detail" secondAttribute="top" constant="8" id="c-detail-tf-t"/>
                             <constraint firstItem="tf-detail-title" firstAttribute="leading" secondItem="sa-task-detail" secondAttribute="leading" constant="16" id="c-detail-tf-l"/>
                             <constraint firstItem="sa-task-detail" firstAttribute="trailing" secondItem="tf-detail-title" secondAttribute="trailing" constant="16" id="c-detail-tf-r"/>
-                            <constraint firstItem="tv-detail-notes" firstAttribute="top" secondItem="tf-detail-title" secondAttribute="bottom" constant="54" id="c-detail-tv-t"/>
+                            <constraint firstItem="tv-detail-notes" firstAttribute="top" secondItem="tf-detail-title" secondAttribute="bottom" constant="8" id="c-detail-tv-t"/>
                             <constraint firstItem="tv-detail-notes" firstAttribute="leading" secondItem="sa-task-detail" secondAttribute="leading" constant="16" id="c-detail-tv-l"/>
                             <constraint firstItem="sa-task-detail" firstAttribute="trailing" secondItem="tv-detail-notes" secondAttribute="trailing" constant="16" id="c-detail-tv-r"/>
-                            <constraint firstItem="sa-task-detail" firstAttribute="bottom" secondItem="tv-detail-notes" secondAttribute="bottom" constant="16" id="c-detail-tv-b"/>
+                            <constraint firstItem="sa-task-detail" firstAttribute="bottom" secondItem="tv-detail-notes" secondAttribute="bottom" constant="96" id="c-detail-tv-b"/>
                         </constraints>
                     </view>
                     <connections>
