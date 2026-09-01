@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Custom UITableViewCell for displaying a Course with color badge & task progress.
+//  Purpose: Custom UITableViewCell for displaying a Course with color badge & module/lesson progress.
 //
 
 import UIKit
@@ -47,10 +47,10 @@ class CourseCell: UITableViewCell {
             textLabel?.text = course.name ?? "Untitled Course"
         }
         
-        let topicsCount = (course.topics as? Set<Topic>)?.count ?? 0
+        let modulesCount = (course.topics as? Set<Topic>)?.count ?? 0
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         
-        let subtitle = "📚 \(topicsCount) \(topicsCount == 1 ? "Topic" : "Topics")  •  \(completedTasks)/\(totalTasks) Tasks Completed"
+        let subtitle = "📚 \(modulesCount) \(modulesCount == 1 ? "Module" : "Modules")  •  \(completedTasks)/\(totalTasks) Lessons Done"
         if let topicCountLabel = topicCountLabel {
             topicCountLabel.text = subtitle
         } else {

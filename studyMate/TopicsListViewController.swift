@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Displays all Topics/Modules under a selected Course with persistent Course Header banner.
+//  Purpose: Hierarchy Level 2 — Displays all Modules under a selected Course with persistent Course Header banner.
 //
 
 import UIKit
@@ -32,7 +32,8 @@ class TopicsListViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = course?.name ?? "Course Topics"
+        title = "Modules"
+        navigationItem.backButtonTitle = "Modules"
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
         
@@ -76,14 +77,14 @@ class TopicsListViewController: UIViewController {
         
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "📚 \(course.name ?? "Course")"
+        titleLabel.text = "📚 Course: \(course.name ?? "Course")"
         titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
         card.addSubview(titleLabel)
         
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         let subtitleLabel = UILabel()
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "\(topics.count) Modules/Topics • \(completedTasks)/\(totalTasks) Lessons Completed (\(Int(progress * 100))%)"
+        subtitleLabel.text = "📖 \(topics.count) \(topics.count == 1 ? "Module" : "Modules") • \(completedTasks)/\(totalTasks) Lessons Done (\(Int(progress * 100))%)"
         subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
         subtitleLabel.textColor = .secondaryLabel
         card.addSubview(subtitleLabel)
@@ -98,25 +99,25 @@ class TopicsListViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
-            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
             
-            colorTag.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            colorTag.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            colorTag.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+            colorTag.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            colorTag.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            colorTag.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
             colorTag.widthAnchor.constraint(equalToConstant: 5),
             
             titleLabel.leadingAnchor.constraint(equalTo: colorTag.trailingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
             
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             
             progressBar.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            progressBar.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            progressBar.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
             progressBar.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 8),
             progressBar.heightAnchor.constraint(equalToConstant: 5)
         ])
@@ -136,9 +137,9 @@ class TopicsListViewController: UIViewController {
         if topics.isEmpty {
             emptyStateLabel?.isHidden = false
             tableView.setEmptyState(
-                iconName: "bookmark",
-                title: "No Topics Added",
-                message: "Tap '+' in the top right to add\nchapters, topics, or units for \(course?.name ?? "this course")."
+                iconName: "square.stack.3d.up",
+                title: "No Modules Added",
+                message: "Tap '+' in the top right to add\nmodules for \(course?.name ?? "this course")."
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -155,81 +156,35 @@ class TopicsListViewController: UIViewController {
     private func showTopicPrompt(existingTopic: Topic?) {
         let isEditing = existingTopic != nil
         let alert = UIAlertController(
-            title: isEditing ? "Edit Topic" : "New Study Topic",
-            message: "Enter topic name (e.g. Dynamic Programming, Newton's Laws).",
+            title: isEditing ? "Edit Module" : "Create New Module",
+            message: "Enter module name for \(course?.name ?? "Course").",
             preferredStyle: .alert
         )
         
         alert.addTextField { textField in
-            textField.placeholder = "Topic Title"
+            textField.placeholder = "e.g. Module 1: Binary Trees"
             textField.text = existingTopic?.title
             textField.autocapitalizationType = .sentences
         }
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Next: Target Deadline", style: .default, handler: { [weak self] _ in
-            guard let title = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
-                  let self = self else { return }
-            
-            if isEditing, let topic = existingTopic {
-                CoreDataManager.shared.updateTopic(topic, title: title, deadline: topic.deadline)
-                self.loadTopics()
-                self.setupHeaderBanner()
-                self.showToast(message: "Topic updated!")
-            } else {
-                self.promptForTopicDeadline(title: title)
+        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Add Module", style: .default, handler: { [weak self] _ in
+            guard let title = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
+                return
             }
-        }))
-        
-        present(alert, animated: true)
-    }
-    
-    private func promptForTopicDeadline(title: String) {
-        let alert = UIAlertController(title: "Target Completion", message: "Choose target deadline for this topic", preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: "⏰ Due Today", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
+            
             HapticHelper.success()
-            CoreDataManager.shared.createTopic(title: title, deadline: Date(), course: self.course)
-            self.loadTopics()
-            self.setupHeaderBanner()
-            self.showToast(message: "Topic added for Today!")
+            if isEditing, let topic = existingTopic {
+                CoreDataManager.shared.updateTopic(topic, title: title)
+                self?.showToast(message: "Module updated!")
+            } else if let course = self?.course {
+                CoreDataManager.shared.createTopic(title: title, course: course)
+                self?.showToast(message: "📖 Module Created!")
+            }
+            
+            self?.loadTopics()
+            self?.setupHeaderBanner()
         }))
-        
-        alert.addAction(UIAlertAction(title: "📅 In 3 Days", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            HapticHelper.success()
-            let targetDate = Calendar.current.date(byAdding: .day, value: 3, to: Date())
-            CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
-            self.loadTopics()
-            self.setupHeaderBanner()
-            self.showToast(message: "Topic created!")
-        }))
-        
-        alert.addAction(UIAlertAction(title: "🗓 Next Week", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            HapticHelper.success()
-            let targetDate = Calendar.current.date(byAdding: .day, value: 7, to: Date())
-            CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
-            self.loadTopics()
-            self.setupHeaderBanner()
-            self.showToast(message: "Topic created!")
-        }))
-        
-        alert.addAction(UIAlertAction(title: "⚪ No Deadline", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            HapticHelper.success()
-            CoreDataManager.shared.createTopic(title: title, deadline: nil, course: self.course)
-            self.loadTopics()
-            self.setupHeaderBanner()
-            self.showToast(message: "Topic created!")
-        }))
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        if let popover = alert.popoverPresentationController {
-            popover.barButtonItem = navigationItem.rightBarButtonItem
-        }
         
         present(alert, animated: true)
     }
@@ -252,7 +207,8 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultTopicCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "DefaultTopicCell")
         cell.textLabel?.text = topic.title
-        cell.detailTextLabel?.text = topic.deadline != nil ? "Due: \(topic.deadline!.formattedDate())" : "No deadline"
+        let (total, completed, _) = CoreDataManager.shared.getTopicProgress(topic: topic)
+        cell.detailTextLabel?.text = "\(completed)/\(total) lessons completed"
         cell.accessoryType = .disclosureIndicator
         return cell
     }
@@ -274,21 +230,28 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
-                title: "Delete Topic?",
-                message: "Deleting '\(topic.title ?? "this topic")' will remove all its study tasks and notes.",
-                confirmTitle: "Delete",
+                title: "Delete Module?",
+                message: "Deleting '\(topic.title ?? "this module")' will remove all its lessons and notes.",
+                confirmTitle: "Delete All",
                 isDestructive: true,
                 onConfirm: {
                     CoreDataManager.shared.deleteTopic(topic)
                     self?.loadTopics()
                     self?.setupHeaderBanner()
-                    self?.showToast(message: "Topic removed.")
+                    self?.showToast(message: "Module deleted.")
                     completion(true)
                 }
             )
         }
         deleteAction.image = UIImage(systemName: "trash")
         
-        return UISwipeActionsConfiguration(actions: [deleteAction])
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { [weak self] (_, _, completion) in
+            self?.showTopicPrompt(existingTopic: topic)
+            completion(true)
+        }
+        editAction.backgroundColor = .systemBlue
+        editAction.image = UIImage(systemName: "pencil")
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
 }

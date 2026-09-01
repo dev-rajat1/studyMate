@@ -48,6 +48,11 @@ class TaskDetailViewController: UIViewController {
     // MARK: - UI Setup
     private func setupUI() {
         title = "Notes"
+        if let topic = topic {
+            let courseName = topic.course?.name ?? "Course"
+            let moduleName = topic.title ?? "Module"
+            navigationItem.prompt = "📚 \(courseName)  ›  📖 \(moduleName)"
+        }
         view.backgroundColor = .systemGroupedBackground
         
         // Navigation Bar Buttons

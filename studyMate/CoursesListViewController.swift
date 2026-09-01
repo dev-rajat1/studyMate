@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Tab 2 Root — Lists all Courses with progress and handles Course creation/deletion.
+//  Purpose: Hierarchy Level 1 — Lists all Courses with progress and handles Course creation/deletion.
 //
 
 import UIKit
@@ -30,7 +30,8 @@ class CoursesListViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = "My Courses"
+        title = "Courses"
+        navigationItem.backButtonTitle = "Courses"
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
         
@@ -53,7 +54,7 @@ class CoursesListViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 95
+        tableView.estimatedRowHeight = 100
     }
     
     // MARK: - Data Management
@@ -87,12 +88,12 @@ class CoursesListViewController: UIViewController {
         let isEditing = existingCourse != nil
         let alert = UIAlertController(
             title: isEditing ? "Edit Course" : "Create New Course",
-            message: "Enter course name to start organizing your study topics.",
+            message: "Enter course name (e.g. Machine Learning, Physics).",
             preferredStyle: .alert
         )
         
         alert.addTextField { textField in
-            textField.placeholder = "e.g. Machine Learning, Physics"
+            textField.placeholder = "Course Name"
             textField.text = existingCourse?.name
             textField.autocapitalizationType = .words
         }
@@ -155,7 +156,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultCourseCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "DefaultCourseCell")
         cell.textLabel?.text = course.name
         let (total, completed, _) = CoreDataManager.shared.getCourseProgress(course: course)
-        cell.detailTextLabel?.text = "\(completed)/\(total) tasks completed"
+        cell.detailTextLabel?.text = "\(completed)/\(total) lessons completed"
         cell.accessoryType = .disclosureIndicator
         return cell
     }
@@ -178,7 +179,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
                 title: "Delete Course?",
-                message: "Deleting '\(course.name ?? "this course")' will remove all associated topics, tasks, and AI summaries.",
+                message: "Deleting '\(course.name ?? "this course")' will remove all its modules, lessons, and notes.",
                 confirmTitle: "Delete All",
                 isDestructive: true,
                 onConfirm: {
