@@ -308,11 +308,6 @@
                                     <constraint firstAttribute="trailing" secondItem="lbl-tasks-progress" secondAttribute="trailing" constant="8" id="c-tasks-prog-r"/>
                                     <constraint firstItem="lbl-tasks-progress" firstAttribute="top" secondItem="pv-tasks" secondAttribute="bottom" constant="8" id="c-tasks-prog-t"/>
                                 </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <integer key="value" value="10"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="80" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="tv-tasks">
                                 <rect key="frame" x="0.0" y="125" width="393" height="693"/>

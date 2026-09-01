@@ -38,12 +38,6 @@
                                             <constraint firstItem="iv-splash-logo" firstAttribute="centerX" secondItem="v-splash-icon-bg" secondAttribute="centerX" id="cx-splash-img"/>
                                             <constraint firstItem="iv-splash-logo" firstAttribute="centerY" secondItem="v-splash-icon-bg" secondAttribute="centerY" id="cy-splash-img"/>
                                         </constraints>
-                                        <userDefinedRuntimeAttributes>
-                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                                <integer key="value" value="24"/>
-                                            </userDefinedRuntimeAttribute>
-                                            <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
-                                        </userDefinedRuntimeAttributes>
                                     </view>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="sv-splash-titles">
                                         <rect key="frame" x="0.0" y="110" width="320" height="90"/>
