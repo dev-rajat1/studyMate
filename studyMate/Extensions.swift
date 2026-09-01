@@ -18,7 +18,7 @@ extension Date {
         return formatter.string(from: self)
     }
     
-    /// Returns relative deadline text (e.g., "Today", "Tomorrow", "Overdue", or formatted date)
+    /// Returns relative deadline text (e.g., "Due Today", "Due Tomorrow", "Overdue", or formatted date)
     func deadlineRelativeString() -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(self) {
@@ -80,23 +80,25 @@ extension UIViewController {
     func showToast(message: String) {
         let toastLabel = UILabel()
         toastLabel.text = message
-        toastLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        toastLabel.font = .systemFont(ofSize: 14, weight: .semibold)
         toastLabel.textColor = .white
-        toastLabel.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        toastLabel.backgroundColor = UIColor(white: 0.15, alpha: 0.95)
         toastLabel.textAlignment = .center
-        toastLabel.layer.cornerRadius = 16
+        toastLabel.layer.cornerRadius = 18
         toastLabel.clipsToBounds = true
         toastLabel.alpha = 0.0
         
-        let width = min(self.view.frame.width - 60, CGFloat(message.count * 10 + 40))
-        toastLabel.frame = CGRect(x: (self.view.frame.width - width) / 2, y: self.view.frame.height - 140, width: width, height: 38)
+        let width = min(self.view.frame.width - 48, CGFloat(message.count * 9 + 48))
+        toastLabel.frame = CGRect(x: (self.view.frame.width - width) / 2, y: self.view.frame.height - 140, width: width, height: 40)
         self.view.addSubview(toastLabel)
         
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.25, animations: {
             toastLabel.alpha = 1.0
+            toastLabel.transform = CGAffineTransform(translationX: 0, y: -8)
         }) { _ in
-            UIView.animate(withDuration: 0.3, delay: 1.5, options: .curveEaseOut, animations: {
+            UIView.animate(withDuration: 0.25, delay: 1.5, options: .curveEaseOut, animations: {
                 toastLabel.alpha = 0.0
+                toastLabel.transform = .identity
             }) { _ in
                 toastLabel.removeFromSuperview()
             }
@@ -106,14 +108,17 @@ extension UIViewController {
 
 // MARK: - UIView Styling Helpers
 extension UIView {
-    /// Adds rounded corner and soft modern card shadow
+    /// Adds rounded corner, subtle border, and soft modern card shadow
     func applyCardStyle(cornerRadius: CGFloat = 14.0) {
         self.layer.cornerRadius = cornerRadius
         self.layer.masksToBounds = false
+        self.backgroundColor = .secondarySystemGroupedBackground
+        self.layer.borderWidth = 0.5
+        self.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
         self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.06
-        self.layer.shadowOffset = CGSize(width: 0, height: 4)
-        self.layer.shadowRadius = 8
+        self.layer.shadowOpacity = 0.05
+        self.layer.shadowOffset = CGSize(width: 0, height: 3)
+        self.layer.shadowRadius = 6
     }
     
     /// Adds a pill badge shape
@@ -131,16 +136,16 @@ extension UITableView {
         let stack = UIStackView()
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = 12
+        stack.spacing = 14
         stack.translatesAutoresizingMaskIntoConstraints = false
         
-        let config = UIImage.SymbolConfiguration(pointSize: 44, weight: .light)
+        let config = UIImage.SymbolConfiguration(pointSize: 48, weight: .light)
         let imageView = UIImageView(image: UIImage(systemName: iconName, withConfiguration: config))
         imageView.tintColor = .systemGray3
         
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 19, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         
@@ -159,7 +164,7 @@ extension UITableView {
         
         NSLayoutConstraint.activate([
             stack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -30),
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -20),
             stack.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 32),
             stack.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -32)
         ])
