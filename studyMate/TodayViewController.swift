@@ -32,7 +32,7 @@ class TodayViewController: UIViewController {
     private func setupUI() {
         title = "Today's Focus"
         navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemGroupedBackgroundColor
+        view.backgroundColor = .systemGroupedBackground
         
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .insetGrouped)

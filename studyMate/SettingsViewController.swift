@@ -31,7 +31,7 @@ class SettingsViewController: UIViewController {
     private func setupUI() {
         title = "Settings"
         navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemGroupedBackgroundColor
+        view.backgroundColor = .systemGroupedBackground
         
         appearanceCard?.applyCardStyle(cornerRadius: 16)
         aiSettingsCard?.applyCardStyle(cornerRadius: 16)

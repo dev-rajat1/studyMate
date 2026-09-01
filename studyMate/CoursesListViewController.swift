@@ -32,7 +32,7 @@ class CoursesListViewController: UIViewController {
     private func setupUI() {
         title = "My Courses"
         navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemGroupedBackgroundColor
+        view.backgroundColor = .systemGroupedBackground
         
         // Add Course "+" Button in Navigation Bar
         navigationItem.rightBarButtonItem = UIBarButtonItem(

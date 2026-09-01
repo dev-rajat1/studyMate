@@ -33,7 +33,7 @@ class TopicsListViewController: UIViewController {
     private func setupUI() {
         title = course?.name ?? "Topics"
         navigationItem.largeTitleDisplayMode = .always
-        view.backgroundColor = .systemGroupedBackgroundColor
+        view.backgroundColor = .systemGroupedBackground
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "plus"),

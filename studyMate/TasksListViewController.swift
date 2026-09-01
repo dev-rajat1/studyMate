@@ -35,7 +35,7 @@ class TasksListViewController: UIViewController {
     private func setupUI() {
         title = topic?.title ?? "Tasks"
         navigationItem.largeTitleDisplayMode = .never
-        view.backgroundColor = .systemGroupedBackgroundColor
+        view.backgroundColor = .systemGroupedBackground
         
         let aiButton = UIBarButtonItem(
             image: UIImage(systemName: "sparkles"),
