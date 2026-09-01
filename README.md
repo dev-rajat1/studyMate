@@ -5,7 +5,7 @@
 [![UI Framework](https://img.shields.io/badge/UI-UIKit%20%2B%20Storyboards-purple)](https://developer.apple.com/documentation/uikit)
 [![Database](https://img.shields.io/badge/Storage-Core%20Data-green)](https://developer.apple.com/documentation/coredata)
 [![AI Model](https://img.shields.io/badge/AI%20Engine-Gemini%203.7%20Flash-blueviolet?logo=google)](https://ai.google.dev/)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
+
 
 > **StudyMate AI** is a modern, offline-first iOS study management app built with **Swift, UIKit, and Core Data**, powered by **Google Gemini 3.7 Flash AI**. It helps students structure coursework hierarchically (**Course ➡️ Module ➡️ Lesson ➡️ Notes**), generates tailored multi-question practice quizzes based on notes length, and tracks real-time academic productivity.
 
@@ -145,10 +145,6 @@ StudyMate AI comes pre-configured with support for **Google Gemini 3.7 Flash**:
 
 ## 👨‍💻 Author & Credits
 
-* **Developer:** Rajat ([@dev-rajat1](https://github.com/dev-rajat1))
+* **Developer:** ([@dev-rajat1](https://github.com/dev-rajat1))
 * **Architecture:** Native Swift UIKit with Core Data & Google Gemini AI.
-
 ---
-
-## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
