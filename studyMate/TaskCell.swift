@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Custom UITableViewCell for displaying a Task with a completion checkbox & notes.
+//  Purpose: Custom UITableViewCell for displaying a Task with a completion checkbox & notes preview.
 //
 
 import UIKit
@@ -25,12 +25,20 @@ class TaskCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         
-        cardContainerView?.applyCardStyle(cornerRadius: 12)
+        cardContainerView?.applyCardStyle(cornerRadius: 14)
+    }
+    
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        UIView.animate(withDuration: 0.15) {
+            self.cardContainerView?.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+            self.cardContainerView?.alpha = highlighted ? 0.9 : 1.0
+        }
     }
     
     /// Configures the cell with Task details
     func configure(with task: Task) {
-        let taskTitle = task.title ?? "Untitled Task"
+        let taskTitle = task.title ?? "Untitled Lesson / Task"
         
         // Strike-through text style if completed
         if task.isDone {
@@ -52,14 +60,16 @@ class TaskCell: UITableViewCell {
         
         // Notes preview
         if let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            notesLabel?.text = "📝 \(notes)"
+            let cleanedNotes = notes.replacingOccurrences(of: "\n", with: " • ")
+            notesLabel?.text = "📝 \(cleanedNotes)"
             notesLabel?.isHidden = false
             if notesLabel == nil {
-                detailTextLabel?.text = notes
+                detailTextLabel?.text = "📝 \(cleanedNotes)"
             }
         } else {
-            notesLabel?.text = nil
-            notesLabel?.isHidden = true
+            notesLabel?.text = "📝 Tap to add study notes & summary..."
+            notesLabel?.textColor = .tertiaryLabel
+            notesLabel?.isHidden = false
             if notesLabel == nil {
                 detailTextLabel?.text = nil
             }
@@ -84,10 +94,8 @@ class TaskCell: UITableViewCell {
     
     // MARK: - IBActions
     @IBAction func checkboxTapped(_ sender: UIButton) {
-        // Haptic feedback
         HapticHelper.lightImpact()
         
-        // Small bounce animation on tap
         UIView.animate(withDuration: 0.1, animations: {
             sender.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
         }) { _ in

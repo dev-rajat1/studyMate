@@ -25,10 +25,18 @@ class CourseCell: UITableViewCell {
         contentView.backgroundColor = .clear
         
         cardContainerView?.applyCardStyle(cornerRadius: 14)
-        colorTagView?.layer.cornerRadius = 3
+        colorTagView?.layer.cornerRadius = 2.5
         colorTagView?.layer.masksToBounds = true
-        progressBar?.layer.cornerRadius = 2
+        progressBar?.layer.cornerRadius = 3
         progressBar?.clipsToBounds = true
+    }
+    
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        UIView.animate(withDuration: 0.15) {
+            self.cardContainerView?.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+            self.cardContainerView?.alpha = highlighted ? 0.9 : 1.0
+        }
     }
     
     /// Configures cell with Course data and calculated progress
@@ -42,7 +50,7 @@ class CourseCell: UITableViewCell {
         let topicsCount = (course.topics as? Set<Topic>)?.count ?? 0
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         
-        let subtitle = "\(topicsCount) \(topicsCount == 1 ? "Topic" : "Topics")  •  \(completedTasks)/\(totalTasks) Tasks Done"
+        let subtitle = "📚 \(topicsCount) \(topicsCount == 1 ? "Topic" : "Topics")  •  \(completedTasks)/\(totalTasks) Tasks Completed"
         if let topicCountLabel = topicCountLabel {
             topicCountLabel.text = subtitle
         } else {
@@ -56,7 +64,13 @@ class CourseCell: UITableViewCell {
         // Progress Bar
         progressBar?.progress = progress
         progressBar?.tintColor = courseColor
-        progressLabel?.text = totalTasks > 0 ? "\(Int(progress * 100))%" : "0%"
-        progressLabel?.textColor = totalTasks > 0 && progress >= 1.0 ? .systemGreen : .secondaryLabel
+        
+        if totalTasks > 0 {
+            progressLabel?.text = "\(Int(progress * 100))%"
+            progressLabel?.textColor = progress >= 1.0 ? .systemGreen : .secondaryLabel
+        } else {
+            progressLabel?.text = "0%"
+            progressLabel?.textColor = .tertiaryLabel
+        }
     }
 }

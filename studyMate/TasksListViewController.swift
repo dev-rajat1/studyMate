@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Displays all Tasks under a Topic, shows topic progress, and triggers AI Summary/Quiz.
+//  Purpose: Displays all Lessons & Tasks under a Topic, shows topic progress, and triggers AI Summary/Quiz.
 //
 
 import UIKit
@@ -29,11 +29,12 @@ class TasksListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadTasks()
+        setupHeaderBanner()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = topic?.title ?? "Tasks"
+        title = topic?.title ?? "Lessons & Notes"
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
         
@@ -55,7 +56,7 @@ class TasksListViewController: UIViewController {
         navigationItem.rightBarButtonItems = [addButton, aiButton]
         
         if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .insetGrouped)
+            let tv = UITableView(frame: view.bounds, style: .plain)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view.addSubview(tv)
             tableView = tv
@@ -65,7 +66,65 @@ class TasksListViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 75
+        tableView.estimatedRowHeight = 85
+    }
+    
+    private func setupHeaderBanner() {
+        guard let topic = topic else { return }
+        
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 110))
+        headerView.backgroundColor = .clear
+        
+        let card = UIView()
+        card.translatesAutoresizingMaskIntoConstraints = false
+        card.applyCardStyle(cornerRadius: 14)
+        headerView.addSubview(card)
+        
+        let courseName = topic.course?.name ?? "Course"
+        let breadcrumbLabel = UILabel()
+        breadcrumbLabel.translatesAutoresizingMaskIntoConstraints = false
+        breadcrumbLabel.text = "📚 \(courseName)  ›  \(topic.title ?? "Topic")"
+        breadcrumbLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        breadcrumbLabel.textColor = .systemPurple
+        card.addSubview(breadcrumbLabel)
+        
+        let (total, completed, progress) = CoreDataManager.shared.getTopicProgress(topic: topic)
+        let statusLabel = UILabel()
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        statusLabel.text = total == 0 ? "No lessons added yet" : "\(completed) of \(total) lessons & notes completed (\(Int(progress * 100))%)"
+        statusLabel.font = .systemFont(ofSize: 14, weight: .bold)
+        statusLabel.textColor = total > 0 && completed == total ? .systemGreen : .label
+        card.addSubview(statusLabel)
+        
+        let pBar = UIProgressView(progressViewStyle: .default)
+        pBar.translatesAutoresizingMaskIntoConstraints = false
+        pBar.progress = progress
+        pBar.tintColor = total > 0 && completed == total ? .systemGreen : .systemPurple
+        pBar.layer.cornerRadius = 2.5
+        pBar.clipsToBounds = true
+        card.addSubview(pBar)
+        
+        NSLayoutConstraint.activate([
+            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
+            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            
+            breadcrumbLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            breadcrumbLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            breadcrumbLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            
+            statusLabel.leadingAnchor.constraint(equalTo: breadcrumbLabel.leadingAnchor),
+            statusLabel.trailingAnchor.constraint(equalTo: breadcrumbLabel.trailingAnchor),
+            statusLabel.topAnchor.constraint(equalTo: breadcrumbLabel.bottomAnchor, constant: 6),
+            
+            pBar.leadingAnchor.constraint(equalTo: breadcrumbLabel.leadingAnchor),
+            pBar.trailingAnchor.constraint(equalTo: breadcrumbLabel.trailingAnchor),
+            pBar.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 10),
+            pBar.heightAnchor.constraint(equalToConstant: 5)
+        ])
+        
+        tableView.tableHeaderView = headerView
     }
     
     // MARK: - Data Management
@@ -97,9 +156,9 @@ class TasksListViewController: UIViewController {
         if tasks.isEmpty {
             emptyStateLabel?.isHidden = false
             tableView.setEmptyState(
-                iconName: "checklist",
-                title: "No Study Tasks",
-                message: "Tap '+' to add tasks or study notes.\nTap '✨' to generate AI notes & quizzes!"
+                iconName: "doc.text",
+                title: "No Lessons or Notes",
+                message: "Tap '+' to write study notes, formulas, or tasks.\nTap '✨' to generate AI notes & quizzes!"
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -132,7 +191,8 @@ class TasksListViewController: UIViewController {
             detailVC.taskToEdit = existingTask
             detailVC.onSaveCompleted = { [weak self] in
                 self?.loadTasks()
-                self?.showToast(message: "Task saved successfully!")
+                self?.setupHeaderBanner()
+                self?.showToast(message: "Notes saved successfully!")
             }
             let nav = UINavigationController(rootViewController: detailVC)
             present(nav, animated: true)
@@ -157,6 +217,7 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
                 HapticHelper.success()
                 CoreDataManager.shared.toggleTaskDone(task)
                 self.loadTasks()
+                self.setupHeaderBanner()
             }
             return cell
         }
@@ -181,6 +242,7 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             CoreDataManager.shared.deleteTask(task)
             self?.loadTasks()
+            self?.setupHeaderBanner()
             self?.showToast(message: "Task deleted.")
             completion(true)
         }

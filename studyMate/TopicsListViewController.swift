@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Displays all Topics under a selected Course, handles Topic creation and navigation to Tasks.
+//  Purpose: Displays all Topics/Modules under a selected Course with persistent Course Header banner.
 //
 
 import UIKit
@@ -27,12 +27,13 @@ class TopicsListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadTopics()
+        setupHeaderBanner()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = course?.name ?? "Topics"
-        navigationItem.largeTitleDisplayMode = .always
+        title = course?.name ?? "Course Topics"
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -43,7 +44,7 @@ class TopicsListViewController: UIViewController {
         )
         
         if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .insetGrouped)
+            let tv = UITableView(frame: view.bounds, style: .plain)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view.addSubview(tv)
             tableView = tv
@@ -53,7 +54,74 @@ class TopicsListViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 85
+        tableView.estimatedRowHeight = 90
+    }
+    
+    private func setupHeaderBanner() {
+        guard let course = course else { return }
+        
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 95))
+        headerView.backgroundColor = .clear
+        
+        let card = UIView()
+        card.translatesAutoresizingMaskIntoConstraints = false
+        card.applyCardStyle(cornerRadius: 14)
+        headerView.addSubview(card)
+        
+        let colorTag = UIView()
+        colorTag.translatesAutoresizingMaskIntoConstraints = false
+        colorTag.backgroundColor = ColorHelper.color(named: course.colorTag)
+        colorTag.layer.cornerRadius = 3
+        card.addSubview(colorTag)
+        
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = "📚 \(course.name ?? "Course")"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        card.addSubview(titleLabel)
+        
+        let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
+        let subtitleLabel = UILabel()
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.text = "\(topics.count) Modules/Topics • \(completedTasks)/\(totalTasks) Lessons Completed (\(Int(progress * 100))%)"
+        subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        subtitleLabel.textColor = .secondaryLabel
+        card.addSubview(subtitleLabel)
+        
+        let progressBar = UIProgressView(progressViewStyle: .default)
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        progressBar.progress = progress
+        progressBar.tintColor = ColorHelper.color(named: course.colorTag)
+        progressBar.layer.cornerRadius = 2.5
+        progressBar.clipsToBounds = true
+        card.addSubview(progressBar)
+        
+        NSLayoutConstraint.activate([
+            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
+            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            
+            colorTag.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            colorTag.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            colorTag.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+            colorTag.widthAnchor.constraint(equalToConstant: 5),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: colorTag.trailingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            
+            progressBar.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            progressBar.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            progressBar.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 8),
+            progressBar.heightAnchor.constraint(equalToConstant: 5)
+        ])
+        
+        tableView.tableHeaderView = headerView
     }
     
     // MARK: - Data Management
@@ -70,7 +138,7 @@ class TopicsListViewController: UIViewController {
             tableView.setEmptyState(
                 iconName: "bookmark",
                 title: "No Topics Added",
-                message: "Tap '+' to add chapters, units, or topics\nunder this course."
+                message: "Tap '+' in the top right to add\nchapters, topics, or units for \(course?.name ?? "this course")."
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -88,7 +156,7 @@ class TopicsListViewController: UIViewController {
         let isEditing = existingTopic != nil
         let alert = UIAlertController(
             title: isEditing ? "Edit Topic" : "New Study Topic",
-            message: "Enter topic name (e.g. Dynamic Programming).",
+            message: "Enter topic name (e.g. Dynamic Programming, Newton's Laws).",
             preferredStyle: .alert
         )
         
@@ -106,6 +174,7 @@ class TopicsListViewController: UIViewController {
             if isEditing, let topic = existingTopic {
                 CoreDataManager.shared.updateTopic(topic, title: title, deadline: topic.deadline)
                 self.loadTopics()
+                self.setupHeaderBanner()
                 self.showToast(message: "Topic updated!")
             } else {
                 self.promptForTopicDeadline(title: title)
@@ -123,6 +192,7 @@ class TopicsListViewController: UIViewController {
             HapticHelper.success()
             CoreDataManager.shared.createTopic(title: title, deadline: Date(), course: self.course)
             self.loadTopics()
+            self.setupHeaderBanner()
             self.showToast(message: "Topic added for Today!")
         }))
         
@@ -132,6 +202,7 @@ class TopicsListViewController: UIViewController {
             let targetDate = Calendar.current.date(byAdding: .day, value: 3, to: Date())
             CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
             self.loadTopics()
+            self.setupHeaderBanner()
             self.showToast(message: "Topic created!")
         }))
         
@@ -141,6 +212,7 @@ class TopicsListViewController: UIViewController {
             let targetDate = Calendar.current.date(byAdding: .day, value: 7, to: Date())
             CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
             self.loadTopics()
+            self.setupHeaderBanner()
             self.showToast(message: "Topic created!")
         }))
         
@@ -149,6 +221,7 @@ class TopicsListViewController: UIViewController {
             HapticHelper.success()
             CoreDataManager.shared.createTopic(title: title, deadline: nil, course: self.course)
             self.loadTopics()
+            self.setupHeaderBanner()
             self.showToast(message: "Topic created!")
         }))
         
@@ -208,6 +281,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
                 onConfirm: {
                     CoreDataManager.shared.deleteTopic(topic)
                     self?.loadTopics()
+                    self?.setupHeaderBanner()
                     self?.showToast(message: "Topic removed.")
                     completion(true)
                 }

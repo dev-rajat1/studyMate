@@ -28,6 +28,14 @@ class TopicCell: UITableViewCell {
         aiBadgeView?.layer.masksToBounds = true
     }
     
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        UIView.animate(withDuration: 0.15) {
+            self.cardContainerView?.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+            self.cardContainerView?.alpha = highlighted ? 0.9 : 1.0
+        }
+    }
+    
     /// Configures the cell with Topic details
     func configure(with topic: Topic) {
         if let titleLabel = titleLabel {
@@ -37,7 +45,7 @@ class TopicCell: UITableViewCell {
         }
         
         let (total, completed, _) = CoreDataManager.shared.getTopicProgress(topic: topic)
-        let tasksText = "\(completed)/\(total) Tasks"
+        let tasksText = "📝 \(completed)/\(total) Lessons Done"
         taskCountLabel?.text = tasksText
         taskCountLabel?.textColor = (total > 0 && completed == total) ? .systemGreen : .systemBlue
         
@@ -56,7 +64,7 @@ class TopicCell: UITableViewCell {
                 detailTextLabel?.text = "\(deadlineText) • \(tasksText)"
             }
         } else {
-            deadlineLabel?.text = "No deadline"
+            deadlineLabel?.text = "🗓 No deadline"
             deadlineLabel?.textColor = .tertiaryLabel
             if deadlineLabel == nil {
                 detailTextLabel?.text = tasksText
