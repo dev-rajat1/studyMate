@@ -425,92 +425,35 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sv-detail-scroll">
-                                <rect key="frame" x="0.0" y="59" width="393" height="759"/>
-                                <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="sv-detail-main">
-                                        <rect key="frame" x="16" y="16" width="361" height="520"/>
-                                        <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sv-detail-title">
-                                                <rect key="frame" x="0.0" y="0.0" width="361" height="74"/>
-                                                <subviews>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LESSON / TASK TITLE" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-detail-title-hdr">
-                                                        <rect key="frame" x="0.0" y="0.0" width="361" height="16"/>
-                                                        <fontDescription key="fontDescription" type="system" weight="bold" pointSize="13"/>
-                                                        <color key="textColor" systemColor="secondaryLabelColor"/>
-                                                        <nil key="highlightedColor"/>
-                                                    </label>
-                                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="e.g. Binary Search Trees" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-detail-title">
-                                                        <rect key="frame" x="0.0" y="24" width="361" height="50"/>
-                                                        <constraints>
-                                                            <constraint firstAttribute="height" constant="50" id="h-detail-tf"/>
-                                                        </constraints>
-                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                                    </textField>
-                                                </subviews>
-                                            </stackView>
-                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sv-detail-notes">
-                                                <rect key="frame" x="0.0" y="90" width="361" height="363"/>
-                                                <subviews>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="STUDY NOTES &amp; SUMMARY" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-detail-notes-hdr">
-                                                        <rect key="frame" x="0.0" y="0.0" width="361" height="16"/>
-                                                        <fontDescription key="fontDescription" type="system" weight="bold" pointSize="13"/>
-                                                        <color key="textColor" systemColor="secondaryLabelColor"/>
-                                                        <nil key="highlightedColor"/>
-                                                    </label>
-                                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="tv-detail-notes">
-                                                        <rect key="frame" x="0.0" y="24" width="361" height="339"/>
-                                                        <color key="backgroundColor" systemColor="secondarySystemGroupedBackgroundColor"/>
-                                                        <constraints>
-                                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="280" id="h-detail-tv-min"/>
-                                                        </constraints>
-                                                        <color key="textColor" systemColor="labelColor"/>
-                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                                    </textView>
-                                                </subviews>
-                                            </stackView>
-                                            <stackView opaque="NO" contentMode="scaleToFill" distribution="equalSpacing" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="sv-detail-switch">
-                                                <rect key="frame" x="0.0" y="469" width="361" height="51"/>
-                                                <subviews>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mark as Completed" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-detail-done">
-                                                        <rect key="frame" x="0.0" y="15.666666666666629" width="151.66666666666666" height="20.333333333333332"/>
-                                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
-                                                        <nil key="textColor"/>
-                                                        <nil key="highlightedColor"/>
-                                                    </label>
-                                                    <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="sw-detail-done">
-                                                        <rect key="frame" x="312" y="10" width="51" height="31"/>
-                                                    </switch>
-                                                </subviews>
-                                                <constraints>
-                                                    <constraint firstAttribute="height" constant="51" id="h-detail-sw-v"/>
-                                                </constraints>
-                                            </stackView>
-                                        </subviews>
-                                    </stackView>
-                                </subviews>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Lesson / Task Title" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-detail-title">
+                                <rect key="frame" x="16" y="67" width="361" height="42"/>
                                 <constraints>
-                                    <constraint firstItem="sv-detail-main" firstAttribute="leading" secondItem="sv-detail-scroll" secondAttribute="leading" constant="16" id="c-detail-main-l"/>
-                                    <constraint firstAttribute="trailing" secondItem="sv-detail-main" secondAttribute="trailing" constant="16" id="c-detail-main-r"/>
-                                    <constraint firstItem="sv-detail-main" firstAttribute="top" secondItem="sv-detail-scroll" secondAttribute="top" constant="16" id="c-detail-main-t"/>
-                                    <constraint firstAttribute="bottom" secondItem="sv-detail-main" secondAttribute="bottom" constant="20" id="c-detail-main-b"/>
-                                    <constraint firstItem="sv-detail-main" firstAttribute="width" secondItem="sv-detail-scroll" secondAttribute="width" constant="-32" id="c-detail-main-w"/>
+                                    <constraint firstAttribute="height" constant="42" id="h-detail-tf"/>
                                 </constraints>
-                            </scrollView>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textField>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="tv-detail-notes">
+                                <rect key="frame" x="16" y="163" width="361" height="639"/>
+                                <color key="backgroundColor" systemColor="secondarySystemGroupedBackgroundColor"/>
+                                <color key="textColor" systemColor="labelColor"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="sa-task-detail"/>
                         <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="sv-detail-scroll" firstAttribute="trailing" secondItem="sa-task-detail" secondAttribute="trailing" id="c-detail-sc-r"/>
-                            <constraint firstItem="sv-detail-scroll" firstAttribute="top" secondItem="sa-task-detail" secondAttribute="top" id="c-detail-sc-t"/>
-                            <constraint firstItem="sv-detail-scroll" firstAttribute="leading" secondItem="sa-task-detail" secondAttribute="leading" id="c-detail-sc-l"/>
-                            <constraint firstItem="sa-task-detail" firstAttribute="bottom" secondItem="sv-detail-scroll" secondAttribute="bottom" id="c-detail-sc-b"/>
+                            <constraint firstItem="tf-detail-title" firstAttribute="top" secondItem="sa-task-detail" secondAttribute="top" constant="8" id="c-detail-tf-t"/>
+                            <constraint firstItem="tf-detail-title" firstAttribute="leading" secondItem="sa-task-detail" secondAttribute="leading" constant="16" id="c-detail-tf-l"/>
+                            <constraint firstItem="sa-task-detail" firstAttribute="trailing" secondItem="tf-detail-title" secondAttribute="trailing" constant="16" id="c-detail-tf-r"/>
+                            <constraint firstItem="tv-detail-notes" firstAttribute="top" secondItem="tf-detail-title" secondAttribute="bottom" constant="54" id="c-detail-tv-t"/>
+                            <constraint firstItem="tv-detail-notes" firstAttribute="leading" secondItem="sa-task-detail" secondAttribute="leading" constant="16" id="c-detail-tv-l"/>
+                            <constraint firstItem="sa-task-detail" firstAttribute="trailing" secondItem="tv-detail-notes" secondAttribute="trailing" constant="16" id="c-detail-tv-r"/>
+                            <constraint firstItem="sa-task-detail" firstAttribute="bottom" secondItem="tv-detail-notes" secondAttribute="bottom" constant="16" id="c-detail-tv-b"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="isDoneSwitch" destination="sw-detail-done" id="out-detail-sw"/>
                         <outlet property="notesTextView" destination="tv-detail-notes" id="out-detail-notes"/>
                         <outlet property="titleTextField" destination="tf-detail-title" id="out-detail-title"/>
                     </connections>

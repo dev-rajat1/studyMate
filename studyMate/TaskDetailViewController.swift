@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Modal screen for Creating or Editing a Task with rich Notes, Formatting Toolbar, and Symbols.
+//  Purpose: Full-Screen Rich Notes Reader & Editor with Top Important Toggle, Multi-Page Pagination, and Formatting Toolbar.
 //
 
 import UIKit
@@ -20,52 +20,126 @@ class TaskDetailViewController: UIViewController {
     var taskToEdit: Task?
     var onSaveCompleted: (() -> Void)?
     
+    // MARK: - State Properties
+    private var isCompletedState: Bool = false
+    private var pages: [String] = [""]
+    private var currentPageIndex: Int = 0
+    
+    // Pagination UI Elements
+    private let paginationContainer = UIView()
+    private let prevPageButton = UIButton(type: .system)
+    private let nextPageButton = UIButton(type: .system)
+    private let pageIndicatorLabel = UILabel()
+    private let addPageButton = UIButton(type: .system)
+    
+    private var completionBarButton: UIBarButtonItem!
+    
+    // MARK: - Delimiter for persistent multi-page notes
+    private let pageDelimiter = "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n"
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupPaginationBar()
         setupFormattingToolbar()
         populateExistingData()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
-        let topicName = topic?.title ?? "Topic"
-        title = taskToEdit == nil ? "New Lesson / Task" : "Edit Lesson Notes"
+        title = taskToEdit == nil ? "New Lesson Notes" : (taskToEdit?.title ?? "Lesson Notes")
         view.backgroundColor = .systemGroupedBackground
         
         // Navigation Bar Buttons
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
+        let cancelBtn = UIBarButtonItem(
             title: "Cancel",
             style: .plain,
             target: self,
             action: #selector(cancelTapped)
         )
+        navigationItem.leftBarButtonItem = cancelBtn
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
+        let saveBtn = UIBarButtonItem(
             title: "Save",
             style: .done,
             target: self,
             action: #selector(saveTapped)
         )
         
-        // Subtitle prompt in back button / title
-        navigationController?.navigationBar.tintColor = .systemBlue
+        // Top Header "Mark Completed / Important" Button
+        completionBarButton = UIBarButtonItem(
+            image: UIImage(systemName: isCompletedState ? "checkmark.circle.fill" : "checkmark.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(toggleCompletionTapped)
+        )
+        completionBarButton.tintColor = isCompletedState ? .systemGreen : .systemGray3
         
-        // Notes TextView Styling (Notebook Feel)
+        navigationItem.rightBarButtonItems = [saveBtn, completionBarButton]
+        
+        // Title Text Field (Compact & Modern)
+        titleTextField?.layer.cornerRadius = 10
+        titleTextField?.backgroundColor = .secondarySystemGroupedBackground
+        titleTextField?.font = .systemFont(ofSize: 16, weight: .semibold)
+        
+        // Notes TextView Styling (Maximized Study Notebook)
         notesTextView?.layer.cornerRadius = 14
         notesTextView?.layer.borderWidth = 0.5
         notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
         notesTextView?.backgroundColor = .secondarySystemGroupedBackground
         notesTextView?.font = .systemFont(ofSize: 16, weight: .regular)
         notesTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
-        
-        // Title text field styling
-        titleTextField?.layer.cornerRadius = 10
-        titleTextField?.backgroundColor = .secondarySystemGroupedBackground
     }
     
-    // MARK: - Text Formatting Bar (Above Keyboard & Toolbar)
+    // MARK: - Pagination UI Setup
+    private func setupPaginationBar() {
+        paginationContainer.translatesAutoresizingMaskIntoConstraints = false
+        paginationContainer.applyCardStyle(cornerRadius: 10)
+        paginationContainer.backgroundColor = .secondarySystemGroupedBackground
+        
+        prevPageButton.setTitle("◀ Prev", for: .normal)
+        prevPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        prevPageButton.addTarget(self, action: #selector(prevPageTapped), for: .touchUpInside)
+        
+        nextPageButton.setTitle("Next ▶", for: .normal)
+        nextPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        nextPageButton.addTarget(self, action: #selector(nextPageTapped), for: .touchUpInside)
+        
+        pageIndicatorLabel.text = "📄 Page 1 of 1"
+        pageIndicatorLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        pageIndicatorLabel.textColor = .systemPurple
+        pageIndicatorLabel.textAlignment = .center
+        
+        addPageButton.setTitle("➕ Add Page", for: .normal)
+        addPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        addPageButton.addTarget(self, action: #selector(addPageTapped), for: .touchUpInside)
+        
+        let stack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
+        stack.axis = .horizontal
+        stack.distribution = .equalSpacing
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        paginationContainer.addSubview(stack)
+        view.addSubview(paginationContainer)
+        
+        guard let titleField = titleTextField else { return }
+        
+        NSLayoutConstraint.activate([
+            paginationContainer.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 8),
+            paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            paginationContainer.heightAnchor.constraint(equalToConstant: 38),
+            
+            stack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 12),
+            stack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -12),
+            stack.topAnchor.constraint(equalTo: paginationContainer.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor)
+        ])
+    }
+    
+    // MARK: - Text Formatting Bar (Above Keyboard)
     private func setupFormattingToolbar() {
         guard let textView = notesTextView else { return }
         
@@ -104,6 +178,98 @@ class TaskDetailViewController: UIViewController {
         toolbar.sizeToFit()
         
         textView.inputAccessoryView = toolbar
+    }
+    
+    // MARK: - Data Management & Pagination Logic
+    private func populateExistingData() {
+        if let task = taskToEdit {
+            titleTextField?.text = task.title
+            isCompletedState = task.isDone
+            updateCompletionButtonAppearance()
+            
+            if let rawNotes = task.notes, !rawNotes.isEmpty {
+                // Split multi-page notes if delimiter exists
+                if rawNotes.contains(pageDelimiter) {
+                    pages = rawNotes.components(separatedBy: pageDelimiter)
+                } else {
+                    pages = [rawNotes]
+                }
+            } else {
+                pages = ["## Summary\n• \n\n💡 Key Concept:\n\n📌 Formulas / Definitions:\n"]
+            }
+        } else {
+            isCompletedState = false
+            updateCompletionButtonAppearance()
+            pages = ["## Summary\n• \n\n💡 Key Concept:\n\n📌 Formulas / Definitions:\n"]
+        }
+        
+        currentPageIndex = 0
+        loadCurrentPageText()
+        updatePaginationButtons()
+    }
+    
+    private func saveCurrentPageText() {
+        if currentPageIndex < pages.count {
+            pages[currentPageIndex] = notesTextView?.text ?? ""
+        }
+    }
+    
+    private func loadCurrentPageText() {
+        if currentPageIndex < pages.count {
+            notesTextView?.text = pages[currentPageIndex]
+        }
+    }
+    
+    private func updatePaginationButtons() {
+        pageIndicatorLabel.text = "📄 Page \(currentPageIndex + 1) of \(pages.count)"
+        prevPageButton.isEnabled = currentPageIndex > 0
+        nextPageButton.isEnabled = currentPageIndex < (pages.count - 1)
+        
+        prevPageButton.alpha = prevPageButton.isEnabled ? 1.0 : 0.4
+        nextPageButton.alpha = nextPageButton.isEnabled ? 1.0 : 0.4
+    }
+    
+    // MARK: - Pagination Actions
+    @objc private func prevPageTapped() {
+        guard currentPageIndex > 0 else { return }
+        HapticHelper.lightImpact()
+        saveCurrentPageText()
+        currentPageIndex -= 1
+        loadCurrentPageText()
+        updatePaginationButtons()
+    }
+    
+    @objc private func nextPageTapped() {
+        guard currentPageIndex < pages.count - 1 else { return }
+        HapticHelper.lightImpact()
+        saveCurrentPageText()
+        currentPageIndex += 1
+        loadCurrentPageText()
+        updatePaginationButtons()
+    }
+    
+    @objc private func addPageTapped() {
+        HapticHelper.success()
+        saveCurrentPageText()
+        pages.append("## Page \(pages.count + 1)\n• ")
+        currentPageIndex = pages.count - 1
+        loadCurrentPageText()
+        updatePaginationButtons()
+        showToast(message: "📄 Page \(pages.count) Added!")
+    }
+    
+    // MARK: - Toggle Completed / Important Action (Top Header)
+    @objc private func toggleCompletionTapped() {
+        HapticHelper.success()
+        isCompletedState.toggle()
+        updateCompletionButtonAppearance()
+        showToast(message: isCompletedState ? "✅ Marked as Completed!" : "⚪ Marked as Pending")
+    }
+    
+    private func updateCompletionButtonAppearance() {
+        let imageName = isCompletedState ? "checkmark.circle.fill" : "checkmark.circle"
+        completionBarButton.image = UIImage(systemName: imageName)
+        completionBarButton.tintColor = isCompletedState ? .systemGreen : .systemGray3
     }
     
     // MARK: - Formatting Actions
@@ -167,33 +333,21 @@ class TaskDetailViewController: UIViewController {
         textView.insertText(text)
     }
     
-    // MARK: - Data Management
-    private func populateExistingData() {
-        if let task = taskToEdit {
-            titleTextField?.text = task.title
-            notesTextView?.text = task.notes
-            isDoneSwitch?.isOn = task.isDone
-        } else {
-            // Default helpful study template
-            notesTextView?.text = "## Summary\n• \n\n💡 Key Concept:\n\n📌 Formulas / Definitions:\n"
-        }
-    }
-    
-    // MARK: - Save Actions
+    // MARK: - Save & Dismiss
     @IBAction @objc func saveTapped(_ sender: Any) {
         guard let title = titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
-            showAlert(title: "Missing Title", message: "Please enter a title for this lesson or study task.")
+            showAlert(title: "Missing Title", message: "Please enter a title for this study lesson or notes.")
             return
         }
         
-        let notes = notesTextView?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let isDone = isDoneSwitch?.isOn ?? false
+        saveCurrentPageText()
+        let combinedNotes = pages.joined(separator: pageDelimiter).trimmingCharacters(in: .whitespacesAndNewlines)
         
         HapticHelper.success()
         if let existingTask = taskToEdit {
-            CoreDataManager.shared.updateTask(existingTask, title: title, notes: notes, isDone: isDone)
+            CoreDataManager.shared.updateTask(existingTask, title: title, notes: combinedNotes, isDone: isCompletedState)
         } else {
-            CoreDataManager.shared.createTask(title: title, notes: notes, isDone: isDone, topic: self.topic)
+            CoreDataManager.shared.createTask(title: title, notes: combinedNotes, isDone: isCompletedState, topic: self.topic)
         }
         
         onSaveCompleted?()
