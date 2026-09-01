@@ -10,7 +10,7 @@ import UIKit
 
 class CoursesListViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var emptyStateLabel: UILabel?
     
@@ -32,6 +32,7 @@ class CoursesListViewController: UIViewController {
     private func setupUI() {
         title = "My Courses"
         navigationController?.navigationBar.prefersLargeTitles = true
+        view.backgroundColor = .systemGroupedBackgroundColor
         
         // Add Course "+" Button in Navigation Bar
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -41,7 +42,6 @@ class CoursesListViewController: UIViewController {
             action: #selector(addCourseTapped)
         )
         
-        // TableView fallback setup
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .insetGrouped)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -51,8 +51,9 @@ class CoursesListViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 90
+        tableView.estimatedRowHeight = 95
     }
     
     // MARK: - Data Management
@@ -63,44 +64,41 @@ class CoursesListViewController: UIViewController {
     }
     
     private func updateEmptyState() {
-        let isEmpty = courses.isEmpty
-        emptyStateLabel?.isHidden = !isEmpty
-        
-        if isEmpty && emptyStateLabel == nil {
-            let messageLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
-            messageLabel.text = "📚 No Courses Yet\nTap the '+' button to add your first course!"
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.numberOfLines = 0
-            messageLabel.textAlignment = .center
-            messageLabel.font = .systemFont(ofSize: 17, weight: .medium)
-            tableView.backgroundView = messageLabel
-        } else if !isEmpty {
-            tableView.backgroundView = nil
+        if courses.isEmpty {
+            emptyStateLabel?.isHidden = false
+            tableView.setEmptyState(
+                iconName: "books.vertical",
+                title: "No Courses Yet",
+                message: "Tap the '+' button in the top right\nto create your first study course."
+            )
+        } else {
+            emptyStateLabel?.isHidden = true
+            tableView.removeEmptyState()
         }
     }
     
     // MARK: - Actions
     @objc func addCourseTapped() {
+        HapticHelper.lightImpact()
         showCoursePrompt(existingCourse: nil)
     }
     
     private func showCoursePrompt(existingCourse: Course?) {
         let isEditing = existingCourse != nil
         let alert = UIAlertController(
-            title: isEditing ? "Edit Course" : "New Course",
-            message: "Enter course name and select a color tag.",
+            title: isEditing ? "Edit Course" : "Create New Course",
+            message: "Enter course name to start organizing your study topics.",
             preferredStyle: .alert
         )
         
         alert.addTextField { textField in
-            textField.placeholder = "Course Name (e.g. Computer Science)"
+            textField.placeholder = "e.g. Machine Learning, Physics"
             textField.text = existingCourse?.name
             textField.autocapitalizationType = .words
         }
         
-        // Color selection action sheet after entering name
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Choose Color & Add", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Next: Color Tag", style: .default, handler: { [weak self] _ in
             guard let name = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
                 return
             }
@@ -108,6 +106,7 @@ class CoursesListViewController: UIViewController {
             if isEditing, let course = existingCourse {
                 CoreDataManager.shared.updateCourse(course, name: name, colorTag: course.colorTag ?? "Blue")
                 self?.loadCourses()
+                self?.showToast(message: "Course updated!")
             } else {
                 self?.showColorSelectionActionSheet(courseName: name)
             }
@@ -117,18 +116,19 @@ class CoursesListViewController: UIViewController {
     }
     
     private func showColorSelectionActionSheet(courseName: String) {
-        let actionSheet = UIAlertController(title: "Pick Color Tag", message: "Choose an accent color for \(courseName)", preferredStyle: .actionSheet)
+        let actionSheet = UIAlertController(title: "Choose Color Theme", message: "Assign an accent color for \(courseName)", preferredStyle: .actionSheet)
         
         for colorOption in ColorHelper.availableColors {
-            actionSheet.addAction(UIAlertAction(title: colorOption.name, style: .default, handler: { [weak self] _ in
+            actionSheet.addAction(UIAlertAction(title: "● \(colorOption.name)", style: .default, handler: { [weak self] _ in
+                HapticHelper.success()
                 CoreDataManager.shared.createCourse(name: courseName, colorTag: colorOption.name)
                 self?.loadCourses()
+                self?.showToast(message: "📚 Course Created!")
             }))
         }
         
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
-        // iPad popover anchor support
         if let popover = actionSheet.popoverPresentationController {
             popover.barButtonItem = navigationItem.rightBarButtonItem
         }
@@ -163,8 +163,8 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedCourse = courses[indexPath.row]
+        HapticHelper.lightImpact()
         
-        // Programmatic Navigation: Push TopicsListViewController
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let topicsVC = storyboard.instantiateViewController(withIdentifier: "TopicsListViewController") as? TopicsListViewController {
             topicsVC.course = selectedCourse
@@ -175,23 +175,22 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let course = courses[indexPath.row]
         
-        // Delete Action
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
                 title: "Delete Course?",
-                message: "Deleting '\(course.name ?? "this course")' will also remove all its topics, tasks, and AI notes.",
+                message: "Deleting '\(course.name ?? "this course")' will remove all associated topics, tasks, and AI summaries.",
                 confirmTitle: "Delete All",
                 isDestructive: true,
                 onConfirm: {
                     CoreDataManager.shared.deleteCourse(course)
                     self?.loadCourses()
+                    self?.showToast(message: "Course deleted.")
                     completion(true)
                 }
             )
         }
         deleteAction.image = UIImage(systemName: "trash")
         
-        // Edit Action
         let editAction = UIContextualAction(style: .normal, title: "Edit") { [weak self] (_, _, completion) in
             self?.showCoursePrompt(existingCourse: course)
             completion(true)

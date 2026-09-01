@@ -10,7 +10,7 @@ import UIKit
 
 class AISummaryViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var segmentedControl: UISegmentedControl?
     @IBOutlet weak var contentTextView: UITextView?
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView?
@@ -36,6 +36,13 @@ class AISummaryViewController: UIViewController {
         title = "AI Study Assistant"
         view.backgroundColor = .systemBackground
         
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "doc.on.doc"),
+            style: .plain,
+            target: self,
+            action: #selector(copyContentTapped)
+        )
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Done",
             style: .done,
@@ -43,23 +50,22 @@ class AISummaryViewController: UIViewController {
             action: #selector(doneTapped)
         )
         
-        // TextView Styling
-        contentTextView?.layer.cornerRadius = 10
+        contentTextView?.layer.cornerRadius = 14
         contentTextView?.backgroundColor = .secondarySystemBackground
         contentTextView?.isEditable = false
         contentTextView?.font = .systemFont(ofSize: 15, weight: .regular)
+        contentTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
         
-        // Button styling
-        regenerateButton?.layer.cornerRadius = 8
-        saveSummaryButton?.layer.cornerRadius = 8
+        regenerateButton?.layer.cornerRadius = 12
+        saveSummaryButton?.layer.cornerRadius = 12
     }
     
     private func loadInitialContent() {
-        // If an AI summary was previously generated and saved, show it immediately
         if let savedSummary = topic.aiSummary?.content, !savedSummary.isEmpty {
             loadedSummaryText = savedSummary
             displayContent(savedSummary)
-            statusLabel?.text = "Saved AI Summary Loaded"
+            statusLabel?.text = "✨ Saved AI Summary Loaded"
+            statusLabel?.textColor = .systemGreen
         } else {
             fetchAIContent()
         }
@@ -71,8 +77,7 @@ class AISummaryViewController: UIViewController {
         
         let isSummaryMode = (segmentedControl?.selectedSegmentIndex ?? 0) == 0
         
-        // Show Loading State
-        setLoadingState(true, message: isSummaryMode ? "🤖 Generating study summary..." : "🎯 Generating practice quiz questions...")
+        setLoadingState(true, message: isSummaryMode ? "🤖 Gemini AI is summarizing your study notes..." : "🎯 Gemini AI is crafting practice quiz questions...")
         
         if isSummaryMode {
             AIService.shared.generateSummary(for: self.topic) { [weak self] result in
@@ -80,13 +85,14 @@ class AISummaryViewController: UIViewController {
                     guard let self = self else { return }
                     switch result {
                     case .success(let summary):
+                        HapticHelper.success()
                         self.loadedSummaryText = summary
                         self.displayContent(summary)
-                        self.setLoadingState(false, message: "Summary generated successfully!")
+                        self.setLoadingState(false, message: "⚡ Generated with Gemini 3.7 Flash")
                         CoreDataManager.shared.saveAISummary(content: summary, for: self.topic)
                     case .failure(let error):
                         self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
-                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your internet connection or settings, then tap 'Regenerate' to try again."
+                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your settings or tap 'Regenerate' to try again."
                     }
                 }
             }
@@ -96,12 +102,13 @@ class AISummaryViewController: UIViewController {
                     guard let self = self else { return }
                     switch result {
                     case .success(let quiz):
+                        HapticHelper.success()
                         self.loadedQuizText = quiz
                         self.displayContent(quiz)
-                        self.setLoadingState(false, message: "Quiz generated successfully!")
+                        self.setLoadingState(false, message: "⚡ Generated with Gemini 3.7 Flash")
                     case .failure(let error):
                         self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
-                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your internet connection or settings, then tap 'Regenerate' to try again."
+                        self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your settings or tap 'Regenerate' to try again."
                     }
                 }
             }
@@ -112,6 +119,7 @@ class AISummaryViewController: UIViewController {
     private func setLoadingState(_ loading: Bool, message: String) {
         isLoading = loading
         statusLabel?.text = message
+        statusLabel?.textColor = loading ? .systemPurple : .secondaryLabel
         regenerateButton?.isEnabled = !loading
         saveSummaryButton?.isEnabled = !loading
         segmentedControl?.isEnabled = !loading
@@ -119,7 +127,7 @@ class AISummaryViewController: UIViewController {
         if loading {
             activityIndicator?.startAnimating()
             activityIndicator?.isHidden = false
-            contentTextView?.text = "Please wait while AI processes your notes and study tasks..."
+            contentTextView?.text = "⏳ Generating high-yield study material with Gemini AI...\nPlease hold on a moment."
         } else {
             activityIndicator?.stopAnimating()
             activityIndicator?.isHidden = true
@@ -130,11 +138,11 @@ class AISummaryViewController: UIViewController {
         contentTextView?.text = text
     }
     
-    // MARK: - Actions (Connect in Storyboard)
+    // MARK: - Actions
     
     @IBAction func segmentChanged(_ sender: UISegmentedControl) {
+        HapticHelper.lightImpact()
         if sender.selectedSegmentIndex == 0 {
-            // Summary Tab
             if let existing = loadedSummaryText {
                 displayContent(existing)
                 statusLabel?.text = "Showing Summary"
@@ -142,7 +150,6 @@ class AISummaryViewController: UIViewController {
                 fetchAIContent()
             }
         } else {
-            // Quiz Tab
             if let existing = loadedQuizText {
                 displayContent(existing)
                 statusLabel?.text = "Showing Practice Quiz"
@@ -153,13 +160,22 @@ class AISummaryViewController: UIViewController {
     }
     
     @IBAction func regenerateTapped(_ sender: UIButton) {
+        HapticHelper.lightImpact()
         fetchAIContent()
     }
     
     @IBAction func saveSummaryTapped(_ sender: UIButton) {
         guard let text = contentTextView?.text, !text.isEmpty else { return }
+        HapticHelper.success()
         CoreDataManager.shared.saveAISummary(content: text, for: self.topic)
-        showAlert(title: "Saved", message: "AI Study Summary has been saved for this topic!")
+        showToast(message: "💾 Saved to Core Data!")
+    }
+    
+    @objc func copyContentTapped() {
+        guard let text = contentTextView?.text, !text.isEmpty else { return }
+        UIPasteboard.general.string = text
+        HapticHelper.success()
+        showToast(message: "📋 Copied to Clipboard!")
     }
     
     @objc func doneTapped() {

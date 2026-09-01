@@ -10,7 +10,7 @@ import UIKit
 
 class TasksListViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var progressBar: UIProgressView?
     @IBOutlet weak var progressLabel: UILabel?
@@ -35,8 +35,8 @@ class TasksListViewController: UIViewController {
     private func setupUI() {
         title = topic?.title ?? "Tasks"
         navigationItem.largeTitleDisplayMode = .never
+        view.backgroundColor = .systemGroupedBackgroundColor
         
-        // Navigation Buttons: [AI Assistant] and [+]
         let aiButton = UIBarButtonItem(
             image: UIImage(systemName: "sparkles"),
             style: .plain,
@@ -54,7 +54,6 @@ class TasksListViewController: UIViewController {
         
         navigationItem.rightBarButtonItems = [addButton, aiButton]
         
-        // TableView fallback setup
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .insetGrouped)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -64,8 +63,9 @@ class TasksListViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 70
+        tableView.estimatedRowHeight = 75
     }
     
     // MARK: - Data Management
@@ -82,34 +82,40 @@ class TasksListViewController: UIViewController {
         let (total, completed, progress) = CoreDataManager.shared.getTopicProgress(topic: topic)
         
         progressBar?.setProgress(progress, animated: true)
-        progressLabel?.text = "\(completed) of \(total) tasks completed (\(Int(progress * 100))%)"
+        if total == 0 {
+            progressLabel?.text = "No study tasks added yet"
+        } else if completed == total {
+            progressLabel?.text = "🎉 All \(total) tasks completed (100%)"
+            progressLabel?.textColor = .systemGreen
+        } else {
+            progressLabel?.text = "\(completed) of \(total) tasks completed (\(Int(progress * 100))%)"
+            progressLabel?.textColor = .secondaryLabel
+        }
     }
     
     private func updateEmptyState() {
-        let isEmpty = tasks.isEmpty
-        emptyStateLabel?.isHidden = !isEmpty
-        
-        if isEmpty && emptyStateLabel == nil {
-            let messageLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
-            messageLabel.text = "📝 No Tasks Yet\nTap '+' to add study tasks or key notes."
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.numberOfLines = 0
-            messageLabel.textAlignment = .center
-            messageLabel.font = .systemFont(ofSize: 17, weight: .medium)
-            tableView.backgroundView = messageLabel
-        } else if !isEmpty {
-            tableView.backgroundView = nil
+        if tasks.isEmpty {
+            emptyStateLabel?.isHidden = false
+            tableView.setEmptyState(
+                iconName: "checklist",
+                title: "No Study Tasks",
+                message: "Tap '+' to add tasks or study notes.\nTap '✨' to generate AI notes & quizzes!"
+            )
+        } else {
+            emptyStateLabel?.isHidden = true
+            tableView.removeEmptyState()
         }
     }
     
     // MARK: - Programmatic Navigation Actions
     
     @objc func addTaskTapped() {
+        HapticHelper.lightImpact()
         navigateToTaskDetail(existingTask: nil)
     }
     
     @objc func aiAssistantTapped() {
-        // Programmatic Navigation: Present AI Summary & Quiz Modal
+        HapticHelper.lightImpact()
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let aiVC = storyboard.instantiateViewController(withIdentifier: "AISummaryViewController") as? AISummaryViewController {
             aiVC.topic = self.topic
@@ -120,13 +126,13 @@ class TasksListViewController: UIViewController {
     }
     
     private func navigateToTaskDetail(existingTask: Task?) {
-        // Programmatic Navigation: Present Task Detail Modal
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let detailVC = storyboard.instantiateViewController(withIdentifier: "TaskDetailViewController") as? TaskDetailViewController {
             detailVC.topic = self.topic
             detailVC.taskToEdit = existingTask
             detailVC.onSaveCompleted = { [weak self] in
                 self?.loadTasks()
+                self?.showToast(message: "Task saved successfully!")
             }
             let nav = UINavigationController(rootViewController: detailVC)
             present(nav, animated: true)
@@ -148,6 +154,7 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
             cell.configure(with: task)
             cell.onToggleCompletion = { [weak self] in
                 guard let self = self else { return }
+                HapticHelper.success()
                 CoreDataManager.shared.toggleTaskDone(task)
                 self.loadTasks()
             }
@@ -164,16 +171,17 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedTask = tasks[indexPath.row]
+        HapticHelper.lightImpact()
         navigateToTaskDetail(existingTask: selectedTask)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let task = tasks[indexPath.row]
         
-        // Delete Action
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             CoreDataManager.shared.deleteTask(task)
             self?.loadTasks()
+            self?.showToast(message: "Task deleted.")
             completion(true)
         }
         deleteAction.image = UIImage(systemName: "trash")

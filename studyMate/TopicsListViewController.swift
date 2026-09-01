@@ -10,7 +10,7 @@ import UIKit
 
 class TopicsListViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var emptyStateLabel: UILabel?
     
@@ -33,8 +33,8 @@ class TopicsListViewController: UIViewController {
     private func setupUI() {
         title = course?.name ?? "Topics"
         navigationItem.largeTitleDisplayMode = .always
+        view.backgroundColor = .systemGroupedBackgroundColor
         
-        // Add Topic "+" Button
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             style: .plain,
@@ -42,7 +42,6 @@ class TopicsListViewController: UIViewController {
             action: #selector(addTopicTapped)
         )
         
-        // TableView fallback setup
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .insetGrouped)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -52,6 +51,7 @@ class TopicsListViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 85
     }
@@ -65,24 +65,22 @@ class TopicsListViewController: UIViewController {
     }
     
     private func updateEmptyState() {
-        let isEmpty = topics.isEmpty
-        emptyStateLabel?.isHidden = !isEmpty
-        
-        if isEmpty && emptyStateLabel == nil {
-            let messageLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
-            messageLabel.text = "📖 No Topics Added\nTap '+' to create a new study topic!"
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.numberOfLines = 0
-            messageLabel.textAlignment = .center
-            messageLabel.font = .systemFont(ofSize: 17, weight: .medium)
-            tableView.backgroundView = messageLabel
-        } else if !isEmpty {
-            tableView.backgroundView = nil
+        if topics.isEmpty {
+            emptyStateLabel?.isHidden = false
+            tableView.setEmptyState(
+                iconName: "bookmark",
+                title: "No Topics Added",
+                message: "Tap '+' to add chapters, units, or topics\nunder this course."
+            )
+        } else {
+            emptyStateLabel?.isHidden = true
+            tableView.removeEmptyState()
         }
     }
     
     // MARK: - Actions
     @objc func addTopicTapped() {
+        HapticHelper.lightImpact()
         showTopicPrompt(existingTopic: nil)
     }
     
@@ -90,7 +88,7 @@ class TopicsListViewController: UIViewController {
         let isEditing = existingTopic != nil
         let alert = UIAlertController(
             title: isEditing ? "Edit Topic" : "New Study Topic",
-            message: "Enter topic title (e.g. Trees & Graphs).",
+            message: "Enter topic name (e.g. Dynamic Programming).",
             preferredStyle: .alert
         )
         
@@ -101,13 +99,14 @@ class TopicsListViewController: UIViewController {
         }
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Next: Set Deadline", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: isEditing ? "Save" : "Next: Target Deadline", style: .default, handler: { [weak self] _ in
             guard let title = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
                   let self = self else { return }
             
             if isEditing, let topic = existingTopic {
                 CoreDataManager.shared.updateTopic(topic, title: title, deadline: topic.deadline)
                 self.loadTopics()
+                self.showToast(message: "Topic updated!")
             } else {
                 self.promptForTopicDeadline(title: title)
             }
@@ -117,33 +116,40 @@ class TopicsListViewController: UIViewController {
     }
     
     private func promptForTopicDeadline(title: String) {
-        let alert = UIAlertController(title: "Set Deadline", message: "Choose target completion date (optional)", preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: "Target Completion", message: "Choose target deadline for this topic", preferredStyle: .actionSheet)
         
-        // Quick options
-        alert.addAction(UIAlertAction(title: "Today", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "⏰ Due Today", style: .default, handler: { [weak self] _ in
             guard let self = self else { return }
+            HapticHelper.success()
             CoreDataManager.shared.createTopic(title: title, deadline: Date(), course: self.course)
             self.loadTopics()
+            self.showToast(message: "Topic added for Today!")
         }))
         
-        alert.addAction(UIAlertAction(title: "In 3 Days", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "📅 In 3 Days", style: .default, handler: { [weak self] _ in
             guard let self = self else { return }
+            HapticHelper.success()
             let targetDate = Calendar.current.date(byAdding: .day, value: 3, to: Date())
             CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
             self.loadTopics()
+            self.showToast(message: "Topic created!")
         }))
         
-        alert.addAction(UIAlertAction(title: "Next Week", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "🗓 Next Week", style: .default, handler: { [weak self] _ in
             guard let self = self else { return }
+            HapticHelper.success()
             let targetDate = Calendar.current.date(byAdding: .day, value: 7, to: Date())
             CoreDataManager.shared.createTopic(title: title, deadline: targetDate, course: self.course)
             self.loadTopics()
+            self.showToast(message: "Topic created!")
         }))
         
-        alert.addAction(UIAlertAction(title: "No Deadline", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "⚪ No Deadline", style: .default, handler: { [weak self] _ in
             guard let self = self else { return }
+            HapticHelper.success()
             CoreDataManager.shared.createTopic(title: title, deadline: nil, course: self.course)
             self.loadTopics()
+            self.showToast(message: "Topic created!")
         }))
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -173,11 +179,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultTopicCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "DefaultTopicCell")
         cell.textLabel?.text = topic.title
-        if let deadline = topic.deadline {
-            cell.detailTextLabel?.text = "Due: \(deadline.formattedDate())"
-        } else {
-            cell.detailTextLabel?.text = "No deadline"
-        }
+        cell.detailTextLabel?.text = topic.deadline != nil ? "Due: \(topic.deadline!.formattedDate())" : "No deadline"
         cell.accessoryType = .disclosureIndicator
         return cell
     }
@@ -185,8 +187,8 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedTopic = topics[indexPath.row]
+        HapticHelper.lightImpact()
         
-        // Programmatic Navigation: Push TasksListViewController
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let tasksVC = storyboard.instantiateViewController(withIdentifier: "TasksListViewController") as? TasksListViewController {
             tasksVC.topic = selectedTopic
@@ -197,16 +199,16 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let topic = topics[indexPath.row]
         
-        // Delete Action
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
                 title: "Delete Topic?",
-                message: "Deleting '\(topic.title ?? "this topic")' will also remove all its tasks and notes.",
+                message: "Deleting '\(topic.title ?? "this topic")' will remove all its study tasks and notes.",
                 confirmTitle: "Delete",
                 isDestructive: true,
                 onConfirm: {
                     CoreDataManager.shared.deleteTopic(topic)
                     self?.loadTopics()
+                    self?.showToast(message: "Topic removed.")
                     completion(true)
                 }
             )

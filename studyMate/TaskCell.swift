@@ -10,7 +10,7 @@ import UIKit
 
 class TaskCell: UITableViewCell {
     
-    // MARK: - IBOutlets (Connect these in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var titleLabel: UILabel?
     @IBOutlet weak var notesLabel: UILabel?
     @IBOutlet weak var checkboxButton: UIButton?
@@ -22,6 +22,9 @@ class TaskCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        
         cardContainerView?.applyCardStyle(cornerRadius: 12)
     }
     
@@ -49,7 +52,7 @@ class TaskCell: UITableViewCell {
         
         // Notes preview
         if let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            notesLabel?.text = notes
+            notesLabel?.text = "📝 \(notes)"
             notesLabel?.isHidden = false
             if notesLabel == nil {
                 detailTextLabel?.text = notes
@@ -62,26 +65,37 @@ class TaskCell: UITableViewCell {
             }
         }
         
-        // Checkbox image (using modern SF Symbols)
+        // Checkbox image
         updateCheckboxAppearance(isDone: task.isDone)
     }
     
     private func updateCheckboxAppearance(isDone: Bool) {
         let imageName = isDone ? "checkmark.circle.fill" : "circle"
-        let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         let image = UIImage(systemName: imageName, withConfiguration: config)
         
         checkboxButton?.setImage(image, for: .normal)
-        checkboxButton?.tintColor = isDone ? .systemGreen : .tertiaryLabel
+        checkboxButton?.tintColor = isDone ? .systemGreen : .systemGray3
         
-        // Fallback for default accessory type if custom button is not connected
         if checkboxButton == nil {
             accessoryType = isDone ? .checkmark : .none
         }
     }
     
-    // MARK: - IBActions (Connect this in Storyboard)
+    // MARK: - IBActions
     @IBAction func checkboxTapped(_ sender: UIButton) {
+        // Haptic feedback
+        HapticHelper.lightImpact()
+        
+        // Small bounce animation on tap
+        UIView.animate(withDuration: 0.1, animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                sender.transform = .identity
+            }
+        }
+        
         onToggleCompletion?()
     }
 }

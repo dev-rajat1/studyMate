@@ -10,7 +10,7 @@ import UIKit
 
 class TopicCell: UITableViewCell {
     
-    // MARK: - IBOutlets (Connect these in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var titleLabel: UILabel?
     @IBOutlet weak var deadlineLabel: UILabel?
     @IBOutlet weak var taskCountLabel: UILabel?
@@ -20,7 +20,10 @@ class TopicCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
-        cardContainerView?.applyCardStyle(cornerRadius: 12)
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        
+        cardContainerView?.applyCardStyle(cornerRadius: 14)
         aiBadgeView?.layer.cornerRadius = 6
         aiBadgeView?.layer.masksToBounds = true
     }
@@ -34,20 +37,27 @@ class TopicCell: UITableViewCell {
         }
         
         let (total, completed, _) = CoreDataManager.shared.getTopicProgress(topic: topic)
-        let tasksText = "\(completed)/\(total) Completed"
+        let tasksText = "\(completed)/\(total) Tasks"
         taskCountLabel?.text = tasksText
+        taskCountLabel?.textColor = (total > 0 && completed == total) ? .systemGreen : .systemBlue
         
         if let deadline = topic.deadline {
-            let deadlineText = "🗓 Due: \(deadline.deadlineRelativeString())"
+            let deadlineText = "🗓 \(deadline.deadlineRelativeString())"
             if let deadlineLabel = deadlineLabel {
                 deadlineLabel.text = deadlineText
-                deadlineLabel.textColor = deadline < Date() ? .systemRed : .secondaryLabel
+                if deadline < Date() && !Calendar.current.isDateInToday(deadline) {
+                    deadlineLabel.textColor = .systemRed
+                } else if Calendar.current.isDateInToday(deadline) {
+                    deadlineLabel.textColor = .systemOrange
+                } else {
+                    deadlineLabel.textColor = .secondaryLabel
+                }
             } else {
                 detailTextLabel?.text = "\(deadlineText) • \(tasksText)"
             }
         } else {
-            deadlineLabel?.text = "No deadline set"
-            deadlineLabel?.textColor = .secondaryLabel
+            deadlineLabel?.text = "No deadline"
+            deadlineLabel?.textColor = .tertiaryLabel
             if deadlineLabel == nil {
                 detailTextLabel?.text = tasksText
             }

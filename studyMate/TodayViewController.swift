@@ -10,7 +10,7 @@ import UIKit
 
 class TodayViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard if using custom layout)
+    // MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var emptyStateLabel: UILabel?
     
@@ -32,8 +32,8 @@ class TodayViewController: UIViewController {
     private func setupUI() {
         title = "Today's Focus"
         navigationController?.navigationBar.prefersLargeTitles = true
+        view.backgroundColor = .systemGroupedBackgroundColor
         
-        // TableView fallback setup
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .insetGrouped)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -43,8 +43,9 @@ class TodayViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 80
+        tableView.estimatedRowHeight = 85
     }
     
     // MARK: - Data Loading
@@ -55,19 +56,16 @@ class TodayViewController: UIViewController {
     }
     
     private func updateEmptyState() {
-        let isEmpty = pendingTasks.isEmpty
-        emptyStateLabel?.isHidden = !isEmpty
-        
-        if isEmpty && emptyStateLabel == nil {
-            let messageLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
-            messageLabel.text = "🎉 All Caught Up!\nNo pending tasks for today."
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.numberOfLines = 0
-            messageLabel.textAlignment = .center
-            messageLabel.font = .systemFont(ofSize: 17, weight: .medium)
-            tableView.backgroundView = messageLabel
-        } else if !isEmpty {
-            tableView.backgroundView = nil
+        if pendingTasks.isEmpty {
+            emptyStateLabel?.isHidden = false
+            tableView.setEmptyState(
+                iconName: "sparkles",
+                title: "🎉 All Caught Up!",
+                message: "No pending tasks for today.\nTake a break or plan your next study session!"
+            )
+        } else {
+            emptyStateLabel?.isHidden = true
+            tableView.removeEmptyState()
         }
     }
 }
@@ -86,18 +84,18 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let task = pendingTasks[indexPath.row]
         
-        // Try dequeuing custom TaskCell
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as? TaskCell {
             cell.configure(with: task)
             cell.onToggleCompletion = { [weak self] in
                 guard let self = self else { return }
+                HapticHelper.success()
                 CoreDataManager.shared.toggleTaskDone(task)
                 self.loadPendingTasks()
+                self.showToast(message: "✅ Task marked as completed!")
             }
             return cell
         }
         
-        // Fallback default UITableViewCell
         let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "DefaultCell")
         cell.textLabel?.text = task.title
         let topicName = task.topic?.title ?? "General"
@@ -111,7 +109,6 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let task = pendingTasks[indexPath.row]
         
-        // Programmatic Navigation: Navigate to Topic's Task List
         if let topic = task.topic {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let tasksVC = storyboard.instantiateViewController(withIdentifier: "TasksListViewController") as? TasksListViewController {
@@ -121,15 +118,15 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         }
     }
     
-    // Swipe to complete or delete
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let task = pendingTasks[indexPath.row]
         
-        // Complete Action
         let completeAction = UIContextualAction(style: .normal, title: "Done") { [weak self] (_, _, completion) in
             guard let self = self else { return }
+            HapticHelper.success()
             CoreDataManager.shared.toggleTaskDone(task)
             self.loadPendingTasks()
+            self.showToast(message: "🎉 Completed!")
             completion(true)
         }
         completeAction.backgroundColor = .systemGreen

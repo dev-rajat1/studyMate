@@ -10,7 +10,7 @@ import UIKit
 
 class SettingsViewController: UIViewController {
 
-    // MARK: - IBOutlets (Connect in Storyboard)
+    // MARK: - IBOutlets
     @IBOutlet weak var themeSegmentedControl: UISegmentedControl?
     @IBOutlet weak var aiSwitch: UISwitch?
     @IBOutlet weak var apiKeyTextField: UITextField?
@@ -31,58 +31,60 @@ class SettingsViewController: UIViewController {
     private func setupUI() {
         title = "Settings"
         navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemGroupedBackground
+        view.backgroundColor = .systemGroupedBackgroundColor
         
-        appearanceCard?.applyCardStyle(cornerRadius: 14)
-        aiSettingsCard?.applyCardStyle(cornerRadius: 14)
-        dataManagementCard?.applyCardStyle(cornerRadius: 14)
+        appearanceCard?.applyCardStyle(cornerRadius: 16)
+        aiSettingsCard?.applyCardStyle(cornerRadius: 16)
+        dataManagementCard?.applyCardStyle(cornerRadius: 16)
         
-        versionLabel?.text = "StudyMate AI v1.0 • Built with UIKit & CoreData"
+        versionLabel?.text = "StudyMate AI v1.0 • Built with UIKit & CoreData\nPowered by Google Gemini 3.7 Flash"
     }
     
     private func loadCurrentSettings() {
-        // Load Theme (0: System, 1: Light, 2: Dark)
         themeSegmentedControl?.selectedSegmentIndex = UserDefaultsManager.shared.themeStyle
-        
-        // Load AI status
         aiSwitch?.isOn = UserDefaultsManager.shared.isAIEnabled
-        
-        // Load API Key
         apiKeyTextField?.text = UserDefaultsManager.shared.customAPIKey
     }
     
-    // MARK: - IBActions (Connect in Storyboard)
+    // MARK: - IBActions
     
     @IBAction func themeChanged(_ sender: UISegmentedControl) {
+        HapticHelper.lightImpact()
         UserDefaultsManager.shared.themeStyle = sender.selectedSegmentIndex
+        showToast(message: "Theme updated!")
     }
     
     @IBAction func aiSwitchChanged(_ sender: UISwitch) {
+        HapticHelper.lightImpact()
         UserDefaultsManager.shared.isAIEnabled = sender.isOn
+        showToast(message: sender.isOn ? "✨ AI Features Enabled" : "AI Features Disabled")
     }
     
     @IBAction func saveApiKeyTapped(_ sender: UIButton) {
+        HapticHelper.success()
         let key = apiKeyTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
         UserDefaultsManager.shared.customAPIKey = key?.isEmpty == true ? nil : key
         view.endEditing(true)
-        showAlert(title: "Settings Saved", message: "Your AI API configuration has been updated.")
+        showToast(message: "✅ Gemini API Key Saved!")
     }
     
     @IBAction func loadSampleDataTapped(_ sender: UIButton) {
+        HapticHelper.success()
         CoreDataManager.shared.createSampleDataIfEmpty()
-        showAlert(title: "Sample Data Loaded", message: "Sample courses, topics, and study tasks have been populated successfully!")
+        showToast(message: "🌱 Sample Study Data Loaded!")
     }
     
     @IBAction func resetAllDataTapped(_ sender: UIButton) {
+        HapticHelper.mediumImpact()
         showConfirmationAlert(
-            title: "Reset All Data?",
-            message: "This will permanently delete all courses, topics, tasks, and notes from Core Data.",
+            title: "Reset All Study Data?",
+            message: "This will permanently clear all courses, topics, study tasks, and AI notes from Core Data.",
             confirmTitle: "Reset All",
             isDestructive: true,
             onConfirm: { [weak self] in
                 let courses = CoreDataManager.shared.fetchCourses()
                 courses.forEach { CoreDataManager.shared.deleteCourse($0) }
-                self?.showAlert(title: "Reset Complete", message: "All app data has been cleared.")
+                self?.showToast(message: "🗑 All Data Cleared.")
             }
         )
     }
