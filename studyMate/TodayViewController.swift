@@ -52,7 +52,7 @@ class TodayViewController: UIViewController {
     
     // MARK: - Dashboard Header Banner
     private func setupDashboardHeader() {
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 110))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 124))
         headerView.backgroundColor = .clear
         
         let card = UIView()
@@ -60,24 +60,37 @@ class TodayViewController: UIViewController {
         card.applyCardStyle(cornerRadius: 16)
         headerView.addSubview(card)
         
+        let topStack = UIStackView()
+        topStack.axis = .horizontal
+        topStack.distribution = .equalSpacing
+        topStack.alignment = .center
+        topStack.translatesAutoresizingMaskIntoConstraints = false
+        
         let dateLabel = UILabel()
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.text = "🗓 \(Date().formattedGreetingDate().uppercased())"
         dateLabel.font = .systemFont(ofSize: 12, weight: .bold)
         dateLabel.textColor = .systemPurple
-        card.addSubview(dateLabel)
+        
+        let streakBadge = UILabel()
+        streakBadge.text = "🔥 Daily Focus"
+        streakBadge.font = .systemFont(ofSize: 11, weight: .bold)
+        streakBadge.textColor = .systemOrange
+        
+        topStack.addArrangedSubview(dateLabel)
+        topStack.addArrangedSubview(streakBadge)
+        card.addSubview(topStack)
         
         let greetingLabel = UILabel()
         greetingLabel.translatesAutoresizingMaskIntoConstraints = false
         let count = pendingTasks.count
-        greetingLabel.text = count == 0 ? "🎉 You're all caught up today!" : "⚡ You have \(count) \(count == 1 ? "lesson" : "lessons") to complete"
-        greetingLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        greetingLabel.text = count == 0 ? "🎉 You're all caught up today!" : "⚡ \(count) \(count == 1 ? "Lesson" : "Lessons") Remaining"
+        greetingLabel.font = .systemFont(ofSize: 17, weight: .bold)
         greetingLabel.textColor = .label
         card.addSubview(greetingLabel)
         
         let subLabel = UILabel()
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.text = "Review notes, test with AI quiz, and mark lessons done."
+        subLabel.text = count == 0 ? "Great job! Keep up the daily study streak." : "Review notes, test with AI quiz, and mark lessons done."
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subLabel.textColor = .secondaryLabel
         card.addSubview(subLabel)
@@ -88,15 +101,15 @@ class TodayViewController: UIViewController {
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             
-            dateLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            dateLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            dateLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            topStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            topStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            topStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
             
-            greetingLabel.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
-            greetingLabel.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 4),
+            greetingLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
+            greetingLabel.topAnchor.constraint(equalTo: topStack.bottomAnchor, constant: 4),
             greetingLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
             
-            subLabel.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
+            subLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
             subLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: 4),
             subLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16)
         ])
