@@ -135,23 +135,32 @@
 		00F8072C3046CA370022D4DA /* studyMate */ = {
 			isa = PBXGroup;
 			children = (
+				GRP000000000000000000001 /* App & Resources */,
+				GRP000000000000000000002 /* Controllers */,
+				GRP000000000000000000003 /* Views & Cells */,
+				GRP000000000000000000004 /* Services & AI */,
+				GRP000000000000000000005 /* Managers & CoreData */,
+				GRP000000000000000000006 /* Helpers & Extensions */,
+			);
+			path = studyMate;
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000001 /* App & Resources */ = {
+			isa = PBXGroup;
+			children = (
 				00F8072D3046CA370022D4DA /* AppDelegate.swift */,
 				00F8072F3046CA370022D4DA /* SceneDelegate.swift */,
-				00F807313046CA370022D4DA /* ViewController.swift */,
 				00F807333046CA370022D4DA /* Main.storyboard */,
-				00F807393046CA380022D4DA /* Assets.xcassets */,
 				00F8073B3046CA380022D4DA /* LaunchScreen.storyboard */,
+				00F807393046CA380022D4DA /* Assets.xcassets */,
 				00F8073E3046CA380022D4DA /* Info.plist */,
-				00F807363046CA370022D4DA /* studyMate.xcdatamodeld */,
-				AA0000010000000000000001 /* APIError.swift */,
-				AA0000010000000000000002 /* ColorHelper.swift */,
-				AA0000010000000000000003 /* Extensions.swift */,
-				AA0000010000000000000004 /* UserDefaultsManager.swift */,
-				AA0000010000000000000005 /* CoreDataManager.swift */,
-				AA0000010000000000000006 /* AIService.swift */,
-				AA0000010000000000000007 /* CourseCell.swift */,
-				AA0000010000000000000008 /* TopicCell.swift */,
-				AA0000010000000000000009 /* TaskCell.swift */,
+			);
+			name = "App & Resources";
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000002 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
 				AA000001000000000000000A /* TodayViewController.swift */,
 				AA000001000000000000000B /* CoursesListViewController.swift */,
 				AA000001000000000000000C /* TopicsListViewController.swift */,
@@ -161,7 +170,45 @@
 				AA0000010000000000000010 /* StatsViewController.swift */,
 				AA0000010000000000000011 /* SettingsViewController.swift */,
 			);
-			path = studyMate;
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000003 /* Views & Cells */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000010000000000000007 /* CourseCell.swift */,
+				AA0000010000000000000008 /* TopicCell.swift */,
+				AA0000010000000000000009 /* TaskCell.swift */,
+			);
+			name = "Views & Cells";
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000004 /* Services & AI */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000010000000000000006 /* AIService.swift */,
+				AA0000010000000000000001 /* APIError.swift */,
+			);
+			name = "Services & AI";
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000005 /* Managers & CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000010000000000000005 /* CoreDataManager.swift */,
+				AA0000010000000000000004 /* UserDefaultsManager.swift */,
+				00F807363046CA370022D4DA /* studyMate.xcdatamodeld */,
+			);
+			name = "Managers & CoreData";
+			sourceTree = "<group>";
+		};
+		GRP000000000000000000006 /* Helpers & Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000010000000000000003 /* Extensions.swift */,
+				AA0000010000000000000002 /* ColorHelper.swift */,
+			);
+			name = "Helpers & Extensions";
 			sourceTree = "<group>";
 		};
 		00F807463046CA380022D4DA /* studyMateTests */ = {
