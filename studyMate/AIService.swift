@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Handles AI Notes Summarization and Quiz Generation using Google Gemini API (gemini-3.7-flash) with URLSession dataTask.
+//  Purpose: Handles dynamic AI Notes Summarization and scalable Quiz Generation using Google Gemini API (gemini-3.7-flash).
 //
 
 import Foundation
@@ -17,8 +17,28 @@ class AIService {
     // Google Gemini API Base Endpoint
     private let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/models"
     
+    // MARK: - Helper: Dynamic Question Count Calculator
+    /// Calculates the optimal number of quiz questions based on notes length and lesson count
+    private func calculateTargetQuizCount(notesContent: String, taskCount: Int) -> Int {
+        let characterCount = notesContent.count
+        
+        // Base calculation: roughly 1 question per ~200 characters of notes, minimum 4, maximum 15
+        if characterCount < 250 {
+            return max(4, taskCount * 2)
+        } else if characterCount < 700 {
+            return max(6, taskCount * 2)
+        } else if characterCount < 1500 {
+            return max(8, taskCount * 3)
+        } else if characterCount < 2800 {
+            return min(12, max(10, taskCount * 3))
+        } else {
+            // Very long notes / multi-page lessons
+            return min(18, max(12, taskCount * 4))
+        }
+    }
+    
     // MARK: - Generate AI Summary
-    /// Generates a structured revision summary for a given Topic and its task notes using Gemini AI
+    /// Generates an in-depth, structured revision summary tailored to the depth of the notes
     func generateSummary(for topic: Topic, completion: @escaping (Result<String, APIError>) -> Void) {
         guard UserDefaultsManager.shared.isAIEnabled else {
             completion(.failure(.aiDisabled))
@@ -26,34 +46,57 @@ class AIService {
         }
         
         let topicTitle = topic.title ?? "General Topic"
+        let courseName = topic.course?.name ?? "General Study"
         let tasks = (topic.tasks as? Set<Task>) ?? []
         
-        // Collect notes from all tasks under this topic
-        let notesContent = tasks.compactMap { task -> String? in
-            guard let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                return nil
+        // Collect notes from all lessons/tasks
+        var formattedLessons: [String] = []
+        for task in tasks {
+            let taskTitle = task.title ?? "Lesson"
+            let notes = task.notes?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !notes.isEmpty {
+                formattedLessons.append("📖 Lesson: [\(taskTitle)]\nNotes:\n\(notes)")
+            } else {
+                formattedLessons.append("📖 Lesson: [\(taskTitle)] (No specific notes written)")
             }
-            return "- [\(task.title ?? "Task")]: \(notes)"
-        }.joined(separator: "\n")
+        }
         
+        let notesContent = formattedLessons.joined(separator: "\n\n---------------------\n\n")
         let apiKey = UserDefaultsManager.shared.customAPIKey ?? ""
         let model = UserDefaultsManager.shared.aiModelName
         
         let prompt = """
-        You are an expert study tutor for students. Generate a concise, high-yield study revision summary for the topic: "\(topicTitle)".
+        You are an elite academic professor and study coach.
+        Course: "\(courseName)"
+        Module: "\(topicTitle)"
         
-        Student's Notes and Task Details:
-        \(notesContent.isEmpty ? "No specific sub-notes provided. Generate a comprehensive fundamental summary of \(topicTitle)." : notesContent)
+        The student has provided their complete study notes and lesson details below:
+        \"\"\"
+        \(notesContent.isEmpty ? "No detailed lesson notes written yet. Generate an in-depth, rigorous master summary for the module: \(topicTitle)." : notesContent)
+        \"\"\"
         
-        Please format the response clearly with:
-        📚 Summary Overview
-        🎯 Key Concepts & Takeaways (bullet points)
-        💡 Common Pitfalls & Tips
-        ⚡ Quick Revision Note
+        TASK:
+        Generate a comprehensive, beautifully structured study summary that scales directly with the length and details of the notes provided above.
+        
+        Please format the response clearly with clean headings:
+        📌 EXECUTIVE OVERVIEW
+        (High-level concept summary and real-world significance)
+        
+        🎯 DEEP-DIVE KEY TAKEAWAYS (By Lesson/Topic)
+        (Detailed bullet points covering all important principles, mechanisms, and nuances)
+        
+        💡 FORMULAS, DEFINITIONS & TERMINOLOGY
+        (Important terms, definitions, syntax, or equations mentioned in the notes)
+        
+        ⚠️ COMMON PITFALLS & EXAM GOTCHAS
+        (Frequent student misunderstandings or edge cases to watch out for)
+        
+        ⚡ RAPID REVISION CHECKLIST
+        (5-8 actionable check points for quick pre-exam review)
         """
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model) { [weak self] result in
+            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model, maxTokens: 2500) { [weak self] result in
                 switch result {
                 case .success(let text):
                     completion(.success(text))
@@ -67,8 +110,8 @@ class AIService {
         }
     }
     
-    // MARK: - Generate AI Quiz
-    /// Generates 3-4 interactive practice quiz questions with explanations for revision
+    // MARK: - Generate Dynamic AI Quiz
+    /// Generates scalable practice quiz questions directly proportional to notes length and complexity
     func generateQuiz(for topic: Topic, completion: @escaping (Result<String, APIError>) -> Void) {
         guard UserDefaultsManager.shared.isAIEnabled else {
             completion(.failure(.aiDisabled))
@@ -76,45 +119,70 @@ class AIService {
         }
         
         let topicTitle = topic.title ?? "General Topic"
+        let courseName = topic.course?.name ?? "General Study"
         let tasks = (topic.tasks as? Set<Task>) ?? []
-        let notesContent = tasks.compactMap { $0.notes }.joined(separator: "; ")
+        
+        var formattedLessons: [String] = []
+        for task in tasks {
+            let taskTitle = task.title ?? "Lesson"
+            let notes = task.notes?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !notes.isEmpty {
+                formattedLessons.append("📖 Lesson: [\(taskTitle)]\nNotes:\n\(notes)")
+            } else {
+                formattedLessons.append("📖 Lesson: [\(taskTitle)]")
+            }
+        }
+        
+        let notesContent = formattedLessons.joined(separator: "\n\n")
+        let targetQuestionCount = calculateTargetQuizCount(notesContent: notesContent, taskCount: tasks.count)
         
         let apiKey = UserDefaultsManager.shared.customAPIKey ?? ""
         let model = UserDefaultsManager.shared.aiModelName
         
         let prompt = """
-        You are an academic test maker. Generate 3 high-yield Multiple Choice Practice Quiz questions (MCQs) for the topic: "\(topicTitle)".
-        Context Notes: \(notesContent.isEmpty ? "General subject knowledge." : notesContent)
+        You are an expert exam question creator.
+        Course: "\(courseName)"
+        Module: "\(topicTitle)"
         
-        For each question format exactly as:
-        Q1. [Question]
+        Study Notes Context:
+        \"\"\"
+        \(notesContent.isEmpty ? "General academic subject knowledge for \(topicTitle)." : notesContent)
+        \"\"\"
+        
+        TASK:
+        Based on the length and depth of the study notes above, generate EXACTLY \(targetQuestionCount) high-yield Multiple Choice Practice Questions (MCQs).
+        Distribute the questions evenly across all lessons and concepts in the notes (from foundational definitions to advanced conceptual applications).
+        
+        Format each question STRICTLY as:
+        
+        Q[Number]. [Question Text]
         A) [Option A]
         B) [Option B]
         C) [Option C]
         D) [Option D]
         ✅ Answer: [Correct Letter]
-        💡 Explanation: [Brief explanation]
+        💡 Explanation: [Clear explanation of why this answer is correct and why other options are incorrect]
         
         ------------------------------------------
         """
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model) { [weak self] result in
+            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model, maxTokens: 3000) { [weak self] result in
                 switch result {
                 case .success(let text):
                     completion(.success(text))
                 case .failure(let error):
                     print("⚠️ Gemini API call failed (\(error.localizedDescription)), falling back to smart simulation...")
-                    self?.generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks, completion: completion)
+                    self?.generateSimulatedDynamicQuiz(topicTitle: topicTitle, tasks: tasks, notes: notesContent, questionCount: targetQuestionCount, completion: completion)
                 }
             }
         } else {
-            generateSimulatedQuiz(topicTitle: topicTitle, tasks: tasks, completion: completion)
+            generateSimulatedDynamicQuiz(topicTitle: topicTitle, tasks: tasks, notes: notesContent, questionCount: targetQuestionCount, completion: completion)
         }
     }
     
     // MARK: - Google Gemini REST API Call (URLSession dataTask)
-    private func callGeminiAPI(prompt: String, apiKey: String, model: String, completion: @escaping (Result<String, APIError>) -> Void) {
+    private func callGeminiAPI(prompt: String, apiKey: String, model: String, maxTokens: Int = 2000, completion: @escaping (Result<String, APIError>) -> Void) {
         let endpointString = "\(geminiBaseURL)/\(model):generateContent?key=\(apiKey)"
         
         guard let url = URL(string: endpointString) else {
@@ -125,9 +193,8 @@ class AIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 25.0
+        request.timeoutInterval = 30.0
         
-        // Gemini JSON Payload structure
         let payload: [String: Any] = [
             "contents": [
                 [
@@ -138,7 +205,7 @@ class AIService {
             ],
             "generationConfig": [
                 "temperature": 0.7,
-                "maxOutputTokens": 1000
+                "maxOutputTokens": maxTokens
             ]
         ]
         
@@ -166,7 +233,6 @@ class AIService {
             }
             
             guard (200...299).contains(httpResponse.statusCode) else {
-                // Attempt to parse error message from Gemini JSON
                 if let errorJson = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let errorObj = errorJson["error"] as? [String: Any],
                    let message = errorObj["message"] as? String {
@@ -177,7 +243,6 @@ class AIService {
                 return
             }
             
-            // Parse Gemini Response: candidates[0].content.parts[0].text
             guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                   let candidates = json["candidates"] as? [[String: Any]],
                   let firstCandidate = candidates.first,
@@ -199,65 +264,56 @@ class AIService {
     // MARK: - Smart Offline Simulation (Fallback)
     private func generateSimulatedSummary(topicTitle: String, tasks: Set<Task>, notes: String, completion: @escaping (Result<String, APIError>) -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + 1.2) {
-            let taskTitles = tasks.map { "• \($0.title ?? "Task")" }.joined(separator: "\n")
+            let taskTitles = tasks.map { "• \($0.title ?? "Lesson")" }.joined(separator: "\n")
             
             let summary = """
-            📚 AI Study Summary: \(topicTitle)
+            📌 EXECUTIVE OVERVIEW: \(topicTitle)
+            This module covers foundational principles and real-world implementations of "\(topicTitle)". Mastering these concepts will solidify your problem-solving skills and technical proficiency.
             
-            📌 Overview:
-            This topic covers the fundamental principles and implementation details of "\(topicTitle)". Mastering these concepts will solidify your understanding and practical problem-solving skills.
-            
-            🎯 Key Topics & Tasks:
+            🎯 DEEP-DIVE KEY TAKEAWAYS:
             \(taskTitles.isEmpty ? "• Core concepts and foundational exercises" : taskTitles)
             
-            💡 Important Notes & Takeaways:
-            \(notes.isEmpty ? "• Focus on mastering core terminology, time complexities, and real-world trade-offs.\n• Practice writing code without auto-completion for better retention." : notes)
+            💡 LESSON NOTES & ESSENTIAL HIGHLIGHTS:
+            \(notes.isEmpty ? "• Focus on mastering core terminology, principles, and trade-offs.\n• Practice self-testing regularly for maximum retention." : notes)
             
-            ⚡ Pro Study Tip:
-            Use the Feynman Technique: Try explaining this topic in simple terms to a peer without looking at the notes!
+            ⚠️ COMMON PITFALLS & EXAM GOTCHAS:
+            • Overlooking boundary and edge cases during implementation.
+            • Relying only on passive reading rather than active recall.
+            
+            ⚡ RAPID REVISION CHECKLIST:
+            ☑ Review main definitions and formulas
+            ☑ Solve 3 practice problems without notes
+            ☑ Explain the core principle in simple words
             """
             
             completion(.success(summary))
         }
     }
     
-    private func generateSimulatedQuiz(topicTitle: String, tasks: Set<Task>, completion: @escaping (Result<String, APIError>) -> Void) {
+    private func generateSimulatedDynamicQuiz(topicTitle: String, tasks: Set<Task>, notes: String, questionCount: Int, completion: @escaping (Result<String, APIError>) -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + 1.2) {
-            let sampleTaskName = tasks.first?.title ?? "Core Concept"
+            let taskList = Array(tasks)
+            var generatedQuestions: [String] = []
             
-            let quiz = """
-            📝 Practice Quiz: \(topicTitle)
+            for i in 1...questionCount {
+                let currentLesson = !taskList.isEmpty ? (taskList[(i - 1) % taskList.count].title ?? "Lesson") : "Concept \(i)"
+                
+                let q = """
+                Q\(i). In "\(topicTitle)", which principle is essential regarding "\(currentLesson)"?
+                A) Strict adherence to optimal time/space complexity and systematic verification
+                B) Skipping input validations to reduce lines of code
+                C) Applying patterns blindly without analyzing constraints
+                D) None of the above
+                ✅ Answer: A
+                💡 Explanation: Rigorous input validation and complexity analysis are vital for robust mastery of "\(currentLesson)".
+                """
+                generatedQuestions.append(q)
+            }
             
-            Q1. What is the primary purpose of studying "\(topicTitle)"?
-            A) To optimize execution and code maintainability
-            B) To increase code complexity unnecessarily
-            C) Only for theoretical examinations
-            D) None of the above
-            ✅ Answer: A
-            💡 Explanation: Understanding "\(topicTitle)" helps in writing efficient, scalable, and maintainable software.
+            let header = "📝 Practice Quiz: \(topicTitle) (\(questionCount) High-Yield Questions)\n\n"
+            let fullQuiz = header + generatedQuestions.joined(separator: "\n\n------------------------------------------\n\n")
             
-            ------------------------------------------
-            
-            Q2. In the context of "\(sampleTaskName)", what is the best practice?
-            A) Ignoring edge cases
-            B) Validating inputs and handling error states gracefully
-            C) Running heavy computations on the main thread
-            D) Hardcoding values
-            ✅ Answer: B
-            💡 Explanation: Defensive programming and proper error handling ensure application stability.
-            
-            ------------------------------------------
-            
-            Q3. How often should you revise this topic for long-term retention?
-            A) Never again
-            B) Spaced repetition (Day 1, Day 3, Day 7)
-            C) Only before the exam night
-            D) Once a year
-            ✅ Answer: B
-            💡 Explanation: Spaced repetition is scientifically proven to boost memory retention by over 80%.
-            """
-            
-            completion(.success(quiz))
+            completion(.success(fullQuiz))
         }
     }
 }

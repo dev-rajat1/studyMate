@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Modal view for AI Notes Summary & Practice Quiz generation with state management.
+//  Purpose: Modal view for dynamic AI Notes Summary & Scalable Practice Quiz generation.
 //
 
 import UIKit
@@ -34,7 +34,7 @@ class AISummaryViewController: UIViewController {
     // MARK: - UI Setup
     private func setupUI() {
         title = "AI Study Assistant"
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "doc.on.doc"),
@@ -51,7 +51,9 @@ class AISummaryViewController: UIViewController {
         )
         
         contentTextView?.layer.cornerRadius = 14
-        contentTextView?.backgroundColor = .secondarySystemBackground
+        contentTextView?.layer.borderWidth = 0.5
+        contentTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.25).cgColor
+        contentTextView?.backgroundColor = .secondarySystemGroupedBackground
         contentTextView?.isEditable = false
         contentTextView?.font = .systemFont(ofSize: 15, weight: .regular)
         contentTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
@@ -77,7 +79,14 @@ class AISummaryViewController: UIViewController {
         
         let isSummaryMode = (segmentedControl?.selectedSegmentIndex ?? 0) == 0
         
-        setLoadingState(true, message: isSummaryMode ? "🤖 Gemini AI is summarizing your study notes..." : "🎯 Gemini AI is crafting practice quiz questions...")
+        let tasks = (topic.tasks as? Set<Task>) ?? []
+        let totalLength = tasks.reduce(0) { $0 + ($1.notes?.count ?? 0) }
+        
+        let loadingMsg = isSummaryMode
+            ? "🤖 Gemini AI is analyzing \(tasks.count) lessons & \(totalLength) characters of notes..."
+            : "🎯 Gemini AI is generating a tailored quiz based on your full notes..."
+        
+        setLoadingState(true, message: loadingMsg)
         
         if isSummaryMode {
             AIService.shared.generateSummary(for: self.topic) { [weak self] result in
@@ -127,7 +136,7 @@ class AISummaryViewController: UIViewController {
         if loading {
             activityIndicator?.startAnimating()
             activityIndicator?.isHidden = false
-            contentTextView?.text = "⏳ Generating high-yield study material with Gemini AI...\nPlease hold on a moment."
+            contentTextView?.text = "⏳ Analyzing your study notes and generating customized learning material with Gemini AI...\n\nPlease hold on a moment."
         } else {
             activityIndicator?.stopAnimating()
             activityIndicator?.isHidden = true
