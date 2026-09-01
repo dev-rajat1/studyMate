@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		00F8072E3046CA370022D4DA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8072D3046CA370022D4DA /* AppDelegate.swift */; };
 		00F807303046CA370022D4DA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8072F3046CA370022D4DA /* SceneDelegate.swift */; };
-		00F807323046CA370022D4DA /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F807313046CA370022D4DA /* ViewController.swift */; };
 		00F807353046CA370022D4DA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00F807333046CA370022D4DA /* Main.storyboard */; };
 		00F807383046CA370022D4DA /* studyMate.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 00F807363046CA370022D4DA /* studyMate.xcdatamodeld */; };
 		00F8073A3046CA380022D4DA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00F807393046CA380022D4DA /* Assets.xcassets */; };
@@ -56,7 +55,6 @@
 		00F8072A3046CA370022D4DA /* studyMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = studyMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00F8072D3046CA370022D4DA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		00F8072F3046CA370022D4DA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		00F807313046CA370022D4DA /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		00F807343046CA370022D4DA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		00F807373046CA370022D4DA /* studyMate.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = studyMate.xcdatamodel; sourceTree = "<group>"; };
 		00F807393046CA380022D4DA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -359,7 +357,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00F807323046CA370022D4DA /* ViewController.swift in Sources */,
 				00F8072E3046CA370022D4DA /* AppDelegate.swift in Sources */,
 				00F807383046CA370022D4DA /* studyMate.xcdatamodeld in Sources */,
 				00F807303046CA370022D4DA /* SceneDelegate.swift in Sources */,
