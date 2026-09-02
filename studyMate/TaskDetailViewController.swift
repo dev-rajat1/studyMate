@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Clean, distraction-free Full-Screen Notes Reader & Editor with Formatting Quick Tools & Bottom Pagination Island.
+//  Purpose: Premium Notes Editor — Floating title field, notebook-style text view, glassmorphic pagination island.
 //
 
 import UIKit
@@ -14,135 +14,192 @@ class TaskDetailViewController: UIViewController {
     @IBOutlet weak var titleTextField: UITextField?
     @IBOutlet weak var notesTextView: UITextView?
     @IBOutlet weak var isDoneSwitch: UISwitch?
-    
+
     // MARK: - Properties
     var topic: Topic!
     var taskToEdit: Task?
     var onSaveCompleted: (() -> Void)?
-    
-    // MARK: - State Properties
+
+    // State
     private var isCompletedState: Bool = false
     private var pages: [String] = [""]
     private var currentPageIndex: Int = 0
-    
-    // Bottom Pagination Floating Island
+
+    // Programmatic UI
+    private var progTitleField: UITextField?
+    private var progNotesTextView: UITextView?
+
+    // Pagination Island (Glassmorphic)
     private let paginationContainer = UIView()
     private let prevPageButton = UIButton(type: .system)
     private let nextPageButton = UIButton(type: .system)
     private let pageIndicatorLabel = UILabel()
     private let addPageButton = UIButton(type: .system)
-    private let deletePageButton = UIButton(type: .system)
-    
+
     private var completionBarButton: UIBarButtonItem!
-    
-    // Quick Formatting Accessory Toolbar
+
+    // Formatting Toolbar
     private let formattingToolbar = UIToolbar()
-    
-    // MARK: - Delimiter for multi-page notes
+
     private let pageDelimiter = "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n"
-    
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupKeyboardToolbar()
-        setupPaginationBar()
+        setupPaginationIsland()
         populateExistingData()
     }
-    
+
     // MARK: - UI Setup
     private func setupUI() {
         title = taskToEdit == nil ? "New Lesson" : "Lesson Notes"
+        view.backgroundColor = .systemGroupedBackground
+
+        let courseColor = ColorHelper.color(named: topic?.course?.colorTag)
+
         if let topic = topic {
             let courseName = topic.course?.name ?? "Course"
             let moduleName = topic.title ?? "Module"
             navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
         }
-        view.backgroundColor = .systemGroupedBackground
-        
-        // Navigation Bar Buttons
-        let cancelBtn = UIBarButtonItem(
-            title: "Cancel",
-            style: .plain,
-            target: self,
-            action: #selector(cancelTapped)
+
+        // Cancel button
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Cancel", style: .plain, target: self, action: #selector(cancelTapped)
         )
-        navigationItem.leftBarButtonItem = cancelBtn
-        
-        let saveBtn = UIBarButtonItem(
-            title: "Save",
-            style: .done,
-            target: self,
-            action: #selector(saveTapped)
-        )
-        saveBtn.tintColor = .systemBlue
-        
-        // Top Header "Mark as Completed / Important" Toggle
+
+        // Save button (course-colored)
+        let saveBtn = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped(_:)))
+        saveBtn.tintColor = courseColor
+
+        // Completion toggle
         completionBarButton = UIBarButtonItem(
             image: UIImage(systemName: isCompletedState ? "checkmark.circle.fill" : "checkmark.circle"),
-            style: .plain,
-            target: self,
-            action: #selector(toggleCompletionTapped)
+            style: .plain, target: self, action: #selector(toggleCompletionTapped)
         )
-        completionBarButton.tintColor = isCompletedState ? .systemGreen : .systemGray3
-        
+        completionBarButton.tintColor = isCompletedState ? DesignSystem.Colors.success : .systemGray3
+
         navigationItem.rightBarButtonItems = [saveBtn, completionBarButton]
-        
-        // Title Text Field (Compact & Modern)
-        titleTextField?.placeholder = "Lesson / Note Title"
-        titleTextField?.layer.cornerRadius = 12
-        titleTextField?.backgroundColor = .secondarySystemGroupedBackground
-        titleTextField?.font = .systemFont(ofSize: 17, weight: .bold)
-        titleTextField?.layer.borderWidth = 0.5
-        titleTextField?.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
-        
-        // Notes TextView Styling (Maximized Clean Study Notebook)
-        notesTextView?.layer.cornerRadius = 16
-        notesTextView?.layer.borderWidth = 0.5
-        notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
-        notesTextView?.backgroundColor = .secondarySystemGroupedBackground
-        notesTextView?.font = .systemFont(ofSize: 16, weight: .regular)
-        notesTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
+
+        // ---- Style storyboard outlets if present ----
+        if titleTextField != nil {
+            titleTextField?.placeholder = "Lesson / Note Title"
+            titleTextField?.font = .systemFont(ofSize: 18, weight: .bold)
+            titleTextField?.layer.cornerRadius = 12
+            titleTextField?.backgroundColor = .secondarySystemGroupedBackground
+            titleTextField?.layer.borderWidth = 1.0
+            titleTextField?.layer.borderColor = courseColor.withAlphaComponent(0.35).cgColor
+            titleTextField?.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 1))
+            titleTextField?.leftViewMode = .always
+
+            notesTextView?.layer.cornerRadius = 16
+            notesTextView?.layer.borderWidth = 0.5
+            notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.18).cgColor
+            notesTextView?.backgroundColor = .secondarySystemGroupedBackground
+            notesTextView?.font = .systemFont(ofSize: 16, weight: .regular)
+            notesTextView?.textContainerInset = UIEdgeInsets(top: 16, left: 14, bottom: 16, right: 14)
+            return
+        }
+
+        // ---- Programmatic layout (no storyboard outlets) ----
+        buildProgrammaticEditorUI(courseColor: courseColor)
     }
-    
-    // MARK: - Keyboard Formatting Toolbar
+
+    private func buildProgrammaticEditorUI(courseColor: UIColor) {
+        // Title Field
+        let titleField = UITextField()
+        titleField.translatesAutoresizingMaskIntoConstraints = false
+        titleField.placeholder = "Lesson / Note Title"
+        titleField.font = .systemFont(ofSize: 18, weight: .bold)
+        titleField.backgroundColor = .secondarySystemGroupedBackground
+        titleField.layer.cornerRadius = 14
+        titleField.layer.borderWidth = 1.5
+        titleField.layer.borderColor = courseColor.withAlphaComponent(0.40).cgColor
+        titleField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 1))
+        titleField.leftViewMode = .always
+        titleField.returnKeyType = .next
+        DesignSystem.Shadow.applyCard(to: titleField.layer)
+        view.addSubview(titleField)
+        progTitleField = titleField
+
+        // Notes TextView (notebook style)
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.font = UIFont(name: "Menlo-Regular", size: 15) ?? .systemFont(ofSize: 15, weight: .regular)
+        textView.backgroundColor = .secondarySystemGroupedBackground
+        textView.layer.cornerRadius = 16
+        textView.layer.borderWidth = 0.5
+        textView.layer.borderColor = UIColor.separator.withAlphaComponent(0.18).cgColor
+        textView.textContainerInset = UIEdgeInsets(top: 18, left: 16, bottom: 18, right: 16)
+        textView.keyboardDismissMode = .interactive
+        DesignSystem.Shadow.applyCard(to: textView.layer)
+        view.addSubview(textView)
+        progNotesTextView = textView
+
+        NSLayoutConstraint.activate([
+            titleField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleField.heightAnchor.constraint(equalToConstant: 52),
+
+            textView.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 12),
+            textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+        ])
+
+        // Keyboard observers for textview bottom constraint
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let kbFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else { return }
+        let inset = view.bounds.height - kbFrame.origin.y + 10
+        progNotesTextView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset, right: 0)
+        notesTextView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset, right: 0)
+    }
+
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        progNotesTextView?.contentInset = .zero
+        notesTextView?.contentInset = .zero
+    }
+
+    // MARK: - Keyboard Formatting Toolbar (Icon-Only)
     private func setupKeyboardToolbar() {
         formattingToolbar.sizeToFit()
-        formattingToolbar.barStyle = .default
-        
-        let bulletBtn = UIBarButtonItem(title: "• Bullet", style: .plain, target: self, action: #selector(insertBullet))
-        let todoBtn = UIBarButtonItem(title: "☑ Todo", style: .plain, target: self, action: #selector(insertTodo))
-        let numBtn = UIBarButtonItem(title: "1. Num", style: .plain, target: self, action: #selector(insertNumbered))
-        let keyBtn = UIBarButtonItem(title: "⭐ Key", style: .plain, target: self, action: #selector(insertKeyPoint))
+        formattingToolbar.barTintColor = .secondarySystemGroupedBackground
+
+        let bulletBtn = makeToolbarButton(icon: "list.bullet", action: #selector(insertBullet))
+        let todoBtn = makeToolbarButton(icon: "checkmark.square", action: #selector(insertTodo))
+        let numBtn = makeToolbarButton(icon: "list.number", action: #selector(insertNumbered))
+        let keyBtn = makeToolbarButton(icon: "star.fill", action: #selector(insertKeyPoint))
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneBtn = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(dismissKeyboard))
-        
+        doneBtn.tintColor = DesignSystem.Colors.primary
+
         formattingToolbar.items = [bulletBtn, todoBtn, numBtn, keyBtn, flex, doneBtn]
-        notesTextView?.inputAccessoryView = formattingToolbar
+
+        (notesTextView ?? progNotesTextView)?.inputAccessoryView = formattingToolbar
     }
-    
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
+
+    private func makeToolbarButton(icon: String, action: Selector) -> UIBarButtonItem {
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let btn = UIBarButtonItem(image: UIImage(systemName: icon, withConfiguration: config), style: .plain, target: self, action: action)
+        btn.tintColor = DesignSystem.Colors.primary
+        return btn
     }
-    
-    @objc private func insertBullet() {
-        insertTextAtCursor("\n• ")
-    }
-    
-    @objc private func insertTodo() {
-        insertTextAtCursor("\n[ ] ")
-    }
-    
-    @objc private func insertNumbered() {
-        insertTextAtCursor("\n1. ")
-    }
-    
-    @objc private func insertKeyPoint() {
-        insertTextAtCursor("\n💡 Key Concept: ")
-    }
-    
+
+    @objc private func dismissKeyboard() { view.endEditing(true) }
+    @objc private func insertBullet() { insertTextAtCursor("\n• ") }
+    @objc private func insertTodo() { insertTextAtCursor("\n[ ] ") }
+    @objc private func insertNumbered() { insertTextAtCursor("\n1. ") }
+    @objc private func insertKeyPoint() { insertTextAtCursor("\n💡 Key Concept: ") }
+
     private func insertTextAtCursor(_ text: String) {
-        guard let textView = notesTextView else { return }
+        let tv = notesTextView ?? progNotesTextView
+        guard let textView = tv else { return }
         HapticHelper.lightImpact()
         if let selectedRange = textView.selectedTextRange {
             textView.replace(selectedRange, withText: text)
@@ -150,69 +207,79 @@ class TaskDetailViewController: UIViewController {
             textView.text.append(text)
         }
     }
-    
-    // MARK: - Bottom Pagination Bar
-    private func setupPaginationBar() {
+
+    // MARK: - Glassmorphic Pagination Island
+    private func setupPaginationIsland() {
         paginationContainer.translatesAutoresizingMaskIntoConstraints = false
-        paginationContainer.applyCardStyle(cornerRadius: 14)
-        paginationContainer.backgroundColor = .secondarySystemGroupedBackground
-        
-        prevPageButton.setTitle("◀ Prev", for: .normal)
-        prevPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        paginationContainer.applyGlassmorphicStyle(cornerRadius: 20)
+        paginationContainer.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.92)
+
+        // Shadow
+        DesignSystem.Shadow.applyCard(to: paginationContainer.layer)
+
+        // Prev button
+        let prevConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        prevPageButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: prevConfig), for: .normal)
+        prevPageButton.tintColor = DesignSystem.Colors.primary
         prevPageButton.addTarget(self, action: #selector(prevPageTapped), for: .touchUpInside)
-        
-        nextPageButton.setTitle("Next ▶", for: .normal)
-        nextPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
-        nextPageButton.addTarget(self, action: #selector(nextPageTapped), for: .touchUpInside)
-        
-        pageIndicatorLabel.text = "📄 Page 1 of 1"
-        pageIndicatorLabel.font = .systemFont(ofSize: 13, weight: .bold)
-        pageIndicatorLabel.textColor = .systemPurple
+
+        // Page indicator
+        pageIndicatorLabel.text = "Page 1"
+        pageIndicatorLabel.font = .systemFont(ofSize: 14, weight: .bold)
+        pageIndicatorLabel.textColor = DesignSystem.Colors.primary
         pageIndicatorLabel.textAlignment = .center
-        
-        addPageButton.setTitle("➕ Add Page", for: .normal)
-        addPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+
+        // Next button
+        let nextConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        nextPageButton.setImage(UIImage(systemName: "chevron.right", withConfiguration: nextConfig), for: .normal)
+        nextPageButton.tintColor = DesignSystem.Colors.primary
+        nextPageButton.addTarget(self, action: #selector(nextPageTapped), for: .touchUpInside)
+
+        // Add page button
+        let addConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        addPageButton.setImage(UIImage(systemName: "plus.circle.fill", withConfiguration: addConfig), for: .normal)
+        addPageButton.tintColor = DesignSystem.Colors.secondary
         addPageButton.addTarget(self, action: #selector(addPageTapped), for: .touchUpInside)
-        
+
         let pagStack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
         pagStack.axis = .horizontal
         pagStack.distribution = .equalSpacing
         pagStack.alignment = .center
         pagStack.translatesAutoresizingMaskIntoConstraints = false
         paginationContainer.addSubview(pagStack)
-        
         view.addSubview(paginationContainer)
-        
-        guard let notesView = notesTextView else { return }
-        
+
+        // Determine reference view for bottom constraint
+        let activeTextView = notesTextView ?? progNotesTextView
+
         NSLayoutConstraint.activate([
-            paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            paginationContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            paginationContainer.heightAnchor.constraint(equalToConstant: 44),
-            
-            pagStack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 14),
-            pagStack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -14),
+            paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            paginationContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            paginationContainer.heightAnchor.constraint(equalToConstant: 52),
+
+            pagStack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 18),
+            pagStack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -18),
             pagStack.topAnchor.constraint(equalTo: paginationContainer.topAnchor),
-            pagStack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor),
-            
-            notesView.bottomAnchor.constraint(equalTo: paginationContainer.topAnchor, constant: -10)
+            pagStack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor)
         ])
+
+        if let tv = activeTextView {
+            tv.bottomAnchor.constraint(equalTo: paginationContainer.topAnchor, constant: -12).isActive = true
+        }
     }
-    
-    // MARK: - Data Management & Pagination Logic
+
+    // MARK: - Data & Pagination
     private func populateExistingData() {
         if let task = taskToEdit {
-            titleTextField?.text = task.title
+            (titleTextField ?? progTitleField)?.text = task.title
             isCompletedState = task.isDone
             updateCompletionButtonAppearance()
-            
+
             if let rawNotes = task.notes, !rawNotes.isEmpty {
-                if rawNotes.contains(pageDelimiter) {
-                    pages = rawNotes.components(separatedBy: pageDelimiter)
-                } else {
-                    pages = [rawNotes]
-                }
+                pages = rawNotes.contains(pageDelimiter)
+                    ? rawNotes.components(separatedBy: pageDelimiter)
+                    : [rawNotes]
             } else {
                 pages = ["• "]
             }
@@ -221,33 +288,31 @@ class TaskDetailViewController: UIViewController {
             updateCompletionButtonAppearance()
             pages = ["• "]
         }
-        
         currentPageIndex = 0
         loadCurrentPageText()
         updatePaginationButtons()
     }
-    
+
     private func saveCurrentPageText() {
         if currentPageIndex < pages.count {
-            pages[currentPageIndex] = notesTextView?.text ?? ""
+            pages[currentPageIndex] = (notesTextView ?? progNotesTextView)?.text ?? ""
         }
     }
-    
+
     private func loadCurrentPageText() {
         if currentPageIndex < pages.count {
-            notesTextView?.text = pages[currentPageIndex]
+            (notesTextView ?? progNotesTextView)?.text = pages[currentPageIndex]
         }
     }
-    
+
     private func updatePaginationButtons() {
-        pageIndicatorLabel.text = "📄 Page \(currentPageIndex + 1) of \(pages.count)"
+        pageIndicatorLabel.text = "Page \(currentPageIndex + 1) of \(pages.count)"
+        prevPageButton.alpha = currentPageIndex > 0 ? 1.0 : 0.30
+        nextPageButton.alpha = currentPageIndex < (pages.count - 1) ? 1.0 : 0.30
         prevPageButton.isEnabled = currentPageIndex > 0
         nextPageButton.isEnabled = currentPageIndex < (pages.count - 1)
-        
-        prevPageButton.alpha = prevPageButton.isEnabled ? 1.0 : 0.35
-        nextPageButton.alpha = nextPageButton.isEnabled ? 1.0 : 0.35
     }
-    
+
     // MARK: - Pagination Actions
     @objc private func prevPageTapped() {
         guard currentPageIndex > 0 else { return }
@@ -257,7 +322,7 @@ class TaskDetailViewController: UIViewController {
         loadCurrentPageText()
         updatePaginationButtons()
     }
-    
+
     @objc private func nextPageTapped() {
         guard currentPageIndex < pages.count - 1 else { return }
         HapticHelper.lightImpact()
@@ -266,7 +331,7 @@ class TaskDetailViewController: UIViewController {
         loadCurrentPageText()
         updatePaginationButtons()
     }
-    
+
     @objc private func addPageTapped() {
         HapticHelper.success()
         saveCurrentPageText()
@@ -274,10 +339,10 @@ class TaskDetailViewController: UIViewController {
         currentPageIndex = pages.count - 1
         loadCurrentPageText()
         updatePaginationButtons()
-        showToast(message: "📄 Page \(pages.count) Added!", icon: "doc.badge.plus", tintColor: .systemPurple)
+        showToast(message: "Page \(pages.count) Added", icon: "doc.badge.plus", tintColor: DesignSystem.Colors.secondary)
     }
-    
-    // MARK: - Toggle Completed / Important Action (Top Header)
+
+    // MARK: - Completion Toggle
     @objc private func toggleCompletionTapped() {
         HapticHelper.success()
         isCompletedState.toggle()
@@ -285,39 +350,43 @@ class TaskDetailViewController: UIViewController {
         showToast(
             message: isCompletedState ? "Marked as Completed!" : "Marked as Pending",
             icon: isCompletedState ? "checkmark.circle.fill" : "circle",
-            tintColor: isCompletedState ? .systemGreen : .systemGray
+            tintColor: isCompletedState ? DesignSystem.Colors.success : .systemGray
         )
     }
-    
+
     private func updateCompletionButtonAppearance() {
-        let imageName = isCompletedState ? "checkmark.circle.fill" : "checkmark.circle"
-        completionBarButton.image = UIImage(systemName: imageName)
-        completionBarButton.tintColor = isCompletedState ? .systemGreen : .systemGray3
+        completionBarButton.image = UIImage(systemName: isCompletedState ? "checkmark.circle.fill" : "checkmark.circle")
+        completionBarButton.tintColor = isCompletedState ? DesignSystem.Colors.success : .systemGray3
     }
-    
+
     // MARK: - Save & Dismiss
     @IBAction @objc func saveTapped(_ sender: Any) {
-        guard let title = titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
-            showAlert(title: "Missing Title", message: "Please enter a title for this note.")
+        let titleText = (titleTextField ?? progTitleField)?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let title = titleText, !title.isEmpty else {
+            showAlert(title: "Missing Title", message: "Please enter a title for this lesson.")
+            (titleTextField ?? progTitleField)?.shake()
             return
         }
-        
+
         saveCurrentPageText()
         let combinedNotes = pages.joined(separator: pageDelimiter).trimmingCharacters(in: .whitespacesAndNewlines)
-        
         HapticHelper.success()
+
         if let existingTask = taskToEdit {
             CoreDataManager.shared.updateTask(existingTask, title: title, notes: combinedNotes, isDone: isCompletedState)
         } else {
             CoreDataManager.shared.createTask(title: title, notes: combinedNotes, isDone: isCompletedState, topic: self.topic)
         }
-        
+
         onSaveCompleted?()
         dismiss(animated: true)
     }
-    
+
     @IBAction @objc func cancelTapped(_ sender: Any) {
         dismiss(animated: true)
     }
-}
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+}

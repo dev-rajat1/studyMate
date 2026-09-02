@@ -3,136 +3,252 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Custom UITableViewCell for displaying a Task with a completion checkbox & notes preview.
+//  Purpose: Premium Lesson Card — Animated spring checkbox, done-state opacity, notes preview, page count.
 //
 
 import UIKit
 
 class TaskCell: UITableViewCell {
-    
-    // MARK: - IBOutlets
+
+    // MARK: - IBOutlets (Storyboard Compatibility)
     @IBOutlet weak var titleLabel: UILabel?
     @IBOutlet weak var notesLabel: UILabel?
     @IBOutlet weak var checkboxButton: UIButton?
     @IBOutlet weak var cardContainerView: UIView?
-    
-    /// Closure callback invoked when the checkbox button is tapped
+
+    /// Callback when checkbox is tapped
     var onToggleDone: (() -> Void)?
     var onToggleCompletion: (() -> Void)?
-    
+
+    // MARK: - Programmatic UI Elements
+    private var programmaticCard: UIView?
+    private var progCheckbox: UIButton?
+    private var progTitleLabel: UILabel?
+    private var progNotesLabel: UILabel?
+    private var progPageBadge: UIView?
+    private var progPageBadgeLabel: UILabel?
+    private var doneOverlayView: UIView?
+
     override func awakeFromNib() {
         super.awakeFromNib()
         setupStyles()
     }
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupStyles()
+        buildProgrammaticLayout()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-    
+
+    // MARK: - Storyboard Style Setup
     private func setupStyles() {
         selectionStyle = .none
         backgroundColor = .clear
         contentView.backgroundColor = .clear
-        
-        cardContainerView?.applyCardStyle(cornerRadius: 16)
-        
+        cardContainerView?.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
         titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         notesLabel?.font = .systemFont(ofSize: 13, weight: .regular)
         notesLabel?.textColor = .secondaryLabel
     }
-    
+
+    // MARK: - Programmatic Full Layout
+    private func buildProgrammaticLayout() {
+        selectionStyle = .none
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+
+        // Main card
+        let card = UIView()
+        card.translatesAutoresizingMaskIntoConstraints = false
+        card.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
+        contentView.addSubview(card)
+        programmaticCard = card
+
+        // Checkbox button
+        let checkbox = UIButton(type: .custom)
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        checkbox.addTarget(self, action: #selector(checkboxTapped(_:)), for: .touchUpInside)
+        card.addSubview(checkbox)
+        progCheckbox = checkbox
+
+        // Title label
+        let titleL = UILabel()
+        titleL.translatesAutoresizingMaskIntoConstraints = false
+        titleL.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleL.textColor = .label
+        titleL.numberOfLines = 2
+        card.addSubview(titleL)
+        progTitleLabel = titleL
+
+        // Notes preview
+        let notesL = UILabel()
+        notesL.translatesAutoresizingMaskIntoConstraints = false
+        notesL.font = .systemFont(ofSize: 13, weight: .regular)
+        notesL.textColor = .secondaryLabel
+        notesL.numberOfLines = 1
+        card.addSubview(notesL)
+        progNotesLabel = notesL
+
+        // Page badge
+        let pageBadge = UIView()
+        pageBadge.translatesAutoresizingMaskIntoConstraints = false
+        pageBadge.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
+        pageBadge.layer.cornerRadius = 6
+        pageBadge.layer.masksToBounds = true
+        pageBadge.isHidden = true
+        card.addSubview(pageBadge)
+        progPageBadge = pageBadge
+
+        let pageBadgeLabel = UILabel()
+        pageBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        pageBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
+        pageBadgeLabel.textColor = DesignSystem.Colors.primary
+        pageBadge.addSubview(pageBadgeLabel)
+        progPageBadgeLabel = pageBadgeLabel
+
+        NSLayoutConstraint.activate([
+            pageBadgeLabel.leadingAnchor.constraint(equalTo: pageBadge.leadingAnchor, constant: 6),
+            pageBadgeLabel.trailingAnchor.constraint(equalTo: pageBadge.trailingAnchor, constant: -6),
+            pageBadgeLabel.topAnchor.constraint(equalTo: pageBadge.topAnchor, constant: 2),
+            pageBadgeLabel.bottomAnchor.constraint(equalTo: pageBadge.bottomAnchor, constant: -2)
+        ])
+
+        NSLayoutConstraint.activate([
+            // Card
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+
+            // Checkbox
+            checkbox.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            checkbox.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            checkbox.widthAnchor.constraint(equalToConstant: 30),
+            checkbox.heightAnchor.constraint(equalToConstant: 30),
+
+            // Title
+            titleL.leadingAnchor.constraint(equalTo: checkbox.trailingAnchor, constant: 12),
+            titleL.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            titleL.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+
+            // Notes
+            notesL.leadingAnchor.constraint(equalTo: titleL.leadingAnchor),
+            notesL.trailingAnchor.constraint(equalTo: pageBadge.leadingAnchor, constant: -8),
+            notesL.topAnchor.constraint(equalTo: titleL.bottomAnchor, constant: 4),
+            notesL.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+
+            // Page badge
+            pageBadge.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            pageBadge.centerYAnchor.constraint(equalTo: notesL.centerYAnchor)
+        ])
+    }
+
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
+        let target = programmaticCard ?? cardContainerView
         if highlighted {
-            cardContainerView?.bounceTouchDown()
+            target?.bounceTouchDown()
         } else {
-            cardContainerView?.bounceTouchUp()
+            target?.bounceTouchUp()
         }
     }
-    
-    /// Configures the cell with Task details
+
+    // MARK: - Configure
     func configure(with task: Task) {
-        let taskTitle = task.title ?? "Untitled Lesson / Task"
-        
-        // Strike-through text style if completed
-        if task.isDone {
-            let attributeString = NSMutableAttributedString(string: taskTitle)
-            attributeString.addAttribute(.strikethroughStyle, value: 2, range: NSMakeRange(0, attributeString.length))
-            attributeString.addAttribute(.foregroundColor, value: UIColor.secondaryLabel, range: NSMakeRange(0, attributeString.length))
-            titleLabel?.attributedText = attributeString
-            if titleLabel == nil {
-                textLabel?.attributedText = attributeString
-                textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-            }
-        } else {
-            let attributeString = NSMutableAttributedString(string: taskTitle)
-            attributeString.addAttribute(.foregroundColor, value: UIColor.label, range: NSMakeRange(0, attributeString.length))
-            titleLabel?.attributedText = attributeString
-            if titleLabel == nil {
-                textLabel?.attributedText = attributeString
-                textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-            }
-        }
-        
-        // Notes preview
+        let taskTitle = task.title ?? "Untitled Lesson"
+        let isDone = task.isDone
+
+        // Notes / page info
+        let notesText: String
+        var pageCount = 1
         if let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let cleanedNotes = notes.replacingOccurrences(of: "\n", with: " • ")
-            let pageCount = notes.components(separatedBy: "[STUDYMATE_PAGE_BREAK]").count
-            let pageSuffix = pageCount > 1 ? "  (📄 \(pageCount) pages)" : ""
-            
-            notesLabel?.text = "📝 \(cleanedNotes)\(pageSuffix)"
-            notesLabel?.textColor = .secondaryLabel
-            notesLabel?.isHidden = false
-            if notesLabel == nil {
-                detailTextLabel?.text = "📝 \(cleanedNotes)\(pageSuffix)"
-                detailTextLabel?.font = .systemFont(ofSize: 13, weight: .regular)
-            }
+            let pages = notes.components(separatedBy: "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n")
+            pageCount = pages.count
+            let preview = pages.first?.replacingOccurrences(of: "\n", with: " ") ?? ""
+            let truncated = preview.count > 60 ? String(preview.prefix(60)) + "…" : preview
+            notesText = truncated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Tap to write notes…" : truncated
         } else {
-            notesLabel?.text = "📝 Tap to write study notes..."
-            notesLabel?.textColor = .tertiaryLabel
-            notesLabel?.isHidden = false
-            if notesLabel == nil {
-                detailTextLabel?.text = "📝 Tap to write study notes..."
-                detailTextLabel?.font = .systemFont(ofSize: 13, weight: .regular)
-            }
+            notesText = "Tap to write study notes…"
         }
-        
-        // Checkbox image
-        updateCheckboxAppearance(isDone: task.isDone)
+
+        // ---- IBOutlet path ----
+        if titleLabel != nil {
+            if isDone {
+                let attr = NSMutableAttributedString(string: taskTitle)
+                attr.addAttribute(.strikethroughStyle, value: 2, range: NSMakeRange(0, attr.length))
+                attr.addAttribute(.foregroundColor, value: UIColor.secondaryLabel, range: NSMakeRange(0, attr.length))
+                titleLabel?.attributedText = attr
+            } else {
+                titleLabel?.text = taskTitle
+                titleLabel?.textColor = .label
+            }
+            notesLabel?.text = notesText
+            notesLabel?.textColor = .secondaryLabel
+            updateCheckboxAppearance(isDone: isDone)
+            cardContainerView?.alpha = isDone ? 0.62 : 1.0
+            return
+        }
+
+        // ---- Programmatic path ----
+        if isDone {
+            let attr = NSMutableAttributedString(string: taskTitle)
+            attr.addAttribute(.strikethroughStyle, value: 2, range: NSMakeRange(0, attr.length))
+            attr.addAttribute(.foregroundColor, value: UIColor.tertiaryLabel, range: NSMakeRange(0, attr.length))
+            progTitleLabel?.attributedText = attr
+        } else {
+            progTitleLabel?.attributedText = nil
+            progTitleLabel?.text = taskTitle
+            progTitleLabel?.textColor = .label
+        }
+
+        progNotesLabel?.text = notesText
+        progNotesLabel?.textColor = isDone ? .quaternaryLabel : .secondaryLabel
+
+        // Page badge
+        if pageCount > 1 {
+            progPageBadge?.isHidden = false
+            progPageBadgeLabel?.text = "📄 \(pageCount)p"
+        } else {
+            progPageBadge?.isHidden = true
+        }
+
+        // Card opacity for done
+        programmaticCard?.alpha = isDone ? 0.60 : 1.0
+
+        updateCheckboxAppearance(isDone: isDone)
     }
-    
+
     private func updateCheckboxAppearance(isDone: Bool) {
         let imageName = isDone ? "checkmark.circle.fill" : "circle"
-        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .medium)
         let image = UIImage(systemName: imageName, withConfiguration: config)
-        
+
         checkboxButton?.setImage(image, for: .normal)
-        checkboxButton?.tintColor = isDone ? .systemGreen : .systemGray3
-        
-        if checkboxButton == nil {
+        checkboxButton?.tintColor = isDone ? DesignSystem.Colors.success : UIColor.tertiaryLabel
+
+        progCheckbox?.setImage(image, for: .normal)
+        progCheckbox?.tintColor = isDone ? DesignSystem.Colors.success : UIColor.tertiaryLabel
+
+        if checkboxButton == nil && progCheckbox == nil {
             accessoryType = isDone ? .checkmark : .none
         }
     }
-    
-    // MARK: - IBActions
+
+    // MARK: - IBAction + Programmatic Checkbox
     @IBAction func checkboxTapped(_ sender: UIButton) {
         HapticHelper.success()
-        
-        UIView.animate(withDuration: 0.12, animations: {
-            sender.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        // Spring bounce animation
+        UIView.animate(withDuration: 0.10, animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
         }) { _ in
-            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: .curveEaseOut, animations: {
+            UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.55, initialSpringVelocity: 1.0, options: .curveEaseOut, animations: {
                 sender.transform = .identity
             }, completion: nil)
         }
-        
         onToggleDone?()
         onToggleCompletion?()
     }
 }
-

@@ -163,7 +163,7 @@ class AISummaryViewController: UIViewController {
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         let sendImg = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 32, weight: .semibold))
         sendButton.setImage(sendImg, for: .normal)
-        sendButton.tintColor = .systemPurple
+        sendButton.tintColor = DesignSystem.Colors.primary
         sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
         
         inputContainer.addSubview(inputTextField)
@@ -178,12 +178,12 @@ class AISummaryViewController: UIViewController {
         typingIndicatorContainer.isHidden = true
         
         typingSpinner.translatesAutoresizingMaskIntoConstraints = false
-        typingSpinner.tintColor = .systemPurple
-        
+        typingSpinner.tintColor = DesignSystem.Colors.primary
+
         typingLabel.translatesAutoresizingMaskIntoConstraints = false
-        typingLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        typingLabel.textColor = .secondaryLabel
-        typingLabel.text = "StudyMate AI is thinking..."
+        typingLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        typingLabel.textColor = DesignSystem.Colors.primary
+        typingLabel.text = "✨ StudyMate AI is thinking..."
         
         let typeStack = UIStackView(arrangedSubviews: [typingSpinner, typingLabel])
         typeStack.axis = .horizontal
@@ -473,35 +473,48 @@ class UserBubbleCell: UITableViewCell {
         backgroundColor = .clear
         
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
-        bubbleView.backgroundColor = .systemPurple
         bubbleView.layer.cornerRadius = 18
         bubbleView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner]
-        
+        bubbleView.clipsToBounds = false
+        // Gradient background applied in configure
+        DesignSystem.Shadow.applyGlow(to: bubbleView.layer, color: DesignSystem.Colors.primary)
+
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.textColor = .white
         messageLabel.font = .systemFont(ofSize: 15, weight: .regular)
         messageLabel.numberOfLines = 0
-        
+
         bubbleView.addSubview(messageLabel)
         contentView.addSubview(bubbleView)
-        
+
         NSLayoutConstraint.activate([
             bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            bubbleView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 60),
-            
+            bubbleView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 64),
+
             messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 14),
             messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -14),
-            messageLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 10),
-            messageLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -10)
+            messageLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 11),
+            messageLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -11)
         ])
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Apply gradient after layout so bounds are correct
+        bubbleView.applyGradientBackground(
+            colors: DesignSystem.Gradients.primary,
+            startPoint: CGPoint(x: 0, y: 0),
+            endPoint: CGPoint(x: 1, y: 1),
+            cornerRadius: 18
+        )
+    }
+
     func configure(text: String) {
         messageLabel.text = text
     }
@@ -522,18 +535,31 @@ class AITextBubbleCell: UITableViewCell {
         
         cardView.translatesAutoresizingMaskIntoConstraints = false
         cardView.applyCardStyle(cornerRadius: 18)
-        cardView.backgroundColor = .secondarySystemGroupedBackground
-        
+
+        // AI badge pill (top left)
+        let aiBadge = UIView()
+        aiBadge.translatesAutoresizingMaskIntoConstraints = false
+        aiBadge.backgroundColor = DesignSystem.Colors.secondary.withAlphaComponent(0.12)
+        aiBadge.layer.cornerRadius = 8
+        aiBadge.clipsToBounds = true
+
+        let aiIcon = UIImageView(image: UIImage(systemName: "sparkles", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10, weight: .bold)))
+        aiIcon.translatesAutoresizingMaskIntoConstraints = false
+        aiIcon.tintColor = DesignSystem.Colors.secondary
+        aiBadge.addSubview(aiIcon)
+
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerLabel.text = "🤖 StudyMate AI Tutor"
-        headerLabel.font = .systemFont(ofSize: 13, weight: .bold)
-        headerLabel.textColor = .systemPurple
-        
+        headerLabel.text = "StudyMate AI"
+        headerLabel.font = .systemFont(ofSize: 11, weight: .bold)
+        headerLabel.textColor = DesignSystem.Colors.secondary
+        aiBadge.addSubview(headerLabel)
+
         copyButton.translatesAutoresizingMaskIntoConstraints = false
-        copyButton.setImage(UIImage(systemName: "doc.on.doc"), for: .normal)
-        copyButton.tintColor = .secondaryLabel
+        let copyConf = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
+        copyButton.setImage(UIImage(systemName: "doc.on.doc", withConfiguration: copyConf), for: .normal)
+        copyButton.tintColor = .tertiaryLabel
         copyButton.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
-        
+
         messageTextView.translatesAutoresizingMaskIntoConstraints = false
         messageTextView.isScrollEnabled = false
         messageTextView.isEditable = false
@@ -542,41 +568,50 @@ class AITextBubbleCell: UITableViewCell {
         messageTextView.textColor = .label
         messageTextView.textContainerInset = .zero
         messageTextView.textContainer.lineFragmentPadding = 0
-        
-        cardView.addSubview(headerLabel)
+
+        cardView.addSubview(aiBadge)
         cardView.addSubview(copyButton)
         cardView.addSubview(messageTextView)
         contentView.addSubview(cardView)
-        
+
         NSLayoutConstraint.activate([
+            aiIcon.leadingAnchor.constraint(equalTo: aiBadge.leadingAnchor, constant: 6),
+            aiIcon.centerYAnchor.constraint(equalTo: aiBadge.centerYAnchor),
+            aiIcon.widthAnchor.constraint(equalToConstant: 12),
+            aiIcon.heightAnchor.constraint(equalToConstant: 12),
+            headerLabel.leadingAnchor.constraint(equalTo: aiIcon.trailingAnchor, constant: 5),
+            headerLabel.trailingAnchor.constraint(equalTo: aiBadge.trailingAnchor, constant: -6),
+            headerLabel.topAnchor.constraint(equalTo: aiBadge.topAnchor, constant: 4),
+            headerLabel.bottomAnchor.constraint(equalTo: aiBadge.bottomAnchor, constant: -4),
+
             cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            cardView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -40),
-            
-            headerLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
-            headerLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12),
-            
+            cardView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -44),
+
+            aiBadge.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
+            aiBadge.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12),
+
             copyButton.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -12),
-            copyButton.centerYAnchor.constraint(equalTo: headerLabel.centerYAnchor),
+            copyButton.centerYAnchor.constraint(equalTo: aiBadge.centerYAnchor),
             copyButton.widthAnchor.constraint(equalToConstant: 24),
             copyButton.heightAnchor.constraint(equalToConstant: 24),
-            
+
             messageTextView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
             messageTextView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -14),
-            messageTextView.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 8),
+            messageTextView.topAnchor.constraint(equalTo: aiBadge.bottomAnchor, constant: 8),
             messageTextView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -14)
         ])
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     @objc private func copyTapped() {
         onCopy?()
     }
-    
+
     func configure(text: String) {
         messageTextView.text = text
     }
@@ -599,13 +634,19 @@ class AISummaryBubbleCell: UITableViewCell {
         
         cardView.translatesAutoresizingMaskIntoConstraints = false
         cardView.applyCardStyle(cornerRadius: 18)
-        cardView.backgroundColor = .secondarySystemGroupedBackground
-        
+
+        // Gradient header accent strip
+        let headerStrip = UIView()
+        headerStrip.translatesAutoresizingMaskIntoConstraints = false
+        headerStrip.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 0)
+        headerStrip.clipsToBounds = false
+        cardView.addSubview(headerStrip)
+
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerLabel.text = "📌 Module Study Summary"
-        headerLabel.font = .systemFont(ofSize: 14, weight: .bold)
-        headerLabel.textColor = .systemPurple
-        
+        headerLabel.text = "⚡ Module Study Summary"
+        headerLabel.font = .systemFont(ofSize: 14, weight: .black)
+        headerLabel.textColor = .white
+
         summaryTextView.translatesAutoresizingMaskIntoConstraints = false
         summaryTextView.isScrollEnabled = false
         summaryTextView.isEditable = false
@@ -614,44 +655,63 @@ class AISummaryBubbleCell: UITableViewCell {
         summaryTextView.textColor = .label
         summaryTextView.textContainerInset = .zero
         summaryTextView.textContainer.lineFragmentPadding = 0
-        
-        copyBtn.setTitle("📋 Copy", for: .normal)
-        copyBtn.setTitleColor(.systemPurple, for: .normal)
+
+        // Copy pill
+        copyBtn.setTitle("Copy", for: .normal)
+        copyBtn.setTitleColor(DesignSystem.Colors.primary, for: .normal)
         copyBtn.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+        copyBtn.setImage(UIImage(systemName: "doc.on.doc", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .semibold)), for: .normal)
+        copyBtn.tintColor = DesignSystem.Colors.primary
+        copyBtn.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
+        copyBtn.layer.cornerRadius = 12
+        copyBtn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
         copyBtn.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
-        
-        saveBtn.setTitle("💾 Save to Notes", for: .normal)
-        saveBtn.setTitleColor(.systemGreen, for: .normal)
+
+        // Save pill
+        saveBtn.setTitle("Save", for: .normal)
+        saveBtn.setTitleColor(DesignSystem.Colors.success, for: .normal)
         saveBtn.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+        saveBtn.setImage(UIImage(systemName: "checkmark.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .semibold)), for: .normal)
+        saveBtn.tintColor = DesignSystem.Colors.success
+        saveBtn.backgroundColor = DesignSystem.Colors.success.withAlphaComponent(0.10)
+        saveBtn.layer.cornerRadius = 12
+        saveBtn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
         saveBtn.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        
+
         let actionStack = UIStackView(arrangedSubviews: [copyBtn, saveBtn])
         actionStack.axis = .horizontal
-        actionStack.spacing = 16
+        actionStack.spacing = 10
         actionStack.alignment = .center
         actionStack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         cardView.addSubview(headerLabel)
         cardView.addSubview(summaryTextView)
         cardView.addSubview(actionStack)
         contentView.addSubview(cardView)
+
+        // Header strip constraint (added after all subviews)
+        NSLayoutConstraint.activate([
+            headerStrip.topAnchor.constraint(equalTo: cardView.topAnchor),
+            headerStrip.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            headerStrip.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            headerStrip.heightAnchor.constraint(equalToConstant: 40),
+            headerLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
+            headerLabel.centerYAnchor.constraint(equalTo: headerStrip.centerYAnchor)
+        ])
         
         NSLayoutConstraint.activate([
             cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            headerLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
-            headerLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 14),
-            
+
             summaryTextView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
             summaryTextView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -14),
-            summaryTextView.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 8),
-            
+            summaryTextView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 52),
+
             actionStack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
             actionStack.topAnchor.constraint(equalTo: summaryTextView.bottomAnchor, constant: 12),
-            actionStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12)
+            actionStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -14)
         ])
     }
     
@@ -723,94 +783,125 @@ class AIQuizBubbleCell: UITableViewCell {
         stack.spacing = 10
         stack.translatesAutoresizingMaskIntoConstraints = false
         
-        // Q# Header
-        let qHeader = UILabel()
-        qHeader.text = "🎯 Question \(question.questionNumber)"
-        qHeader.font = .systemFont(ofSize: 13, weight: .bold)
-        qHeader.textColor = .systemBlue
+        // Q# Header pill
+        let qHeader = UIView()
+        qHeader.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
+        qHeader.layer.cornerRadius = 8
+        qHeader.clipsToBounds = true
+
+        let qHeaderLabel = UILabel()
+        qHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
+        qHeaderLabel.text = "Q\(question.questionNumber)"
+        qHeaderLabel.font = .systemFont(ofSize: 12, weight: .black)
+        qHeaderLabel.textColor = DesignSystem.Colors.primary
+        qHeader.addSubview(qHeaderLabel)
+        NSLayoutConstraint.activate([
+            qHeaderLabel.leadingAnchor.constraint(equalTo: qHeader.leadingAnchor, constant: 8),
+            qHeaderLabel.trailingAnchor.constraint(equalTo: qHeader.trailingAnchor, constant: -8),
+            qHeaderLabel.topAnchor.constraint(equalTo: qHeader.topAnchor, constant: 3),
+            qHeaderLabel.bottomAnchor.constraint(equalTo: qHeader.bottomAnchor, constant: -3)
+        ])
         stack.addArrangedSubview(qHeader)
-        
+
         // Question Text
         let qText = UILabel()
         qText.text = question.questionText
-        qText.font = .systemFont(ofSize: 15, weight: .semibold)
+        qText.font = .systemFont(ofSize: 15, weight: .bold)
         qText.numberOfLines = 0
         qText.textColor = .label
         stack.addArrangedSubview(qText)
-        
+
         // Options
         for opt in question.options {
             let optPill = UIView()
             optPill.backgroundColor = .tertiarySystemGroupedBackground
-            optPill.layer.cornerRadius = 10
-            optPill.layer.borderWidth = 0.5
-            optPill.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
-            
+            optPill.layer.cornerRadius = 12
+            optPill.layer.borderWidth = 1
+            optPill.layer.borderColor = UIColor.separator.withAlphaComponent(0.15).cgColor
+
             let optLabel = UILabel()
             optLabel.text = opt
             optLabel.font = .systemFont(ofSize: 14, weight: .regular)
             optLabel.numberOfLines = 0
             optLabel.textColor = .label
             optLabel.translatesAutoresizingMaskIntoConstraints = false
-            
+
             optPill.addSubview(optLabel)
             NSLayoutConstraint.activate([
-                optLabel.leadingAnchor.constraint(equalTo: optPill.leadingAnchor, constant: 12),
-                optLabel.trailingAnchor.constraint(equalTo: optPill.trailingAnchor, constant: -12),
-                optLabel.topAnchor.constraint(equalTo: optPill.topAnchor, constant: 8),
-                optLabel.bottomAnchor.constraint(equalTo: optPill.bottomAnchor, constant: -8)
+                optLabel.leadingAnchor.constraint(equalTo: optPill.leadingAnchor, constant: 14),
+                optLabel.trailingAnchor.constraint(equalTo: optPill.trailingAnchor, constant: -14),
+                optLabel.topAnchor.constraint(equalTo: optPill.topAnchor, constant: 10),
+                optLabel.bottomAnchor.constraint(equalTo: optPill.bottomAnchor, constant: -10)
             ])
             stack.addArrangedSubview(optPill)
         }
-        
-        // Check Answer Button / Toggle (Standard UIKit compatible)
+
+        // Reveal / Hide Answer Button
         let toggleButton = UIButton(type: .system)
-        let titleText = question.isAnswerRevealed ? "🙈 Hide Answer" : "👁️ Check Answer & Explanation"
-        let btnColor: UIColor = question.isAnswerRevealed ? .systemGreen : .systemBlue
+        let revealColor = question.isAnswerRevealed ? DesignSystem.Colors.success : DesignSystem.Colors.primary
+        let titleText = question.isAnswerRevealed ? "Hide Answer" : "Reveal Answer"
         toggleButton.setTitle(titleText, for: .normal)
-        toggleButton.setTitleColor(btnColor, for: .normal)
+        toggleButton.setTitleColor(.white, for: .normal)
         toggleButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
-        toggleButton.backgroundColor = btnColor.withAlphaComponent(0.14)
         toggleButton.layer.cornerRadius = 16
-        toggleButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+        toggleButton.clipsToBounds = true
+        toggleButton.applyGradientBackground(
+            colors: question.isAnswerRevealed ? DesignSystem.Gradients.success : DesignSystem.Gradients.primary,
+            cornerRadius: 16
+        )
+        toggleButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
         toggleButton.tag = index
         toggleButton.addTarget(self, action: #selector(toggleAnswerTapped(_:)), for: .touchUpInside)
         stack.addArrangedSubview(toggleButton)
         
-        // Revealable Answer Section
+        // Revealable Answer Section (premium reveal)
         if question.isAnswerRevealed {
             let answerContainer = UIView()
-            answerContainer.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.12)
-            answerContainer.layer.cornerRadius = 12
-            answerContainer.layer.borderWidth = 0.5
-            answerContainer.layer.borderColor = UIColor.systemGreen.withAlphaComponent(0.3).cgColor
-            
+            answerContainer.backgroundColor = DesignSystem.Colors.success.withAlphaComponent(0.10)
+            answerContainer.layer.cornerRadius = 14
+            answerContainer.layer.borderWidth = 1
+            answerContainer.layer.borderColor = DesignSystem.Colors.success.withAlphaComponent(0.28).cgColor
+
             let ansVStack = UIStackView()
             ansVStack.axis = .vertical
-            ansVStack.spacing = 6
+            ansVStack.spacing = 8
             ansVStack.translatesAutoresizingMaskIntoConstraints = false
-            
+
             let ansTitle = UILabel()
-            ansTitle.text = "✅ Correct Answer: Option \(question.correctAnswer)"
-            ansTitle.font = .systemFont(ofSize: 14, weight: .bold)
-            ansTitle.textColor = .systemGreen
-            
+            ansTitle.text = "✅  Correct Answer: Option \(question.correctAnswer)"
+            ansTitle.font = .systemFont(ofSize: 14, weight: .black)
+            ansTitle.textColor = DesignSystem.Colors.success
+
+            let divider = UIView()
+            divider.backgroundColor = DesignSystem.Colors.success.withAlphaComponent(0.18)
+            divider.heightAnchor.constraint(equalToConstant: 1).isActive = true
+
             let ansExp = UILabel()
-            ansExp.text = "💡 Explanation: \(question.explanation)"
+            ansExp.text = "💡 \(question.explanation)"
             ansExp.font = .systemFont(ofSize: 13, weight: .regular)
             ansExp.numberOfLines = 0
             ansExp.textColor = .label
-            
+
             ansVStack.addArrangedSubview(ansTitle)
+            ansVStack.addArrangedSubview(divider)
             ansVStack.addArrangedSubview(ansExp)
             answerContainer.addSubview(ansVStack)
-            
+
             NSLayoutConstraint.activate([
-                ansVStack.leadingAnchor.constraint(equalTo: answerContainer.leadingAnchor, constant: 12),
-                ansVStack.trailingAnchor.constraint(equalTo: answerContainer.trailingAnchor, constant: -12),
-                ansVStack.topAnchor.constraint(equalTo: answerContainer.topAnchor, constant: 10),
-                ansVStack.bottomAnchor.constraint(equalTo: answerContainer.bottomAnchor, constant: -10)
+                ansVStack.leadingAnchor.constraint(equalTo: answerContainer.leadingAnchor, constant: 14),
+                ansVStack.trailingAnchor.constraint(equalTo: answerContainer.trailingAnchor, constant: -14),
+                ansVStack.topAnchor.constraint(equalTo: answerContainer.topAnchor, constant: 12),
+                ansVStack.bottomAnchor.constraint(equalTo: answerContainer.bottomAnchor, constant: -12)
             ])
+
+            // Spring animate reveal
+            answerContainer.alpha = 0
+            answerContainer.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            UIView.animate(withDuration: 0.32, delay: 0.06, usingSpringWithDamping: 0.80, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+                answerContainer.alpha = 1
+                answerContainer.transform = .identity
+            }
+
             stack.addArrangedSubview(answerContainer)
         }
         
