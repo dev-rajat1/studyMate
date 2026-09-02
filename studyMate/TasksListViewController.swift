@@ -70,24 +70,13 @@ class TasksListViewController: UIViewController {
     // MARK: - Bottom Floating Action Button (AI Study Tutor)
     private func setupAITutorFAB() {
         aiTutorFAB.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Configuration
-        var config = UIButton.Configuration.filled()
-        config.baseBackgroundColor = .systemPurple
-        config.baseForegroundColor = .white
-        config.cornerStyle = .capsule
-        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 18, bottom: 12, trailing: 20)
-        
-        let font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        let titleAttr = AttributedString("AI Study Tutor", attributes: AttributeContainer([.font: font]))
-        config.attributedTitle = titleAttr
-        
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        config.image = UIImage(systemName: "sparkles", withConfiguration: imageConfig)
-        config.imagePadding = 8
-        config.imagePlacement = .leading
-        
-        aiTutorFAB.configuration = config
+        aiTutorFAB.setTitle("✨ AI Study Tutor", for: .normal)
+        aiTutorFAB.setTitleColor(.white, for: .normal)
+        aiTutorFAB.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        aiTutorFAB.backgroundColor = .systemPurple
+        aiTutorFAB.layer.cornerRadius = 24
+        aiTutorFAB.clipsToBounds = false
+        aiTutorFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
         
         // Shadow & Aesthetics
         aiTutorFAB.layer.shadowColor = UIColor.systemPurple.cgColor

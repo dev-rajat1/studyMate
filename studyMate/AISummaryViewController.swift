@@ -104,37 +104,27 @@ class AISummaryViewController: UIViewController {
         view.addSubview(tableView)
     }
     
-    // MARK: - Quick Action FABs
+    // MARK: - Quick Action FABs (Standard UIKit UIButton compatible with all iOS versions)
     private func setupQuickActions() {
         quickActionsContainer.translatesAutoresizingMaskIntoConstraints = false
         quickActionsContainer.backgroundColor = .clear
         
         // Summarize Button
-        var sumConfig = UIButton.Configuration.filled()
-        sumConfig.baseBackgroundColor = UIColor.systemPurple.withAlphaComponent(0.15)
-        sumConfig.baseForegroundColor = .systemPurple
-        sumConfig.cornerStyle = .capsule
-        sumConfig.image = UIImage(systemName: "doc.text.fill")
-        sumConfig.imagePadding = 6
-        sumConfig.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 14, bottom: 8, trailing: 14)
-        
-        let sumAttr = AttributedString("⚡ Summarize Module", attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 13, weight: .bold)]))
-        sumConfig.attributedTitle = sumAttr
-        summarizeButton.configuration = sumConfig
+        summarizeButton.setTitle("⚡ Summarize Module", for: .normal)
+        summarizeButton.setTitleColor(.systemPurple, for: .normal)
+        summarizeButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        summarizeButton.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.14)
+        summarizeButton.layer.cornerRadius = 18
+        summarizeButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
         summarizeButton.addTarget(self, action: #selector(summarizeTapped), for: .touchUpInside)
         
         // Quiz Button
-        var quizConfig = UIButton.Configuration.filled()
-        quizConfig.baseBackgroundColor = UIColor.systemBlue.withAlphaComponent(0.15)
-        quizConfig.baseForegroundColor = .systemBlue
-        quizConfig.cornerStyle = .capsule
-        quizConfig.image = UIImage(systemName: "questionmark.circle.fill")
-        quizConfig.imagePadding = 6
-        quizConfig.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 14, bottom: 8, trailing: 14)
-        
-        let quizAttr = AttributedString("🎯 Practice Quiz", attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 13, weight: .bold)]))
-        quizConfig.attributedTitle = quizAttr
-        quizButton.configuration = quizConfig
+        quizButton.setTitle("🎯 Practice Quiz", for: .normal)
+        quizButton.setTitleColor(.systemBlue, for: .normal)
+        quizButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        quizButton.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.14)
+        quizButton.layer.cornerRadius = 18
+        quizButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
         quizButton.addTarget(self, action: #selector(quizTapped), for: .touchUpInside)
         
         let stack = UIStackView(arrangedSubviews: [summarizeButton, quizButton])
@@ -629,10 +619,12 @@ class AISummaryBubbleCell: UITableViewCell {
         summaryTextView.textContainer.lineFragmentPadding = 0
         
         copyBtn.setTitle("📋 Copy", for: .normal)
+        copyBtn.setTitleColor(.systemPurple, for: .normal)
         copyBtn.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
         copyBtn.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
         
         saveBtn.setTitle("💾 Save to Notes", for: .normal)
+        saveBtn.setTitleColor(.systemGreen, for: .normal)
         saveBtn.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
         saveBtn.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         
@@ -774,17 +766,16 @@ class AIQuizBubbleCell: UITableViewCell {
             stack.addArrangedSubview(optPill)
         }
         
-        // Check Answer Button / Toggle
+        // Check Answer Button / Toggle (Standard UIKit compatible)
         let toggleButton = UIButton(type: .system)
-        var btnConfig = UIButton.Configuration.tinted()
-        btnConfig.baseBackgroundColor = question.isAnswerRevealed ? .systemGreen : .systemBlue
-        btnConfig.baseForegroundColor = question.isAnswerRevealed ? .systemGreen : .systemBlue
-        btnConfig.cornerStyle = .capsule
-        btnConfig.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 14, bottom: 8, trailing: 14)
-        
         let titleText = question.isAnswerRevealed ? "🙈 Hide Answer" : "👁️ Check Answer & Explanation"
-        btnConfig.attributedTitle = AttributedString(titleText, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 13, weight: .bold)]))
-        toggleButton.configuration = btnConfig
+        let btnColor: UIColor = question.isAnswerRevealed ? .systemGreen : .systemBlue
+        toggleButton.setTitle(titleText, for: .normal)
+        toggleButton.setTitleColor(btnColor, for: .normal)
+        toggleButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        toggleButton.backgroundColor = btnColor.withAlphaComponent(0.14)
+        toggleButton.layer.cornerRadius = 16
+        toggleButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
         toggleButton.tag = index
         toggleButton.addTarget(self, action: #selector(toggleAnswerTapped(_:)), for: .touchUpInside)
         stack.addArrangedSubview(toggleButton)
