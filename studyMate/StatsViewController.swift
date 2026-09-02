@@ -125,9 +125,9 @@ class StatsViewController: UIViewController {
     ) {
         contentStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
-        // 1. Overall Gauge Card
-        let gaugeCard = buildGaugeCard(rate: rate, completed: completed, total: tasks)
-        contentStack.addArrangedSubview(gaugeCard)
+        // 1. Overall Pie Chart Card
+        let pieCard = buildPieChartCard(insights: insights, rate: rate, completed: completed, total: tasks)
+        contentStack.addArrangedSubview(pieCard)
 
         // 2. 2x2 Stats Grid
         let gridCard = buildStatsGrid(courses: courses, topics: topics, tasks: tasks, completed: completed)
@@ -149,8 +149,8 @@ class StatsViewController: UIViewController {
         }
     }
 
-    // MARK: - Gauge Card
-    private func buildGaugeCard(rate: Float, completed: Int, total: Int) -> UIView {
+    // MARK: - Pie Chart Card
+    private func buildPieChartCard(insights: [CourseMasteryInsight], rate: Float, completed: Int, total: Int) -> UIView {
         let card = UIView()
         card.applyCardStyle(cornerRadius: 24)
 
@@ -162,22 +162,89 @@ class StatsViewController: UIViewController {
 
         let headerLabel = UILabel()
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerLabel.text = "Overall Mastery"
+        headerLabel.text = "Completed Lessons Breakdown"
         headerLabel.font = .systemFont(ofSize: 18, weight: .bold)
         headerLabel.textColor = .label
         card.addSubview(headerLabel)
 
         let subLabel = UILabel()
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.text = "\(completed) of \(total) lessons completed"
+        subLabel.text = "\(completed) of \(total) lessons completed across courses"
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subLabel.textColor = .secondaryLabel
         card.addSubview(subLabel)
 
-        let ring = ProgressRingView()
-        ring.translatesAutoresizingMaskIntoConstraints = false
-        ring.lineWidth = 12
-        card.addSubview(ring)
+        let pieChart = PieChartView()
+        pieChart.translatesAutoresizingMaskIntoConstraints = false
+        pieChart.lineWidth = 14
+        
+        // Prepare segments
+        var segments: [PieSegment] = []
+        let activeInsights = insights.filter { $0.completedLessons > 0 }.sorted(by: { $0.completedLessons > $1.completedLessons })
+        
+        for insight in activeInsights {
+            let color = ColorHelper.color(named: insight.course.colorTag)
+            segments.append(PieSegment(value: CGFloat(insight.completedLessons), color: color))
+        }
+        pieChart.segments = segments
+        
+        // Center text in pie chart
+        let centerPercent = UILabel()
+        centerPercent.translatesAutoresizingMaskIntoConstraints = false
+        centerPercent.text = "\(Int(rate))%"
+        centerPercent.font = .systemFont(ofSize: 26, weight: .black)
+        centerPercent.textColor = .label
+        centerPercent.textAlignment = .center
+        pieChart.addSubview(centerPercent)
+
+        // Legend Stack
+        let legendStack = UIStackView()
+        legendStack.translatesAutoresizingMaskIntoConstraints = false
+        legendStack.axis = .vertical
+        legendStack.spacing = 8
+        legendStack.alignment = .leading
+        
+        if activeInsights.isEmpty {
+            let emptyL = UILabel()
+            emptyL.text = "No completed lessons yet."
+            emptyL.font = .systemFont(ofSize: 13, weight: .medium)
+            emptyL.textColor = .tertiaryLabel
+            legendStack.addArrangedSubview(emptyL)
+        } else {
+            for insight in activeInsights {
+                let row = UIStackView()
+                row.axis = .horizontal
+                row.spacing = 8
+                row.alignment = .center
+                
+                let dot = UIView()
+                dot.translatesAutoresizingMaskIntoConstraints = false
+                dot.layer.cornerRadius = 4
+                dot.backgroundColor = ColorHelper.color(named: insight.course.colorTag)
+                
+                let nameL = UILabel()
+                nameL.text = "\(insight.course.name ?? "Course") (\(insight.completedLessons))"
+                nameL.font = .systemFont(ofSize: 13, weight: .medium)
+                nameL.textColor = .secondaryLabel
+                
+                row.addArrangedSubview(dot)
+                row.addArrangedSubview(nameL)
+                
+                NSLayoutConstraint.activate([
+                    dot.widthAnchor.constraint(equalToConstant: 8),
+                    dot.heightAnchor.constraint(equalToConstant: 8)
+                ])
+                
+                legendStack.addArrangedSubview(row)
+            }
+        }
+        
+        let contentHStack = UIStackView(arrangedSubviews: [pieChart, legendStack])
+        contentHStack.translatesAutoresizingMaskIntoConstraints = false
+        contentHStack.axis = .horizontal
+        contentHStack.spacing = 24
+        contentHStack.alignment = .center
+        card.addSubview(contentHStack)
 
         NSLayoutConstraint.activate([
             accentLine.topAnchor.constraint(equalTo: card.topAnchor),
@@ -191,17 +258,6 @@ class StatsViewController: UIViewController {
             subLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 4),
             subLabel.leadingAnchor.constraint(equalTo: headerLabel.leadingAnchor),
 
-            ring.centerXAnchor.constraint(equalTo: card.centerXAnchor),
-            ring.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 20),
-            ring.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -24),
-            ring.widthAnchor.constraint(equalToConstant: 140),
-            ring.heightAnchor.constraint(equalToConstant: 140)
-        ])
-
-        DispatchQueue.main.async {
-            ring.setNeedsLayout()
-            ring.layoutIfNeeded()
-            ring.configure(progress: CGFloat(rate / 100), ringColor: DesignSystem.Colors.primary)
         }
 
         return card
@@ -465,5 +521,86 @@ class StatsViewController: UIViewController {
         ])
 
         return card
+    }
+}
+
+// MARK: - Pie Chart Classes
+struct PieSegment {
+    let value: CGFloat
+    let color: UIColor
+}
+
+class PieChartView: UIView {
+    var segments: [PieSegment] = [] {
+        didSet { setNeedsLayout() }
+    }
+    
+    var lineWidth: CGFloat = 20 {
+        didSet { setNeedsLayout() }
+    }
+    
+    private let containerLayer = CALayer()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+    
+    private func setup() {
+        layer.addSublayer(containerLayer)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        containerLayer.frame = bounds
+        drawChart()
+    }
+    
+    private func drawChart() {
+        containerLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        
+        let total = segments.reduce(0) { $0 + $1.value }
+        let center = CGPoint(x: bounds.width / 2, y: bounds.height / 2)
+        let radius = min(bounds.width, bounds.height) / 2 - lineWidth / 2
+        
+        if total == 0 || segments.isEmpty {
+            let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
+            let shapeLayer = CAShapeLayer()
+            shapeLayer.path = circlePath.cgPath
+            shapeLayer.fillColor = UIColor.clear.cgColor
+            shapeLayer.strokeColor = UIColor.separator.withAlphaComponent(0.12).cgColor
+            shapeLayer.lineWidth = lineWidth
+            containerLayer.addSublayer(shapeLayer)
+            return
+        }
+        
+        var startAngle: CGFloat = -CGFloat.pi / 2
+        for segment in segments {
+            let percentage = segment.value / total
+            let endAngle = startAngle + (percentage * 2 * .pi)
+            
+            let path = UIBezierPath(arcCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+            let shapeLayer = CAShapeLayer()
+            shapeLayer.path = path.cgPath
+            shapeLayer.fillColor = UIColor.clear.cgColor
+            shapeLayer.strokeColor = segment.color.cgColor
+            shapeLayer.lineWidth = lineWidth
+            shapeLayer.lineCap = .butt
+            
+            let anim = CABasicAnimation(keyPath: "strokeEnd")
+            anim.fromValue = 0
+            anim.toValue = 1
+            anim.duration = 1.0
+            anim.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            shapeLayer.add(anim, forKey: "pieAnimation")
+            
+            containerLayer.addSublayer(shapeLayer)
+            startAngle = endAngle
+        }
     }
 }
