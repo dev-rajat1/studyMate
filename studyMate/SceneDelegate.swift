@@ -43,7 +43,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         UINavigationBar.appearance().standardAppearance = navBarAppearance
         UINavigationBar.appearance().compactAppearance = navBarAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
         UINavigationBar.appearance().tintColor = .systemPurple
         
         // Tab Bar Appearance
@@ -52,9 +51,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarAppearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
         
         UITabBar.appearance().standardAppearance = tabBarAppearance
-        if #available(iOS 15.0, *) {
-            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-        }
         UITabBar.appearance().tintColor = .systemPurple
     }
 
@@ -88,6 +84,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarController.selectedIndex = 1 // Default to Courses tab
         tabBarController.tabBar.tintColor = .systemPurple
         
+        if #available(iOS 15.0, *) {
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.configureWithDefaultBackground()
+            tabBarAppearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
+            tabBarController.tabBar.scrollEdgeAppearance = tabBarAppearance
+            tabBarController.tabBar.standardAppearance = tabBarAppearance
+        }
+        
         return tabBarController
     }
 
@@ -95,4 +99,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         CoreDataManager.shared.saveContext()
     }
 }
+
 

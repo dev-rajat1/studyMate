@@ -17,10 +17,11 @@ class CoursesListViewController: UIViewController {
     // MARK: - Properties
     private var allCourses: [Course] = []
     private var filteredCourses: [Course] = []
-    private let searchController = UISearchController(searchResultsController: nil)
+    private var searchController: UISearchController?
     
     private var isSearching: Bool {
-        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
+        guard let sc = searchController else { return false }
+        return sc.isActive && !(sc.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
     
     // MARK: - Lifecycle
@@ -68,12 +69,14 @@ class CoursesListViewController: UIViewController {
     }
     
     private func setupSearchController() {
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringFullScreenContent = false
-        searchController.searchBar.placeholder = "Search courses..."
-        navigationItem.searchController = searchController
+        let sc = UISearchController(searchResultsController: nil)
+        sc.searchResultsUpdater = self
+        sc.obscuresBackgroundDuringFullScreenContent = false
+        sc.searchBar.placeholder = "Search courses..."
+        navigationItem.searchController = sc
         navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
+        self.searchController = sc
     }
     
     // MARK: - Summary Header
