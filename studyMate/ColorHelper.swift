@@ -192,7 +192,6 @@ class ColorHelper {
 // MARK: - CALayer Gradient Extension
 extension CALayer {
     /// Adds or updates a named gradient sublayer to this layer.
-    /// Uses autoresizingMask so the gradient auto-fills after layout (bounds were .zero at call time).
     func applyGradient(colors: [CGColor], startPoint: CGPoint = CGPoint(x: 0, y: 0), endPoint: CGPoint = CGPoint(x: 1, y: 1), cornerRadius: CGFloat = 0) {
         sublayers?.removeAll(where: { $0.name == "SMGradientLayer" })
 
@@ -201,21 +200,29 @@ extension CALayer {
         gradient.colors = colors
         gradient.startPoint = startPoint
         gradient.endPoint = endPoint
-        // Use parent bounds if available, fall back to zero (autoresizingMask will correct it after layout)
-        gradient.frame = bounds.isEmpty ? CGRect(origin: .zero, size: CGSize(width: 1000, height: 1000)) : bounds
+        gradient.frame = bounds
         gradient.cornerRadius = cornerRadius
-        gradient.needsDisplayOnBoundsChange = true
-        // Auto-resize with parent layer — this is the key fix
-        gradient.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
         insertSublayer(gradient, at: 0)
     }
 }
 
 // MARK: - UIView Gradient Helpers
+private var gradientObserverKey: UInt8 = 0
+
 extension UIView {
     /// Applies a gradient background to this view using a CAGradientLayer
     func applyGradientBackground(colors: [CGColor], startPoint: CGPoint = CGPoint(x: 0, y: 0.5), endPoint: CGPoint = CGPoint(x: 1, y: 0.5), cornerRadius: CGFloat = 0) {
         layer.applyGradient(colors: colors, startPoint: startPoint, endPoint: endPoint, cornerRadius: cornerRadius)
         layer.cornerRadius = cornerRadius
+        
+        let observer = self.observe(\.bounds, options: [.initial, .new]) { (view, change) in
+            if let bounds = change.newValue, let grad = view.layer.sublayers?.first(where: { $0.name == "SMGradientLayer" }) {
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                grad.frame = bounds
+                CATransaction.commit()
+            }
+        }
+        objc_setAssociatedObject(self, &gradientObserverKey, observer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }
