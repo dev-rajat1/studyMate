@@ -365,7 +365,7 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             confirmTitle: "Load",
             isDestructive: false,
             onConfirm: { [weak self] in
-                CoreDataManager.shared.loadSampleData()
+                CoreDataManager.shared.createSampleDataIfEmpty()
                 HapticHelper.success()
                 self?.showToast(message: "📚 Sample Data Loaded!", icon: "tray.and.arrow.down.fill", tintColor: DesignSystem.Colors.success)
             }

@@ -262,7 +262,7 @@ class TopicCell: UITableViewCell {
             fill.constraints.forEach { if $0.firstAttribute == .width { fill.removeConstraint($0) } }
             track.constraints.forEach { if $0.firstAttribute == .width && $0.secondItem === fill { track.removeConstraint($0) } }
 
-            let fillConstraint = fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: max(progress, 0.02))
+            let fillConstraint = fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: max(CGFloat(progress), 0.02))
             fillConstraint.isActive = true
             fill.backgroundColor = isDone ? DesignSystem.Colors.success : courseColor
         }

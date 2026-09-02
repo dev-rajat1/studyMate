@@ -112,7 +112,7 @@ class StatsViewController: UIViewController {
         if overallProgressCard == nil {
             rebuildProgrammaticDashboard(
                 courses: courses, topics: topics, tasks: tasks,
-                completed: completed, rate: rate, insights: insights
+                completed: completed, rate: Float(rate), insights: insights
             )
         }
     }
