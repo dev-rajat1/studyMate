@@ -39,6 +39,9 @@ class TopicsListViewController: UIViewController {
         title = "Modules"
         navigationItem.backButtonTitle = "Modules"
         navigationItem.largeTitleDisplayMode = .never
+        if let course = course {
+            navigationItem.prompt = "📚 Course: \(course.name ?? "Subject")"
+        }
         view.backgroundColor = .systemGroupedBackground
         
         if tableView == nil {
@@ -183,7 +186,7 @@ class TopicsListViewController: UIViewController {
             tableView.setEmptyState(
                 iconName: "square.stack.3d.up",
                 title: "No Modules Added",
-                message: "Tap '+' in the top right to add\nmodules for \(course?.name ?? "this course")."
+                message: "Tap '➕ Add Module' at the bottom right to\ncreate your first chapter for \(course?.name ?? "this course")."
             )
         } else {
             emptyStateLabel?.isHidden = true

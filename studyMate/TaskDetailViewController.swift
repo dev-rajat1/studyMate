@@ -52,7 +52,7 @@ class TaskDetailViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = "Notes"
+        title = taskToEdit == nil ? "New Lesson" : "Lesson Notes"
         if let topic = topic {
             let courseName = topic.course?.name ?? "Course"
             let moduleName = topic.title ?? "Module"

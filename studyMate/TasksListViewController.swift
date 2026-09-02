@@ -42,6 +42,11 @@ class TasksListViewController: UIViewController {
         title = "Lessons"
         navigationItem.backButtonTitle = "Lessons"
         navigationItem.largeTitleDisplayMode = .never
+        if let topic = topic {
+            let courseName = topic.course?.name ?? "Course"
+            let moduleName = topic.title ?? "Module"
+            navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
+        }
         view.backgroundColor = .systemGroupedBackground
         
         if tableView == nil {
@@ -219,9 +224,9 @@ class TasksListViewController: UIViewController {
         if tasks.isEmpty {
             emptyStateLabel?.isHidden = false
             tableView.setEmptyState(
-                iconName: "book.pages",
+                iconName: "doc.text.badge.plus",
                 title: "No Lessons Yet",
-                message: "Tap '+' in the top right to add a\nlesson with study notes."
+                message: "Tap '➕ Add Lesson' at the bottom right to\nadd your first study lesson & write notes!"
             )
         } else {
             emptyStateLabel?.isHidden = true
