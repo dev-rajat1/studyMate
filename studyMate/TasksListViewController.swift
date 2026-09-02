@@ -229,9 +229,8 @@ class TasksListViewController: UIViewController {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let aiVC = storyboard.instantiateViewController(withIdentifier: "AISummaryViewController") as? AISummaryViewController {
             aiVC.topic = self.topic
-            let nav = UINavigationController(rootViewController: aiVC)
-            nav.modalPresentationStyle = .pageSheet
-            present(nav, animated: true)
+            aiVC.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(aiVC, animated: true)
         }
     }
 }

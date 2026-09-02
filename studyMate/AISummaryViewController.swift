@@ -70,18 +70,11 @@ class AISummaryViewController: UIViewController {
     private func setupUI() {
         title = "StudyMate AI Tutor"
         view.backgroundColor = .systemGroupedBackground
+        navigationItem.largeTitleDisplayMode = .never
         
         let courseName = topic?.course?.name ?? "Course"
         let moduleName = topic?.title ?? "Module"
         navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "Done",
-            style: .done,
-            target: self,
-            action: #selector(doneTapped)
-        )
-        navigationItem.rightBarButtonItem?.tintColor = .systemPurple
     }
     
     private func setupTableView() {
@@ -393,7 +386,11 @@ class AISummaryViewController: UIViewController {
     }
     
     @objc private func doneTapped() {
-        dismiss(animated: true)
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
 }
 
