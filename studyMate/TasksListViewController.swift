@@ -20,10 +20,14 @@ class TasksListViewController: UIViewController {
     var topic: Topic!
     private var tasks: [Task] = []
     
+    // Bottom Floating Action Button for AI Study Tutor
+    private let aiTutorFAB = UIButton(type: .system)
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupAITutorFAB()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -39,14 +43,6 @@ class TasksListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
         
-        let aiButton = UIBarButtonItem(
-            image: UIImage(systemName: "sparkles"),
-            style: .plain,
-            target: self,
-            action: #selector(aiAssistantTapped)
-        )
-        aiButton.tintColor = .systemPurple
-        
         let addButton = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             style: .plain,
@@ -54,8 +50,7 @@ class TasksListViewController: UIViewController {
             action: #selector(addTaskTapped)
         )
         addButton.tintColor = .systemBlue
-        
-        navigationItem.rightBarButtonItems = [addButton, aiButton]
+        navigationItem.rightBarButtonItem = addButton
         
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .plain)
@@ -69,7 +64,58 @@ class TasksListViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 92
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 84, right: 0)
+    }
+    
+    // MARK: - Bottom Floating Action Button (AI Study Tutor)
+    private func setupAITutorFAB() {
+        aiTutorFAB.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Configuration
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .systemPurple
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 18, bottom: 12, trailing: 20)
+        
+        let font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        let titleAttr = AttributedString("AI Study Tutor", attributes: AttributeContainer([.font: font]))
+        config.attributedTitle = titleAttr
+        
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        config.image = UIImage(systemName: "sparkles", withConfiguration: imageConfig)
+        config.imagePadding = 8
+        config.imagePlacement = .leading
+        
+        aiTutorFAB.configuration = config
+        
+        // Shadow & Aesthetics
+        aiTutorFAB.layer.shadowColor = UIColor.systemPurple.cgColor
+        aiTutorFAB.layer.shadowOpacity = 0.35
+        aiTutorFAB.layer.shadowOffset = CGSize(width: 0, height: 6)
+        aiTutorFAB.layer.shadowRadius = 12
+        
+        aiTutorFAB.addTarget(self, action: #selector(aiAssistantTapped), for: .touchUpInside)
+        
+        // Touch Bounce feedback
+        aiTutorFAB.addTarget(self, action: #selector(fabTouchDown), for: [.touchDown, .touchDragEnter])
+        aiTutorFAB.addTarget(self, action: #selector(fabTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
+        
+        view.addSubview(aiTutorFAB)
+        
+        NSLayoutConstraint.activate([
+            aiTutorFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+            aiTutorFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
+            aiTutorFAB.heightAnchor.constraint(equalToConstant: 48)
+        ])
+    }
+    
+    @objc private func fabTouchDown() {
+        aiTutorFAB.bounceTouchDown()
+    }
+    
+    @objc private func fabTouchUp() {
+        aiTutorFAB.bounceTouchUp()
     }
     
     private func setupHeaderBanner() {

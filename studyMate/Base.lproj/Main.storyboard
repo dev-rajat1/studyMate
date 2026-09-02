@@ -473,93 +473,9 @@
                     <view key="view" contentMode="scaleToFill" id="view-ai">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-ai">
-                                <rect key="frame" x="16" y="75" width="361" height="39"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="38" id="h-ai-seg"/>
-                                </constraints>
-                                <segments>
-                                    <segment title="📚 AI Summary"/>
-                                    <segment title="🎯 Practice Quiz"/>
-                                </segments>
-                                <connections>
-                                    <action selector="segmentChanged:" destination="vc-ai" eventType="valueChanged" id="act-ai-seg"/>
-                                </connections>
-                            </segmentedControl>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Ready" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-ai-status">
-                                <rect key="frame" x="16" y="121" width="361" height="17"/>
-                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
-                                <color key="textColor" systemColor="secondaryLabelColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" text="Loading AI response..." textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="tv-ai-content">
-                                <rect key="frame" x="16" y="146" width="361" height="588"/>
-                                <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
-                                <color key="textColor" systemColor="labelColor"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                            </textView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="aiv-ai">
-                                <rect key="frame" x="178" y="421.66666666666669" width="37" height="37"/>
-                                <color key="color" systemColor="systemPurpleColor"/>
-                            </activityIndicatorView>
-                            <stackView opaque="NO" contentMode="scaleToFill" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="sv-ai-btns">
-                                <rect key="frame" x="16" y="746" width="361" height="52"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-ai-regen">
-                                        <rect key="frame" x="0.0" y="0.0" width="174.66666666666666" height="52"/>
-                                        <color key="backgroundColor" systemColor="secondarySystemFillColor"/>
-                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                        <state key="normal" title="🔄 Regenerate"/>
-                                        <connections>
-                                            <action selector="regenerateTapped:" destination="vc-ai" eventType="touchUpInside" id="act-ai-regen"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-ai-save">
-                                        <rect key="frame" x="186.66666666666663" y="0.0" width="174.33333333333337" height="52"/>
-                                        <color key="backgroundColor" systemColor="systemPurpleColor"/>
-                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <state key="normal" title="💾 Save Summary"/>
-                                        <connections>
-                                            <action selector="saveSummaryTapped:" destination="vc-ai" eventType="touchUpInside" id="act-ai-save"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="52" id="h-ai-btns"/>
-                                </constraints>
-                            </stackView>
-                        </subviews>
                         <viewLayoutGuide key="safeArea" id="sa-ai"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                        <constraints>
-                            <constraint firstItem="seg-ai" firstAttribute="top" secondItem="sa-ai" secondAttribute="top" constant="16" id="c-ai-seg-t"/>
-                            <constraint firstItem="seg-ai" firstAttribute="leading" secondItem="sa-ai" secondAttribute="leading" constant="16" id="c-ai-seg-l"/>
-                            <constraint firstItem="sa-ai" firstAttribute="trailing" secondItem="seg-ai" secondAttribute="trailing" constant="16" id="c-ai-seg-r"/>
-                            <constraint firstItem="lbl-ai-status" firstAttribute="top" secondItem="seg-ai" secondAttribute="bottom" constant="8" id="c-ai-st-t"/>
-                            <constraint firstItem="lbl-ai-status" firstAttribute="leading" secondItem="sa-ai" secondAttribute="leading" constant="16" id="c-ai-st-l"/>
-                            <constraint firstItem="sa-ai" firstAttribute="trailing" secondItem="lbl-ai-status" secondAttribute="trailing" constant="16" id="c-ai-st-r"/>
-                            <constraint firstItem="tv-ai-content" firstAttribute="top" secondItem="lbl-ai-status" secondAttribute="bottom" constant="8" id="c-ai-tv-t"/>
-                            <constraint firstItem="tv-ai-content" firstAttribute="leading" secondItem="sa-ai" secondAttribute="leading" constant="16" id="c-ai-tv-l"/>
-                            <constraint firstItem="sa-ai" firstAttribute="trailing" secondItem="tv-ai-content" secondAttribute="trailing" constant="16" id="c-ai-tv-r"/>
-                            <constraint firstItem="aiv-ai" firstAttribute="centerX" secondItem="view-ai" secondAttribute="centerX" id="c-ai-aiv-x"/>
-                            <constraint firstItem="aiv-ai" firstAttribute="centerY" secondItem="view-ai" secondAttribute="centerY" id="c-ai-aiv-y"/>
-                            <constraint firstItem="sv-ai-btns" firstAttribute="top" secondItem="tv-ai-content" secondAttribute="bottom" constant="12" id="c-ai-btn-t"/>
-                            <constraint firstItem="sv-ai-btns" firstAttribute="leading" secondItem="sa-ai" secondAttribute="leading" constant="16" id="c-ai-btn-l"/>
-                            <constraint firstItem="sa-ai" firstAttribute="trailing" secondItem="sv-ai-btns" secondAttribute="trailing" constant="16" id="c-ai-btn-r"/>
-                            <constraint firstItem="sa-ai" firstAttribute="bottom" secondItem="sv-ai-btns" secondAttribute="bottom" constant="20" id="c-ai-btn-b"/>
-                        </constraints>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                     </view>
-                    <connections>
-                        <outlet property="activityIndicator" destination="aiv-ai" id="out-ai-aiv"/>
-                        <outlet property="contentTextView" destination="tv-ai-content" id="out-ai-tv"/>
-                        <outlet property="regenerateButton" destination="btn-ai-regen" id="out-ai-regen"/>
-                        <outlet property="saveSummaryButton" destination="btn-ai-save" id="out-ai-save"/>
-                        <outlet property="segmentedControl" destination="seg-ai" id="out-ai-seg"/>
-                        <outlet property="statusLabel" destination="lbl-ai-status" id="out-ai-st"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="resp-ai" sceneMemberID="firstResponder"/>
             </objects>
