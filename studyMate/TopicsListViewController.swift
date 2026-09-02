@@ -16,20 +16,12 @@ class TopicsListViewController: UIViewController {
     
     // MARK: - Properties
     var course: Course!
-    private var allTopics: [Topic] = []
-    private var filteredTopics: [Topic] = []
-    private var searchController: UISearchController?
-    
-    private var isSearching: Bool {
-        guard let sc = searchController else { return false }
-        return sc.isActive && !(sc.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-    }
+    private var topics: [Topic] = []
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupSearchController()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -69,19 +61,8 @@ class TopicsListViewController: UIViewController {
         tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
     }
     
-    private func setupSearchController() {
-        let sc = UISearchController(searchResultsController: nil)
-        sc.searchResultsUpdater = self
-        sc.obscuresBackgroundDuringFullScreenContent = false
-        sc.searchBar.placeholder = "Search modules..."
-        navigationItem.searchController = sc
-        navigationItem.hidesSearchBarWhenScrolling = true
-        definesPresentationContext = true
-        self.searchController = sc
-    }
-    
     private func setupHeaderBanner() {
-        guard let course = course, !isSearching else {
+        guard let course = course else {
             tableView.tableHeaderView = nil
             return
         }
@@ -111,7 +92,7 @@ class TopicsListViewController: UIViewController {
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         let subtitleLabel = UILabel()
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "📖 \(allTopics.count) \(allTopics.count == 1 ? "Module" : "Modules") • \(completedTasks)/\(totalTasks) Lessons (\(Int(progress * 100))%)"
+        subtitleLabel.text = "📖 \(topics.count) \(topics.count == 1 ? "Module" : "Modules") • \(completedTasks)/\(totalTasks) Lessons (\(Int(progress * 100))%)"
         subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
         subtitleLabel.textColor = .secondaryLabel
         card.addSubview(subtitleLabel)
@@ -156,20 +137,18 @@ class TopicsListViewController: UIViewController {
     // MARK: - Data Management
     private func loadTopics() {
         guard let course = course else { return }
-        allTopics = CoreDataManager.shared.fetchTopics(for: course)
+        topics = CoreDataManager.shared.fetchTopics(for: course)
         tableView.reloadData()
         updateEmptyState()
     }
     
     private func updateEmptyState() {
-        let displayList = isSearching ? filteredTopics : allTopics
-        if displayList.isEmpty {
+        if topics.isEmpty {
             emptyStateLabel?.isHidden = false
-            let isSearchEmpty = isSearching
             tableView.setEmptyState(
-                iconName: isSearchEmpty ? "magnifyingglass" : "square.stack.3d.up",
-                title: isSearchEmpty ? "No Modules Found" : "No Modules Added",
-                message: isSearchEmpty ? "Try a different search query." : "Tap '+' in the top right to add\nmodules for \(course?.name ?? "this course")."
+                iconName: "square.stack.3d.up",
+                title: "No Modules Added",
+                message: "Tap '+' in the top right to add\nmodules for \(course?.name ?? "this course")."
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -220,36 +199,15 @@ class TopicsListViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
-extension TopicsListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let text = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
-            filteredTopics = []
-            tableView.reloadData()
-            setupHeaderBanner()
-            updateEmptyState()
-            return
-        }
-        
-        filteredTopics = allTopics.filter {
-            ($0.title ?? "").localizedCaseInsensitiveContains(text)
-        }
-        tableView.reloadData()
-        setupHeaderBanner()
-        updateEmptyState()
-    }
-}
-
 // MARK: - UITableViewDataSource & Delegate
 extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isSearching ? filteredTopics.count : allTopics.count
+        return topics.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let displayList = isSearching ? filteredTopics : allTopics
-        let topic = displayList[indexPath.row]
+        let topic = topics[indexPath.row]
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TopicCell", for: indexPath) as? TopicCell {
             cell.configure(with: topic)
@@ -269,8 +227,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let displayList = isSearching ? filteredTopics : allTopics
-        let selectedTopic = displayList[indexPath.row]
+        let selectedTopic = topics[indexPath.row]
         HapticHelper.lightImpact()
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -281,8 +238,7 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let displayList = isSearching ? filteredTopics : allTopics
-        let topic = displayList[indexPath.row]
+        let topic = topics[indexPath.row]
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
@@ -311,4 +267,5 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
 }
+
 

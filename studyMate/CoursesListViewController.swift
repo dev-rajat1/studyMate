@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Hierarchy Level 1 — Lists all Courses with progress, search/filter, and Course creation/deletion.
+//  Purpose: Hierarchy Level 1 — Lists all Courses with progress and handles Course creation/deletion.
 //
 
 import UIKit
@@ -15,20 +15,12 @@ class CoursesListViewController: UIViewController {
     @IBOutlet weak var emptyStateLabel: UILabel?
     
     // MARK: - Properties
-    private var allCourses: [Course] = []
-    private var filteredCourses: [Course] = []
-    private var searchController: UISearchController?
-    
-    private var isSearching: Bool {
-        guard let sc = searchController else { return false }
-        return sc.isActive && !(sc.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-    }
+    private var courses: [Course] = []
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupSearchController()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -68,25 +60,14 @@ class CoursesListViewController: UIViewController {
         tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
     }
     
-    private func setupSearchController() {
-        let sc = UISearchController(searchResultsController: nil)
-        sc.searchResultsUpdater = self
-        sc.obscuresBackgroundDuringFullScreenContent = false
-        sc.searchBar.placeholder = "Search courses..."
-        navigationItem.searchController = sc
-        navigationItem.hidesSearchBarWhenScrolling = false
-        definesPresentationContext = true
-        self.searchController = sc
-    }
-    
     // MARK: - Summary Header
     private func setupHeaderView() {
-        guard !allCourses.isEmpty && !isSearching else {
+        guard !courses.isEmpty else {
             tableView.tableHeaderView = nil
             return
         }
         
-        let (coursesCount, modulesCount, totalTasks, completedTasks, overallRate) = CoreDataManager.shared.getAppStats()
+        let (coursesCount, modulesCount, _, _, overallRate) = CoreDataManager.shared.getAppStats()
         
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 98))
         headerView.backgroundColor = .clear
@@ -174,21 +155,19 @@ class CoursesListViewController: UIViewController {
     
     // MARK: - Data Management
     private func loadCourses() {
-        allCourses = CoreDataManager.shared.fetchCourses()
+        courses = CoreDataManager.shared.fetchCourses()
         tableView.reloadData()
         setupHeaderView()
         updateEmptyState()
     }
     
     private func updateEmptyState() {
-        let displayList = isSearching ? filteredCourses : allCourses
-        if displayList.isEmpty {
+        if courses.isEmpty {
             emptyStateLabel?.isHidden = false
-            let isSearchEmpty = isSearching
             tableView.setEmptyState(
-                iconName: isSearchEmpty ? "magnifyingglass" : "books.vertical",
-                title: isSearchEmpty ? "No Results" : "No Courses Yet",
-                message: isSearchEmpty ? "No courses matched your query." : "Tap the '+' button in the top right\nto create your first study course."
+                iconName: "books.vertical",
+                title: "No Courses Yet",
+                message: "Tap the '+' button in the top right\nto create your first study course."
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -256,36 +235,15 @@ class CoursesListViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
-extension CoursesListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let text = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
-            filteredCourses = []
-            tableView.reloadData()
-            setupHeaderView()
-            updateEmptyState()
-            return
-        }
-        
-        filteredCourses = allCourses.filter {
-            ($0.name ?? "").localizedCaseInsensitiveContains(text)
-        }
-        tableView.reloadData()
-        setupHeaderView()
-        updateEmptyState()
-    }
-}
-
 // MARK: - UITableViewDataSource & Delegate
 extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isSearching ? filteredCourses.count : allCourses.count
+        return courses.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let coursesList = isSearching ? filteredCourses : allCourses
-        let course = coursesList[indexPath.row]
+        let course = courses[indexPath.row]
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as? CourseCell {
             cell.configure(with: course)
@@ -305,8 +263,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let coursesList = isSearching ? filteredCourses : allCourses
-        let selectedCourse = coursesList[indexPath.row]
+        let selectedCourse = courses[indexPath.row]
         HapticHelper.lightImpact()
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -317,8 +274,7 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let coursesList = isSearching ? filteredCourses : allCourses
-        let course = coursesList[indexPath.row]
+        let course = courses[indexPath.row]
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
@@ -346,4 +302,5 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
 }
+
 

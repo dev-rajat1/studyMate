@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Hierarchy Level 3 — Displays all Lessons under a Module, shows Module progress, search filter, and triggers AI Summary/Quiz.
+//  Purpose: Hierarchy Level 3 — Displays all Lessons under a Module, shows Module progress, and triggers AI Summary/Quiz.
 //
 
 import UIKit
@@ -18,20 +18,12 @@ class TasksListViewController: UIViewController {
     
     // MARK: - Properties
     var topic: Topic!
-    private var allTasks: [Task] = []
-    private var filteredTasks: [Task] = []
-    private var searchController: UISearchController?
-    
-    private var isSearching: Bool {
-        guard let sc = searchController else { return false }
-        return sc.isActive && !(sc.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-    }
+    private var tasks: [Task] = []
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupSearchController()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -80,19 +72,8 @@ class TasksListViewController: UIViewController {
         tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
     }
     
-    private func setupSearchController() {
-        let sc = UISearchController(searchResultsController: nil)
-        sc.searchResultsUpdater = self
-        sc.obscuresBackgroundDuringFullScreenContent = false
-        sc.searchBar.placeholder = "Search lessons or notes..."
-        navigationItem.searchController = sc
-        navigationItem.hidesSearchBarWhenScrolling = true
-        definesPresentationContext = true
-        self.searchController = sc
-    }
-    
     private func setupHeaderBanner() {
-        guard let topic = topic, !isSearching else {
+        guard let topic = topic else {
             tableView.tableHeaderView = nil
             return
         }
@@ -168,20 +149,18 @@ class TasksListViewController: UIViewController {
     // MARK: - Data Management
     private func loadTasks() {
         guard let topic = topic else { return }
-        allTasks = CoreDataManager.shared.fetchTasks(for: topic)
+        tasks = CoreDataManager.shared.fetchTasks(for: topic)
         tableView.reloadData()
         updateEmptyState()
     }
     
     private func updateEmptyState() {
-        let displayList = isSearching ? filteredTasks : allTasks
-        if displayList.isEmpty {
+        if tasks.isEmpty {
             emptyStateLabel?.isHidden = false
-            let isSearchEmpty = isSearching
             tableView.setEmptyState(
-                iconName: isSearchEmpty ? "magnifyingglass" : "book.pages",
-                title: isSearchEmpty ? "No Lessons Found" : "No Lessons Yet",
-                message: isSearchEmpty ? "Try a different search query." : "Tap '+' in the top right to add a\nlesson with study notes."
+                iconName: "book.pages",
+                title: "No Lessons Yet",
+                message: "Tap '+' in the top right to add a\nlesson with study notes."
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -222,38 +201,15 @@ class TasksListViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
-extension TasksListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let text = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
-            filteredTasks = []
-            tableView.reloadData()
-            setupHeaderBanner()
-            updateEmptyState()
-            return
-        }
-        
-        filteredTasks = allTasks.filter {
-            let titleMatch = ($0.title ?? "").localizedCaseInsensitiveContains(text)
-            let notesMatch = ($0.notes ?? "").localizedCaseInsensitiveContains(text)
-            return titleMatch || notesMatch
-        }
-        tableView.reloadData()
-        setupHeaderBanner()
-        updateEmptyState()
-    }
-}
-
 // MARK: - UITableViewDataSource & Delegate
 extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isSearching ? filteredTasks.count : allTasks.count
+        return tasks.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let displayList = isSearching ? filteredTasks : allTasks
-        let task = displayList[indexPath.row]
+        let task = tasks[indexPath.row]
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as? TaskCell {
             cell.configure(with: task)
@@ -283,15 +239,13 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let displayList = isSearching ? filteredTasks : allTasks
-        let selectedTask = displayList[indexPath.row]
+        let selectedTask = tasks[indexPath.row]
         HapticHelper.lightImpact()
         presentTaskDetail(taskToEdit: selectedTask)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let displayList = isSearching ? filteredTasks : allTasks
-        let task = displayList[indexPath.row]
+        let task = tasks[indexPath.row]
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
             self?.showConfirmationAlert(
@@ -320,4 +274,5 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
 }
+
 
