@@ -18,10 +18,14 @@ class TopicsListViewController: UIViewController {
     var course: Course!
     private var topics: [Topic] = []
     
+    // Bottom Floating Action Button
+    private let addTopicFAB = UIButton(type: .system)
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupAddTopicFAB()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -37,15 +41,6 @@ class TopicsListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
         
-        let addBtn = UIBarButtonItem(
-            image: UIImage(systemName: "plus"),
-            style: .plain,
-            target: self,
-            action: #selector(addTopicTapped)
-        )
-        addBtn.tintColor = ColorHelper.color(named: course?.colorTag)
-        navigationItem.rightBarButtonItem = addBtn
-        
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .plain)
             tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -58,7 +53,47 @@ class TopicsListViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 92
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 84, right: 0)
+    }
+    
+    // MARK: - Bottom Floating Action Button (Add Module)
+    private func setupAddTopicFAB() {
+        addTopicFAB.translatesAutoresizingMaskIntoConstraints = false
+        addTopicFAB.setTitle("➕ Add Module", for: .normal)
+        addTopicFAB.setTitleColor(.white, for: .normal)
+        addTopicFAB.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        
+        let themeColor = ColorHelper.color(named: course?.colorTag)
+        addTopicFAB.backgroundColor = themeColor
+        addTopicFAB.layer.cornerRadius = 24
+        addTopicFAB.clipsToBounds = false
+        addTopicFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+        
+        // Shadow & Aesthetics
+        addTopicFAB.layer.shadowColor = themeColor.cgColor
+        addTopicFAB.layer.shadowOpacity = 0.35
+        addTopicFAB.layer.shadowOffset = CGSize(width: 0, height: 6)
+        addTopicFAB.layer.shadowRadius = 12
+        
+        addTopicFAB.addTarget(self, action: #selector(addTopicTapped), for: .touchUpInside)
+        addTopicFAB.addTarget(self, action: #selector(fabTouchDown), for: [.touchDown, .touchDragEnter])
+        addTopicFAB.addTarget(self, action: #selector(fabTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
+        
+        view.addSubview(addTopicFAB)
+        
+        NSLayoutConstraint.activate([
+            addTopicFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+            addTopicFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
+            addTopicFAB.heightAnchor.constraint(equalToConstant: 48)
+        ])
+    }
+    
+    @objc private func fabTouchDown() {
+        addTopicFAB.bounceTouchDown()
+    }
+    
+    @objc private func fabTouchUp() {
+        addTopicFAB.bounceTouchUp()
     }
     
     private func setupHeaderBanner() {

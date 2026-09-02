@@ -17,15 +17,20 @@ class CoursesListViewController: UIViewController {
     // MARK: - Properties
     private var courses: [Course] = []
     
+    // Bottom Floating Action Button
+    private let addCourseFAB = UIButton(type: .system)
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupAddCourseFAB()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadCourses()
+        setupHeaderView()
     }
     
     // MARK: - UI Setup
@@ -34,16 +39,6 @@ class CoursesListViewController: UIViewController {
         navigationItem.backButtonTitle = "Courses"
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
-        
-        // Add Course "+" Button with custom tint in Navigation Bar
-        let addBtn = UIBarButtonItem(
-            image: UIImage(systemName: "plus"),
-            style: .plain,
-            target: self,
-            action: #selector(addCourseTapped)
-        )
-        addBtn.tintColor = .systemBlue
-        navigationItem.rightBarButtonItem = addBtn
         
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .plain)
@@ -57,7 +52,45 @@ class CoursesListViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 116
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 84, right: 0)
+    }
+    
+    // MARK: - Bottom Floating Action Button (Add Course)
+    private func setupAddCourseFAB() {
+        addCourseFAB.translatesAutoresizingMaskIntoConstraints = false
+        addCourseFAB.setTitle("➕ Add Course", for: .normal)
+        addCourseFAB.setTitleColor(.white, for: .normal)
+        addCourseFAB.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        addCourseFAB.backgroundColor = .systemBlue
+        addCourseFAB.layer.cornerRadius = 24
+        addCourseFAB.clipsToBounds = false
+        addCourseFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+        
+        // Shadow & Aesthetics
+        addCourseFAB.layer.shadowColor = UIColor.systemBlue.cgColor
+        addCourseFAB.layer.shadowOpacity = 0.35
+        addCourseFAB.layer.shadowOffset = CGSize(width: 0, height: 6)
+        addCourseFAB.layer.shadowRadius = 12
+        
+        addCourseFAB.addTarget(self, action: #selector(addCourseTapped), for: .touchUpInside)
+        addCourseFAB.addTarget(self, action: #selector(fabTouchDown), for: [.touchDown, .touchDragEnter])
+        addCourseFAB.addTarget(self, action: #selector(fabTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
+        
+        view.addSubview(addCourseFAB)
+        
+        NSLayoutConstraint.activate([
+            addCourseFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+            addCourseFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
+            addCourseFAB.heightAnchor.constraint(equalToConstant: 48)
+        ])
+    }
+    
+    @objc private func fabTouchDown() {
+        addCourseFAB.bounceTouchDown()
+    }
+    
+    @objc private func fabTouchUp() {
+        addCourseFAB.bounceTouchUp()
     }
     
     // MARK: - Summary Header
@@ -228,7 +261,8 @@ class CoursesListViewController: UIViewController {
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         if let popover = actionSheet.popoverPresentationController {
-            popover.barButtonItem = navigationItem.rightBarButtonItem
+            popover.sourceView = addCourseFAB
+            popover.sourceRect = addCourseFAB.bounds
         }
         
         present(actionSheet, animated: true)

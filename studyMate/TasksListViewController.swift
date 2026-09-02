@@ -20,14 +20,15 @@ class TasksListViewController: UIViewController {
     var topic: Topic!
     private var tasks: [Task] = []
     
-    // Bottom Floating Action Button for AI Study Tutor
+    // Bottom Floating Action Buttons
+    private let addLessonFAB = UIButton(type: .system)
     private let aiTutorFAB = UIButton(type: .system)
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupAITutorFAB()
+        setupBottomFABs()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -42,15 +43,6 @@ class TasksListViewController: UIViewController {
         navigationItem.backButtonTitle = "Lessons"
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
-        
-        let addButton = UIBarButtonItem(
-            image: UIImage(systemName: "plus"),
-            style: .plain,
-            target: self,
-            action: #selector(addTaskTapped)
-        )
-        addButton.tintColor = .systemBlue
-        navigationItem.rightBarButtonItem = addButton
         
         if tableView == nil {
             let tv = UITableView(frame: view.bounds, style: .plain)
@@ -67,43 +59,75 @@ class TasksListViewController: UIViewController {
         tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 84, right: 0)
     }
     
-    // MARK: - Bottom Floating Action Button (AI Study Tutor)
-    private func setupAITutorFAB() {
+    // MARK: - Bottom Floating Action Buttons Dock
+    private func setupBottomFABs() {
+        // 1. Add Lesson Button (Blue)
+        addLessonFAB.translatesAutoresizingMaskIntoConstraints = false
+        addLessonFAB.setTitle("➕ Add Lesson", for: .normal)
+        addLessonFAB.setTitleColor(.white, for: .normal)
+        addLessonFAB.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        addLessonFAB.backgroundColor = .systemBlue
+        addLessonFAB.layer.cornerRadius = 24
+        addLessonFAB.clipsToBounds = false
+        addLessonFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        
+        addLessonFAB.layer.shadowColor = UIColor.systemBlue.cgColor
+        addLessonFAB.layer.shadowOpacity = 0.35
+        addLessonFAB.layer.shadowOffset = CGSize(width: 0, height: 6)
+        addLessonFAB.layer.shadowRadius = 12
+        
+        addLessonFAB.addTarget(self, action: #selector(addTaskTapped), for: .touchUpInside)
+        addLessonFAB.addTarget(self, action: #selector(addLessonTouchDown), for: [.touchDown, .touchDragEnter])
+        addLessonFAB.addTarget(self, action: #selector(addLessonTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
+        
+        // 2. AI Study Tutor Button (Purple)
         aiTutorFAB.translatesAutoresizingMaskIntoConstraints = false
         aiTutorFAB.setTitle("✨ AI Study Tutor", for: .normal)
         aiTutorFAB.setTitleColor(.white, for: .normal)
-        aiTutorFAB.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        aiTutorFAB.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
         aiTutorFAB.backgroundColor = .systemPurple
         aiTutorFAB.layer.cornerRadius = 24
         aiTutorFAB.clipsToBounds = false
-        aiTutorFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+        aiTutorFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
         
-        // Shadow & Aesthetics
         aiTutorFAB.layer.shadowColor = UIColor.systemPurple.cgColor
         aiTutorFAB.layer.shadowOpacity = 0.35
         aiTutorFAB.layer.shadowOffset = CGSize(width: 0, height: 6)
         aiTutorFAB.layer.shadowRadius = 12
         
         aiTutorFAB.addTarget(self, action: #selector(aiAssistantTapped), for: .touchUpInside)
+        aiTutorFAB.addTarget(self, action: #selector(aiTouchDown), for: [.touchDown, .touchDragEnter])
+        aiTutorFAB.addTarget(self, action: #selector(aiTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
         
-        // Touch Bounce feedback
-        aiTutorFAB.addTarget(self, action: #selector(fabTouchDown), for: [.touchDown, .touchDragEnter])
-        aiTutorFAB.addTarget(self, action: #selector(fabTouchUp), for: [.touchUpInside, .touchCancel, .touchDragExit])
-        
-        view.addSubview(aiTutorFAB)
+        // Dual FAB Horizontal Stack Dock
+        let stack = UIStackView(arrangedSubviews: [addLessonFAB, aiTutorFAB])
+        stack.axis = .horizontal
+        stack.spacing = 10
+        stack.distribution = .fillEqually
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stack)
         
         NSLayoutConstraint.activate([
-            aiTutorFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
-            aiTutorFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
-            aiTutorFAB.heightAnchor.constraint(equalToConstant: 48)
+            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            stack.heightAnchor.constraint(equalToConstant: 48)
         ])
     }
     
-    @objc private func fabTouchDown() {
+    @objc private func addLessonTouchDown() {
+        addLessonFAB.bounceTouchDown()
+    }
+    
+    @objc private func addLessonTouchUp() {
+        addLessonFAB.bounceTouchUp()
+    }
+    
+    @objc private func aiTouchDown() {
         aiTutorFAB.bounceTouchDown()
     }
     
-    @objc private func fabTouchUp() {
+    @objc private func aiTouchUp() {
         aiTutorFAB.bounceTouchUp()
     }
     
