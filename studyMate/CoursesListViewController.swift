@@ -241,7 +241,7 @@ class CoursesListViewController: UIViewController {
             tableView.setEmptyState(
                 iconName: "books.vertical",
                 title: "No Courses Yet",
-                message: "Tap the '+' button in the top right\nto create your first study course."
+                message: "Tap '➕ Add Course' at the bottom right\nto create your first study course."
             )
         } else {
             emptyStateLabel?.isHidden = true
