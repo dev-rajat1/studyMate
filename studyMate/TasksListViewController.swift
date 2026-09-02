@@ -42,11 +42,6 @@ class TasksListViewController: UIViewController {
         title = "Lessons"
         navigationItem.backButtonTitle = "Lessons"
         navigationItem.largeTitleDisplayMode = .never
-        if let topic = topic {
-            let courseName = topic.course?.name ?? "Course"
-            let moduleName = topic.title ?? "Module"
-            navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
-        }
         view.backgroundColor = .systemGroupedBackground
 
         if tableView == nil {

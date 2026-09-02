@@ -39,9 +39,6 @@ class TopicsListViewController: UIViewController {
         title = "Modules"
         navigationItem.backButtonTitle = "Modules"
         navigationItem.largeTitleDisplayMode = .never
-        if let course = course {
-            navigationItem.prompt = "📚 \(course.name ?? "Subject")"
-        }
         view.backgroundColor = .systemGroupedBackground
 
         if tableView == nil {

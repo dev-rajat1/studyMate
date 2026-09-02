@@ -136,7 +136,7 @@ class TodayViewController: UIViewController {
         let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
 
         // Dynamic height based on content
-        let headerHeight: CGFloat = 264
+        let headerHeight: CGFloat = 210
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
         headerView.backgroundColor = .clear
 

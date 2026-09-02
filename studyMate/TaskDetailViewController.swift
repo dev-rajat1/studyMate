@@ -59,12 +59,6 @@ class TaskDetailViewController: UIViewController {
 
         let courseColor = ColorHelper.color(named: topic?.course?.colorTag)
 
-        if let topic = topic {
-            let courseName = topic.course?.name ?? "Course"
-            let moduleName = topic.title ?? "Module"
-            navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
-        }
-
         // Cancel button
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             title: "Cancel", style: .plain, target: self, action: #selector(cancelTapped)
