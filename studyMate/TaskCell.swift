@@ -22,18 +22,36 @@ class TaskCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        setupStyles()
+    }
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupStyles()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+    
+    private func setupStyles() {
         selectionStyle = .none
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         
-        cardContainerView?.applyCardStyle(cornerRadius: 14)
+        cardContainerView?.applyCardStyle(cornerRadius: 16)
+        
+        titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        notesLabel?.font = .systemFont(ofSize: 13, weight: .regular)
+        notesLabel?.textColor = .secondaryLabel
     }
     
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
-        UIView.animate(withDuration: 0.15) {
-            self.cardContainerView?.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
-            self.cardContainerView?.alpha = highlighted ? 0.9 : 1.0
+        if highlighted {
+            cardContainerView?.bounceTouchDown()
+        } else {
+            cardContainerView?.bounceTouchUp()
         }
     }
     
@@ -49,6 +67,7 @@ class TaskCell: UITableViewCell {
             titleLabel?.attributedText = attributeString
             if titleLabel == nil {
                 textLabel?.attributedText = attributeString
+                textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
             }
         } else {
             let attributeString = NSMutableAttributedString(string: taskTitle)
@@ -56,23 +75,30 @@ class TaskCell: UITableViewCell {
             titleLabel?.attributedText = attributeString
             if titleLabel == nil {
                 textLabel?.attributedText = attributeString
+                textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
             }
         }
         
         // Notes preview
         if let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let cleanedNotes = notes.replacingOccurrences(of: "\n", with: " • ")
-            notesLabel?.text = "📝 \(cleanedNotes)"
+            let pageCount = notes.components(separatedBy: "[STUDYMATE_PAGE_BREAK]").count
+            let pageSuffix = pageCount > 1 ? "  (📄 \(pageCount) pages)" : ""
+            
+            notesLabel?.text = "📝 \(cleanedNotes)\(pageSuffix)"
+            notesLabel?.textColor = .secondaryLabel
             notesLabel?.isHidden = false
             if notesLabel == nil {
-                detailTextLabel?.text = "📝 \(cleanedNotes)"
+                detailTextLabel?.text = "📝 \(cleanedNotes)\(pageSuffix)"
+                detailTextLabel?.font = .systemFont(ofSize: 13, weight: .regular)
             }
         } else {
-            notesLabel?.text = "📝 Tap to add study notes & summary..."
+            notesLabel?.text = "📝 Tap to write study notes..."
             notesLabel?.textColor = .tertiaryLabel
             notesLabel?.isHidden = false
             if notesLabel == nil {
-                detailTextLabel?.text = nil
+                detailTextLabel?.text = "📝 Tap to write study notes..."
+                detailTextLabel?.font = .systemFont(ofSize: 13, weight: .regular)
             }
         }
         
@@ -95,17 +121,18 @@ class TaskCell: UITableViewCell {
     
     // MARK: - IBActions
     @IBAction func checkboxTapped(_ sender: UIButton) {
-        HapticHelper.lightImpact()
+        HapticHelper.success()
         
-        UIView.animate(withDuration: 0.1, animations: {
-            sender.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+        UIView.animate(withDuration: 0.12, animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         }) { _ in
-            UIView.animate(withDuration: 0.1) {
+            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: .curveEaseOut, animations: {
                 sender.transform = .identity
-            }
+            }, completion: nil)
         }
         
         onToggleDone?()
         onToggleCompletion?()
     }
 }
+

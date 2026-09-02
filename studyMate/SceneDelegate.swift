@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Configures root window, programmatic TabBarController & Navigation hierarchy.
+//  Purpose: Configures root window, programmatic TabBarController & Navigation hierarchy with modern iOS 18 glass styling.
 //
 
 import UIKit
@@ -22,6 +22,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
         
+        // Apply Global Modern Appearance
+        setupGlobalAppearance()
+        
         // Build Programmatic Root TabBarController
         let tabBarController = createRootTabBarController()
         window.rootViewController = tabBarController
@@ -31,6 +34,30 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UserDefaultsManager.shared.applyTheme()
     }
 
+    // MARK: - Global Appearance Setup
+    private func setupGlobalAppearance() {
+        // Navigation Bar Appearance
+        let navBarAppearance = UINavigationBarAppearance()
+        navBarAppearance.configureWithDefaultBackground()
+        navBarAppearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
+        
+        UINavigationBar.appearance().standardAppearance = navBarAppearance
+        UINavigationBar.appearance().compactAppearance = navBarAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
+        UINavigationBar.appearance().tintColor = .systemPurple
+        
+        // Tab Bar Appearance
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithDefaultBackground()
+        tabBarAppearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
+        
+        UITabBar.appearance().standardAppearance = tabBarAppearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+        }
+        UITabBar.appearance().tintColor = .systemPurple
+    }
+
     // MARK: - Programmatic TabBar Hierarchy Setup
     private func createRootTabBarController() -> UITabBarController {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -38,28 +65,28 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // 1. Tab 1: Today
         let todayVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "TodayViewController")
         let todayNav = UINavigationController(rootViewController: todayVC)
-        todayNav.tabBarItem = UITabBarItem(title: "Today", image: UIImage(systemName: "checklist"), tag: 0)
+        todayNav.tabBarItem = UITabBarItem(title: "Today", image: UIImage(systemName: "sparkles.rectangle.stack"), selectedImage: UIImage(systemName: "sparkles.rectangle.stack.fill"))
         
         // 2. Tab 2: Courses
         let coursesVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "CoursesListViewController")
         let coursesNav = UINavigationController(rootViewController: coursesVC)
-        coursesNav.tabBarItem = UITabBarItem(title: "Courses", image: UIImage(systemName: "books.vertical.fill"), tag: 1)
+        coursesNav.tabBarItem = UITabBarItem(title: "Courses", image: UIImage(systemName: "books.vertical"), selectedImage: UIImage(systemName: "books.vertical.fill"))
         
         // 3. Tab 3: Stats
         let statsVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "StatsViewController")
         let statsNav = UINavigationController(rootViewController: statsVC)
-        statsNav.tabBarItem = UITabBarItem(title: "Stats", image: UIImage(systemName: "chart.bar.xaxis"), tag: 2)
+        statsNav.tabBarItem = UITabBarItem(title: "Stats", image: UIImage(systemName: "chart.bar.xaxis"), selectedImage: UIImage(systemName: "chart.bar.xaxis"))
         
         // 4. Tab 4: Settings
         let settingsVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "SettingsViewController")
         let settingsNav = UINavigationController(rootViewController: settingsVC)
-        settingsNav.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape.fill"), tag: 3)
+        settingsNav.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), selectedImage: UIImage(systemName: "gearshape.fill"))
         
-        // TabBar Styling
+        // TabBar Controller
         let tabBarController = UITabBarController()
         tabBarController.viewControllers = [todayNav, coursesNav, statsNav, settingsNav]
         tabBarController.selectedIndex = 1 // Default to Courses tab
-        tabBarController.tabBar.tintColor = UIColor(red: 0.18, green: 0.50, blue: 0.98, alpha: 1.0)
+        tabBarController.tabBar.tintColor = .systemPurple
         
         return tabBarController
     }
@@ -68,3 +95,4 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         CoreDataManager.shared.saveContext()
     }
 }
+

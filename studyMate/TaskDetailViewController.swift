@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Clean, distraction-free Full-Screen Notes Reader & Editor with Bottom Pagination.
+//  Purpose: Clean, distraction-free Full-Screen Notes Reader & Editor with Formatting Quick Tools & Bottom Pagination Island.
 //
 
 import UIKit
@@ -25,14 +25,18 @@ class TaskDetailViewController: UIViewController {
     private var pages: [String] = [""]
     private var currentPageIndex: Int = 0
     
-    // Bottom Pagination Container
+    // Bottom Pagination Floating Island
     private let paginationContainer = UIView()
     private let prevPageButton = UIButton(type: .system)
     private let nextPageButton = UIButton(type: .system)
     private let pageIndicatorLabel = UILabel()
     private let addPageButton = UIButton(type: .system)
+    private let deletePageButton = UIButton(type: .system)
     
     private var completionBarButton: UIBarButtonItem!
+    
+    // Quick Formatting Accessory Toolbar
+    private let formattingToolbar = UIToolbar()
     
     // MARK: - Delimiter for multi-page notes
     private let pageDelimiter = "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n"
@@ -41,6 +45,7 @@ class TaskDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupKeyboardToolbar()
         setupPaginationBar()
         populateExistingData()
     }
@@ -51,7 +56,7 @@ class TaskDetailViewController: UIViewController {
         if let topic = topic {
             let courseName = topic.course?.name ?? "Course"
             let moduleName = topic.title ?? "Module"
-            navigationItem.prompt = "📚 \(courseName)  ›  📖 \(moduleName)"
+            navigationItem.prompt = "📚 \(courseName) › 📖 \(moduleName)"
         }
         view.backgroundColor = .systemGroupedBackground
         
@@ -70,6 +75,7 @@ class TaskDetailViewController: UIViewController {
             target: self,
             action: #selector(saveTapped)
         )
+        saveBtn.tintColor = .systemBlue
         
         // Top Header "Mark as Completed / Important" Toggle
         completionBarButton = UIBarButtonItem(
@@ -82,33 +88,81 @@ class TaskDetailViewController: UIViewController {
         
         navigationItem.rightBarButtonItems = [saveBtn, completionBarButton]
         
-        // Title Text Field (Compact)
+        // Title Text Field (Compact & Modern)
         titleTextField?.placeholder = "Lesson / Note Title"
-        titleTextField?.layer.cornerRadius = 10
+        titleTextField?.layer.cornerRadius = 12
         titleTextField?.backgroundColor = .secondarySystemGroupedBackground
-        titleTextField?.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleTextField?.font = .systemFont(ofSize: 17, weight: .bold)
+        titleTextField?.layer.borderWidth = 0.5
+        titleTextField?.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
         
         // Notes TextView Styling (Maximized Clean Study Notebook)
-        notesTextView?.layer.cornerRadius = 14
+        notesTextView?.layer.cornerRadius = 16
         notesTextView?.layer.borderWidth = 0.5
-        notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
+        notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
         notesTextView?.backgroundColor = .secondarySystemGroupedBackground
         notesTextView?.font = .systemFont(ofSize: 16, weight: .regular)
-        notesTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
+        notesTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
+    }
+    
+    // MARK: - Keyboard Formatting Toolbar
+    private func setupKeyboardToolbar() {
+        formattingToolbar.sizeToFit()
+        formattingToolbar.barStyle = .default
+        
+        let bulletBtn = UIBarButtonItem(title: "• Bullet", style: .plain, target: self, action: #selector(insertBullet))
+        let todoBtn = UIBarButtonItem(title: "☑ Todo", style: .plain, target: self, action: #selector(insertTodo))
+        let numBtn = UIBarButtonItem(title: "1. Num", style: .plain, target: self, action: #selector(insertNumbered))
+        let keyBtn = UIBarButtonItem(title: "⭐ Key", style: .plain, target: self, action: #selector(insertKeyPoint))
+        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneBtn = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(dismissKeyboard))
+        
+        formattingToolbar.items = [bulletBtn, todoBtn, numBtn, keyBtn, flex, doneBtn]
+        notesTextView?.inputAccessoryView = formattingToolbar
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    @objc private func insertBullet() {
+        insertTextAtCursor("\n• ")
+    }
+    
+    @objc private func insertTodo() {
+        insertTextAtCursor("\n[ ] ")
+    }
+    
+    @objc private func insertNumbered() {
+        insertTextAtCursor("\n1. ")
+    }
+    
+    @objc private func insertKeyPoint() {
+        insertTextAtCursor("\n💡 Key Concept: ")
+    }
+    
+    private func insertTextAtCursor(_ text: String) {
+        guard let textView = notesTextView else { return }
+        HapticHelper.lightImpact()
+        if let selectedRange = textView.selectedTextRange {
+            textView.replace(selectedRange, withText: text)
+        } else {
+            textView.text.append(text)
+        }
     }
     
     // MARK: - Bottom Pagination Bar
     private func setupPaginationBar() {
         paginationContainer.translatesAutoresizingMaskIntoConstraints = false
-        paginationContainer.applyCardStyle(cornerRadius: 12)
+        paginationContainer.applyCardStyle(cornerRadius: 14)
         paginationContainer.backgroundColor = .secondarySystemGroupedBackground
         
         prevPageButton.setTitle("◀ Prev", for: .normal)
-        prevPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        prevPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
         prevPageButton.addTarget(self, action: #selector(prevPageTapped), for: .touchUpInside)
         
         nextPageButton.setTitle("Next ▶", for: .normal)
-        nextPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        nextPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
         nextPageButton.addTarget(self, action: #selector(nextPageTapped), for: .touchUpInside)
         
         pageIndicatorLabel.text = "📄 Page 1 of 1"
@@ -117,7 +171,7 @@ class TaskDetailViewController: UIViewController {
         pageIndicatorLabel.textAlignment = .center
         
         addPageButton.setTitle("➕ Add Page", for: .normal)
-        addPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        addPageButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
         addPageButton.addTarget(self, action: #selector(addPageTapped), for: .touchUpInside)
         
         let pagStack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
@@ -135,7 +189,7 @@ class TaskDetailViewController: UIViewController {
             paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             paginationContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            paginationContainer.heightAnchor.constraint(equalToConstant: 42),
+            paginationContainer.heightAnchor.constraint(equalToConstant: 44),
             
             pagStack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 14),
             pagStack.trailingAnchor.constraint(equalTo: paginationContainer.trailingAnchor, constant: -14),
@@ -190,8 +244,8 @@ class TaskDetailViewController: UIViewController {
         prevPageButton.isEnabled = currentPageIndex > 0
         nextPageButton.isEnabled = currentPageIndex < (pages.count - 1)
         
-        prevPageButton.alpha = prevPageButton.isEnabled ? 1.0 : 0.4
-        nextPageButton.alpha = nextPageButton.isEnabled ? 1.0 : 0.4
+        prevPageButton.alpha = prevPageButton.isEnabled ? 1.0 : 0.35
+        nextPageButton.alpha = nextPageButton.isEnabled ? 1.0 : 0.35
     }
     
     // MARK: - Pagination Actions
@@ -220,7 +274,7 @@ class TaskDetailViewController: UIViewController {
         currentPageIndex = pages.count - 1
         loadCurrentPageText()
         updatePaginationButtons()
-        showToast(message: "📄 Page \(pages.count) Added!")
+        showToast(message: "📄 Page \(pages.count) Added!", icon: "doc.badge.plus", tintColor: .systemPurple)
     }
     
     // MARK: - Toggle Completed / Important Action (Top Header)
@@ -228,7 +282,11 @@ class TaskDetailViewController: UIViewController {
         HapticHelper.success()
         isCompletedState.toggle()
         updateCompletionButtonAppearance()
-        showToast(message: isCompletedState ? "✅ Marked as Completed!" : "⚪ Marked as Pending")
+        showToast(
+            message: isCompletedState ? "Marked as Completed!" : "Marked as Pending",
+            icon: isCompletedState ? "checkmark.circle.fill" : "circle",
+            tintColor: isCompletedState ? .systemGreen : .systemGray
+        )
     }
     
     private func updateCompletionButtonAppearance() {
@@ -262,3 +320,4 @@ class TaskDetailViewController: UIViewController {
         dismiss(animated: true)
     }
 }
+

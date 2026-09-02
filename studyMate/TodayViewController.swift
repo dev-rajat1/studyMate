@@ -46,18 +46,19 @@ class TodayViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 90
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 20, right: 0)
+        tableView.estimatedRowHeight = 92
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
     }
     
     // MARK: - Dashboard Header Banner
     private func setupDashboardHeader() {
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 124))
+        let count = pendingTasks.count
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 136))
         headerView.backgroundColor = .clear
         
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: 16)
+        card.applyCardStyle(cornerRadius: 18)
         headerView.addSubview(card)
         
         let topStack = UIStackView()
@@ -66,52 +67,82 @@ class TodayViewController: UIViewController {
         topStack.alignment = .center
         topStack.translatesAutoresizingMaskIntoConstraints = false
         
+        // Date Pill Badge
+        let datePill = UIView()
+        datePill.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.12)
+        datePill.layer.cornerRadius = 8
+        datePill.clipsToBounds = true
+        
         let dateLabel = UILabel()
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.text = "🗓 \(Date().formattedGreetingDate().uppercased())"
-        dateLabel.font = .systemFont(ofSize: 12, weight: .bold)
+        dateLabel.font = .systemFont(ofSize: 11, weight: .bold)
         dateLabel.textColor = .systemPurple
+        datePill.addSubview(dateLabel)
+        
+        NSLayoutConstraint.activate([
+            dateLabel.leadingAnchor.constraint(equalTo: datePill.leadingAnchor, constant: 8),
+            dateLabel.trailingAnchor.constraint(equalTo: datePill.trailingAnchor, constant: -8),
+            dateLabel.topAnchor.constraint(equalTo: datePill.topAnchor, constant: 4),
+            dateLabel.bottomAnchor.constraint(equalTo: datePill.bottomAnchor, constant: -4)
+        ])
+        
+        // Streak Badge
+        let streakPill = UIView()
+        streakPill.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
+        streakPill.layer.cornerRadius = 8
+        streakPill.clipsToBounds = true
         
         let streakBadge = UILabel()
+        streakBadge.translatesAutoresizingMaskIntoConstraints = false
         streakBadge.text = "🔥 Daily Focus"
         streakBadge.font = .systemFont(ofSize: 11, weight: .bold)
         streakBadge.textColor = .systemOrange
+        streakPill.addSubview(streakBadge)
         
-        topStack.addArrangedSubview(dateLabel)
-        topStack.addArrangedSubview(streakBadge)
+        NSLayoutConstraint.activate([
+            streakBadge.leadingAnchor.constraint(equalTo: streakPill.leadingAnchor, constant: 8),
+            streakBadge.trailingAnchor.constraint(equalTo: streakPill.trailingAnchor, constant: -8),
+            streakBadge.topAnchor.constraint(equalTo: streakPill.topAnchor, constant: 4),
+            streakBadge.bottomAnchor.constraint(equalTo: streakPill.bottomAnchor, constant: -4)
+        ])
+        
+        topStack.addArrangedSubview(datePill)
+        topStack.addArrangedSubview(streakPill)
         card.addSubview(topStack)
         
         let greetingLabel = UILabel()
         greetingLabel.translatesAutoresizingMaskIntoConstraints = false
-        let count = pendingTasks.count
         greetingLabel.text = count == 0 ? "🎉 You're all caught up today!" : "⚡ \(count) \(count == 1 ? "Lesson" : "Lessons") Remaining"
-        greetingLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        greetingLabel.font = .systemFont(ofSize: 18, weight: .bold)
         greetingLabel.textColor = .label
         card.addSubview(greetingLabel)
         
         let subLabel = UILabel()
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.text = count == 0 ? "Great job! Keep up the daily study streak." : "Review notes, test with AI quiz, and mark lessons done."
+        subLabel.text = count == 0 ? "Great job! Keep up the momentum and review AI notes." : "Review notes, take practice quizzes, and check off items."
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subLabel.textColor = .secondaryLabel
+        subLabel.numberOfLines = 2
         card.addSubview(subLabel)
         
         NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 4),
+            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
             card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
             
-            topStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            topStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            topStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            topStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            topStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            topStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
             
             greetingLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
-            greetingLabel.topAnchor.constraint(equalTo: topStack.bottomAnchor, constant: 4),
-            greetingLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            greetingLabel.topAnchor.constraint(equalTo: topStack.bottomAnchor, constant: 8),
+            greetingLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
             
             subLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
             subLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: 4),
-            subLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16)
+            subLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14)
         ])
         
         tableView.tableHeaderView = headerView
@@ -161,7 +192,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
                 CoreDataManager.shared.toggleTaskDone(task)
                 self.loadPendingTasks()
                 self.setupDashboardHeader()
-                self.showToast(message: "✅ Lesson Completed!")
+                self.showToast(message: "✅ Lesson Completed!", icon: "checkmark.circle.fill", tintColor: .systemGreen)
             }
             cell.animateGlideIn(delayIndex: indexPath.row)
             return cell
@@ -169,6 +200,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "DefaultCell")
         cell.textLabel?.text = task.title
+        cell.textLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         let topicName = task.topic?.title ?? "General"
         let courseName = task.topic?.course?.name ?? "Course"
         cell.detailTextLabel?.text = "📁 \(courseName) › \(topicName)"
@@ -200,7 +232,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
             CoreDataManager.shared.toggleTaskDone(task)
             self.loadPendingTasks()
             self.setupDashboardHeader()
-            self.showToast(message: "🎉 Lesson Completed!")
+            self.showToast(message: "🎉 Lesson Completed!", icon: "sparkles", tintColor: .systemGreen)
             completion(true)
         }
         completeAction.backgroundColor = .systemGreen
@@ -209,3 +241,4 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [completeAction])
     }
 }
+

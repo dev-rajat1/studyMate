@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Modal view for dynamic AI Notes Summary & Scalable Practice Quiz generation.
+//  Purpose: Modal view for dynamic AI Notes Summary & Scalable Practice Quiz generation with Gemini 3.7 Flash.
 //
 
 import UIKit
@@ -24,10 +24,15 @@ class AISummaryViewController: UIViewController {
     private var loadedQuizText: String?
     private var isLoading = false
     
+    private let heroHeaderCard = UIView()
+    private let bottomActionDock = UIView()
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupHeroHeader()
+        setupBottomActionDock()
         loadInitialContent()
     }
     
@@ -42,6 +47,7 @@ class AISummaryViewController: UIViewController {
             target: self,
             action: #selector(copyContentTapped)
         )
+        navigationItem.leftBarButtonItem?.tintColor = .systemPurple
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Done",
@@ -49,17 +55,113 @@ class AISummaryViewController: UIViewController {
             target: self,
             action: #selector(doneTapped)
         )
+        navigationItem.rightBarButtonItem?.tintColor = .systemPurple
         
-        contentTextView?.layer.cornerRadius = 14
+        contentTextView?.layer.cornerRadius = 18
         contentTextView?.layer.borderWidth = 0.5
-        contentTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.25).cgColor
+        contentTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
         contentTextView?.backgroundColor = .secondarySystemGroupedBackground
         contentTextView?.isEditable = false
         contentTextView?.font = .systemFont(ofSize: 15, weight: .regular)
-        contentTextView?.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
+        contentTextView?.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 64, right: 16)
         
-        regenerateButton?.layer.cornerRadius = 12
-        saveSummaryButton?.layer.cornerRadius = 12
+        segmentedControl?.selectedSegmentTintColor = .systemPurple
+        segmentedControl?.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
+    }
+    
+    private func setupHeroHeader() {
+        heroHeaderCard.translatesAutoresizingMaskIntoConstraints = false
+        heroHeaderCard.applyCardStyle(cornerRadius: 16)
+        heroHeaderCard.backgroundColor = .secondarySystemGroupedBackground
+        view.addSubview(heroHeaderCard)
+        
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 10
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        let sparkleIcon = UIImageView(image: UIImage(systemName: "sparkles"))
+        sparkleIcon.tintColor = .systemPurple
+        sparkleIcon.contentMode = .scaleAspectFit
+        sparkleIcon.translatesAutoresizingMaskIntoConstraints = false
+        sparkleIcon.widthAnchor.constraint(equalToConstant: 22).isActive = true
+        sparkleIcon.heightAnchor.constraint(equalToConstant: 22).isActive = true
+        
+        let vStack = UIStackView()
+        vStack.axis = .vertical
+        vStack.spacing = 2
+        
+        let titleLbl = UILabel()
+        titleLbl.text = "Gemini 3.7 Flash Intelligence"
+        titleLbl.font = .systemFont(ofSize: 14, weight: .bold)
+        titleLbl.textColor = .systemPurple
+        
+        let subtitleLbl = UILabel()
+        subtitleLbl.text = "Topic: \(topic.title ?? "Module Notes")"
+        subtitleLbl.font = .systemFont(ofSize: 12, weight: .regular)
+        subtitleLbl.textColor = .secondaryLabel
+        
+        vStack.addArrangedSubview(titleLbl)
+        vStack.addArrangedSubview(subtitleLbl)
+        
+        stack.addArrangedSubview(sparkleIcon)
+        stack.addArrangedSubview(vStack)
+        heroHeaderCard.addSubview(stack)
+        
+        NSLayoutConstraint.activate([
+            heroHeaderCard.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            heroHeaderCard.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            heroHeaderCard.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            heroHeaderCard.heightAnchor.constraint(equalToConstant: 54),
+            
+            stack.leadingAnchor.constraint(equalTo: heroHeaderCard.leadingAnchor, constant: 14),
+            stack.trailingAnchor.constraint(equalTo: heroHeaderCard.trailingAnchor, constant: -14),
+            stack.centerYAnchor.constraint(equalTo: heroHeaderCard.centerYAnchor)
+        ])
+    }
+    
+    private func setupBottomActionDock() {
+        bottomActionDock.translatesAutoresizingMaskIntoConstraints = false
+        bottomActionDock.applyCardStyle(cornerRadius: 22)
+        bottomActionDock.backgroundColor = UIColor { traits in
+            traits.userInterfaceStyle == .dark ? UIColor(white: 0.20, alpha: 0.95) : UIColor(white: 0.96, alpha: 0.95)
+        }
+        
+        let copyBtn = UIButton(type: .system)
+        copyBtn.setTitle("📋 Copy", for: .normal)
+        copyBtn.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        copyBtn.addTarget(self, action: #selector(copyContentTapped), for: .touchUpInside)
+        
+        let saveBtn = UIButton(type: .system)
+        saveBtn.setTitle("💾 Save Summary", for: .normal)
+        saveBtn.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        saveBtn.addTarget(self, action: #selector(saveSummaryTapped(_:)), for: .touchUpInside)
+        
+        let regenBtn = UIButton(type: .system)
+        regenBtn.setTitle("🔄 Regenerate", for: .normal)
+        regenBtn.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        regenBtn.addTarget(self, action: #selector(regenerateTapped(_:)), for: .touchUpInside)
+        
+        let stack = UIStackView(arrangedSubviews: [copyBtn, saveBtn, regenBtn])
+        stack.axis = .horizontal
+        stack.distribution = .equalSpacing
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        bottomActionDock.addSubview(stack)
+        
+        view.addSubview(bottomActionDock)
+        
+        NSLayoutConstraint.activate([
+            bottomActionDock.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            bottomActionDock.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            bottomActionDock.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            bottomActionDock.heightAnchor.constraint(equalToConstant: 44),
+            
+            stack.leadingAnchor.constraint(equalTo: bottomActionDock.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: bottomActionDock.trailingAnchor, constant: -16),
+            stack.centerYAnchor.constraint(equalTo: bottomActionDock.centerYAnchor)
+        ])
     }
     
     private func loadInitialContent() {
@@ -78,13 +180,12 @@ class AISummaryViewController: UIViewController {
         guard !isLoading else { return }
         
         let isSummaryMode = (segmentedControl?.selectedSegmentIndex ?? 0) == 0
-        
         let tasks = (topic.tasks as? Set<Task>) ?? []
         let totalLength = tasks.reduce(0) { $0 + ($1.notes?.count ?? 0) }
         
         let loadingMsg = isSummaryMode
-            ? "🤖 Gemini AI is analyzing \(tasks.count) lessons & \(totalLength) characters of notes..."
-            : "🎯 Gemini AI is generating a tailored quiz based on your full notes..."
+            ? "🤖 Gemini AI is analyzing \(tasks.count) lessons & \(totalLength) characters..."
+            : "🎯 Gemini AI is generating a tailored quiz..."
         
         setLoadingState(true, message: loadingMsg)
         
@@ -100,6 +201,7 @@ class AISummaryViewController: UIViewController {
                         self.setLoadingState(false, message: "⚡ Generated with Gemini 3.7 Flash")
                         CoreDataManager.shared.saveAISummary(content: summary, for: self.topic)
                     case .failure(let error):
+                        HapticHelper.error()
                         self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
                         self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your settings or tap 'Regenerate' to try again."
                     }
@@ -116,6 +218,7 @@ class AISummaryViewController: UIViewController {
                         self.displayContent(quiz)
                         self.setLoadingState(false, message: "⚡ Generated with Gemini 3.7 Flash")
                     case .failure(let error):
+                        HapticHelper.error()
                         self.setLoadingState(false, message: "Error: \(error.localizedDescription)")
                         self.contentTextView?.text = "⚠️ Could not generate AI content.\n\n\(error.localizedDescription)\n\nPlease check your settings or tap 'Regenerate' to try again."
                     }
@@ -148,7 +251,6 @@ class AISummaryViewController: UIViewController {
     }
     
     // MARK: - Actions
-    
     @IBAction func segmentChanged(_ sender: UISegmentedControl) {
         HapticHelper.lightImpact()
         if sender.selectedSegmentIndex == 0 {
@@ -177,17 +279,18 @@ class AISummaryViewController: UIViewController {
         guard let text = contentTextView?.text, !text.isEmpty else { return }
         HapticHelper.success()
         CoreDataManager.shared.saveAISummary(content: text, for: self.topic)
-        showToast(message: "💾 Saved to Core Data!")
+        showToast(message: "Saved to Core Data!", icon: "checkmark.circle.fill", tintColor: .systemGreen)
     }
     
     @objc func copyContentTapped() {
         guard let text = contentTextView?.text, !text.isEmpty else { return }
         UIPasteboard.general.string = text
         HapticHelper.success()
-        showToast(message: "📋 Copied to Clipboard!")
+        showToast(message: "Copied to Clipboard!", icon: "doc.on.doc.fill", tintColor: .systemPurple)
     }
     
     @objc func doneTapped() {
         dismiss(animated: true)
     }
 }
+
