@@ -258,7 +258,17 @@ class StatsViewController: UIViewController {
             subLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 4),
             subLabel.leadingAnchor.constraint(equalTo: headerLabel.leadingAnchor),
 
-        }
+            pieChart.widthAnchor.constraint(equalToConstant: 120),
+            pieChart.heightAnchor.constraint(equalToConstant: 120),
+            
+            centerPercent.centerXAnchor.constraint(equalTo: pieChart.centerXAnchor),
+            centerPercent.centerYAnchor.constraint(equalTo: pieChart.centerYAnchor),
+            
+            contentHStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
+            contentHStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            contentHStack.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 24),
+            contentHStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -24)
+        ])
 
         return card
     }
