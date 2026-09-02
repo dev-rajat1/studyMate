@@ -104,7 +104,7 @@ class CourseCell: UITableViewCell {
         // Course Name
         let nameL = UILabel()
         nameL.translatesAutoresizingMaskIntoConstraints = false
-        nameL.font = .systemFont(ofSize: 19, weight: .bold)
+        nameL.font = .systemFont(ofSize: 20, weight: .heavy)
         nameL.textColor = .label
         nameL.numberOfLines = 1
         card.addSubview(nameL)
@@ -113,7 +113,7 @@ class CourseCell: UITableViewCell {
         // Subtitle
         let subL = UILabel()
         subL.translatesAutoresizingMaskIntoConstraints = false
-        subL.font = .systemFont(ofSize: 13, weight: .medium)
+        subL.font = .systemFont(ofSize: 14, weight: .medium)
         subL.textColor = .secondaryLabel
         subL.numberOfLines = 1
         card.addSubview(subL)
@@ -146,16 +146,16 @@ class CourseCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             // Card
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
             // Accent bar
             bar.leadingAnchor.constraint(equalTo: card.leadingAnchor),
             bar.topAnchor.constraint(equalTo: card.topAnchor),
             bar.bottomAnchor.constraint(equalTo: card.bottomAnchor),
-            bar.widthAnchor.constraint(equalToConstant: 6),
+            bar.widthAnchor.constraint(equalToConstant: 8),
 
             // Module badge (top right)
             badge.trailingAnchor.constraint(equalTo: chevron.leadingAnchor, constant: -8),

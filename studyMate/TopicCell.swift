@@ -80,7 +80,7 @@ class TopicCell: UITableViewCell {
         // Module title
         let titleL = UILabel()
         titleL.translatesAutoresizingMaskIntoConstraints = false
-        titleL.font = .systemFont(ofSize: 17, weight: .bold)
+        titleL.font = .systemFont(ofSize: 18, weight: .bold)
         titleL.textColor = .label
         titleL.numberOfLines = 2
         card.addSubview(titleL)
@@ -180,10 +180,10 @@ class TopicCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             // Card
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
             // Accent bullet
             bullet.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
@@ -211,9 +211,9 @@ class TopicCell: UITableViewCell {
             // Progress track
             track.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
             track.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            track.topAnchor.constraint(equalTo: chip.bottomAnchor, constant: 10),
-            track.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
-            track.heightAnchor.constraint(equalToConstant: 5)
+            track.topAnchor.constraint(equalTo: chip.bottomAnchor, constant: 12),
+            track.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
+            track.heightAnchor.constraint(equalToConstant: 6)
         ])
     }
 

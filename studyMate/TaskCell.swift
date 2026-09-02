@@ -77,7 +77,7 @@ class TaskCell: UITableViewCell {
         // Title label
         let titleL = UILabel()
         titleL.translatesAutoresizingMaskIntoConstraints = false
-        titleL.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleL.font = .systemFont(ofSize: 17, weight: .semibold)
         titleL.textColor = .label
         titleL.numberOfLines = 2
         card.addSubview(titleL)
@@ -86,9 +86,9 @@ class TaskCell: UITableViewCell {
         // Notes preview
         let notesL = UILabel()
         notesL.translatesAutoresizingMaskIntoConstraints = false
-        notesL.font = .systemFont(ofSize: 13, weight: .regular)
+        notesL.font = .systemFont(ofSize: 14, weight: .regular)
         notesL.textColor = .secondaryLabel
-        notesL.numberOfLines = 1
+        notesL.numberOfLines = 2
         card.addSubview(notesL)
         progNotesLabel = notesL
 
@@ -118,10 +118,10 @@ class TaskCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             // Card
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
             // Checkbox
             checkbox.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
