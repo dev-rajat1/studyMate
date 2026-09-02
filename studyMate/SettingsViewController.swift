@@ -53,7 +53,13 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        switch section {
+        case 0: return 1 // Appearance (Theme)
+        case 1: return 2 // AI Engine (Assistant Toggle, API Key)
+        case 2: return 1 // Data Management (Clear All)
+        case 3: return 1 // About (Version)
+        default: return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -76,12 +82,11 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
         cell.accessoryType = .none
         cell.selectionStyle = .none
         
-        switch indexPath.section {
-        case 0:
+        switch (indexPath.section, indexPath.row) {
+        case (0, 0):
             // Theme: Light / Dark / System
             cell.textLabel?.text = "Theme"
             let segment = UISegmentedControl(items: ["Light", "Dark", "System"])
-            // Map: 1 -> Light (idx 0), 2 -> Dark (idx 1), 0 -> System (idx 2)
             let current = UserDefaultsManager.shared.themeStyle
             if current == 1 { segment.selectedSegmentIndex = 0 }
             else if current == 2 { segment.selectedSegmentIndex = 1 }
@@ -94,7 +99,7 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             segment.sizeToFit()
             cell.accessoryView = segment
             
-        case 1:
+        case (1, 0):
             // AI Study Engine Toggle
             cell.textLabel?.text = "AI Study Assistant"
             let aiSwitch = UISwitch()
@@ -103,7 +108,15 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             aiSwitch.addTarget(self, action: #selector(aiToggleChanged(_:)), for: .valueChanged)
             cell.accessoryView = aiSwitch
             
-        case 2:
+        case (1, 1):
+            // Gemini API Key
+            cell.textLabel?.text = "Gemini API Key"
+            let hasKey = UserDefaultsManager.shared.customAPIKey != nil
+            cell.detailTextLabel?.text = hasKey ? "Configured ●●●●" : "Not Set"
+            cell.accessoryType = .disclosureIndicator
+            cell.selectionStyle = .default
+            
+        case (2, 0):
             // Clear All Data
             cell.textLabel?.text = "Clear All Data"
             cell.textLabel?.textColor = .systemRed
@@ -111,7 +124,7 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             cell.selectionStyle = .default
             cell.accessoryType = .none
             
-        case 3:
+        case (3, 0):
             // App Version
             cell.textLabel?.text = "App Version"
             cell.detailTextLabel?.text = "1.0.0"
@@ -126,7 +139,9 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        if indexPath.section == 2 && indexPath.row == 0 {
+        if indexPath.section == 1 && indexPath.row == 1 {
+            showAPIKeyPrompt()
+        } else if indexPath.section == 2 && indexPath.row == 0 {
             confirmClearData()
         }
     }
@@ -134,7 +149,6 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     // MARK: - Handlers
     @objc private func themeChanged(_ sender: UISegmentedControl) {
         HapticHelper.selection()
-        // Map: idx 0 -> Light (1), idx 1 -> Dark (2), idx 2 -> System (0)
         let newStyle: Int
         if sender.selectedSegmentIndex == 0 { newStyle = 1 }
         else if sender.selectedSegmentIndex == 1 { newStyle = 2 }
@@ -152,6 +166,34 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             icon: sender.isOn ? "sparkles" : "xmark.circle",
             tintColor: sender.isOn ? .systemPurple : .systemGray
         )
+    }
+    
+    private func showAPIKeyPrompt() {
+        HapticHelper.lightImpact()
+        let alert = UIAlertController(
+            title: "Gemini API Key",
+            message: "Enter your Google Gemini API key to power AI study responses.",
+            preferredStyle: .alert
+        )
+        
+        alert.addTextField { textField in
+            textField.placeholder = "Enter API Key"
+            textField.text = UserDefaultsManager.shared.customAPIKey
+            textField.isSecureTextEntry = true
+            textField.autocapitalizationType = .none
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            guard let self = self else { return }
+            let key = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            UserDefaultsManager.shared.customAPIKey = (key?.isEmpty == false) ? key : nil
+            HapticHelper.success()
+            self.tableView.reloadData()
+            self.showToast(message: "API Key Saved", icon: "key.fill", tintColor: .systemGreen)
+        }))
+        
+        present(alert, animated: true)
     }
     
     private func confirmClearData() {
