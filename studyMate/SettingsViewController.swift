@@ -52,6 +52,7 @@ class SettingsViewController: UIViewController {
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
+        card.backgroundColor = DesignSystem.Colors.primary // Fallback
         card.layer.cornerRadius = 22
         card.clipsToBounds = true
         card.applyGradientBackground(

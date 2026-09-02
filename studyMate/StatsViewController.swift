@@ -412,6 +412,7 @@ class StatsViewController: UIViewController {
     // MARK: - Motivation Banner
     private func buildMotivationCard(rate: Float, tasks: Int, insights: [CourseMasteryInsight]) -> UIView {
         let card = UIView()
+        card.backgroundColor = DesignSystem.Colors.primary // Fallback
         card.layer.cornerRadius = 20
         card.clipsToBounds = true
         card.applyGradientBackground(colors: DesignSystem.Gradients.hero, cornerRadius: 20)

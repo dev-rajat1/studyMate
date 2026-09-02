@@ -103,6 +103,7 @@ class TodayViewController: UIViewController {
     private func updatePillAppearance() {
         for (i, btn) in pillButtons.enumerated() {
             if i == activePillIndex {
+                btn.backgroundColor = DesignSystem.Colors.primary // Fallback
                 btn.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 16)
                 btn.setTitleColor(.white, for: .normal)
                 DesignSystem.Shadow.applyGlow(to: btn.layer, color: DesignSystem.Colors.primary)
@@ -153,6 +154,7 @@ class TodayViewController: UIViewController {
         headerView.addSubview(heroCard)
 
         // Gradient background
+        heroCard.backgroundColor = DesignSystem.Colors.primary // Fallback
         heroCard.applyGradientBackground(
             colors: DesignSystem.Gradients.hero,
             startPoint: CGPoint(x: 0, y: 0),

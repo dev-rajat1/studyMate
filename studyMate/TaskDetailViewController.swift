@@ -208,11 +208,13 @@ class TaskDetailViewController: UIViewController {
         }
     }
 
-    // MARK: - Glassmorphic Pagination Island
+    // MARK: - Pagination Island
     private func setupPaginationIsland() {
         paginationContainer.translatesAutoresizingMaskIntoConstraints = false
-        paginationContainer.applyGlassmorphicStyle(cornerRadius: 20)
-        paginationContainer.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.92)
+        paginationContainer.backgroundColor = UIColor.secondarySystemGroupedBackground
+        paginationContainer.layer.cornerRadius = 20
+        paginationContainer.layer.borderWidth = 1
+        paginationContainer.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
 
         // Shadow
         DesignSystem.Shadow.applyCard(to: paginationContainer.layer)

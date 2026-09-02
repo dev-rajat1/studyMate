@@ -75,6 +75,7 @@ class TopicsListViewController: UIViewController {
 
         let themeColor = ColorHelper.color(named: course?.colorTag)
         let themeGradient = ColorHelper.gradientColors(named: course?.colorTag)
+        addTopicFAB.backgroundColor = themeColor // Fallback
         addTopicFAB.layer.cornerRadius = 26
         addTopicFAB.clipsToBounds = false
         addTopicFAB.contentEdgeInsets = UIEdgeInsets(top: 13, left: 22, bottom: 13, right: 22)
@@ -109,18 +110,19 @@ class TopicsListViewController: UIViewController {
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.layer.cornerRadius = 20
+        card.backgroundColor = ColorHelper.color(named: course.colorTag)
+        card.applyCardStyle(cornerRadius: 22)
         card.clipsToBounds = true
-        headerView.addSubview(card)
 
         // Gradient background using course colors
         let gradientCols = ColorHelper.gradientColors(named: course.colorTag)
         card.applyGradientBackground(
             colors: gradientCols,
-            startPoint: CGPoint(x: 0, y: 0.3),
-            endPoint: CGPoint(x: 1, y: 0.7),
-            cornerRadius: 20
+            startPoint: CGPoint(x: 0, y: 0.2),
+            endPoint: CGPoint(x: 1, y: 0.8),
+            cornerRadius: 22
         )
+        headerView.addSubview(card)
 
         // Course emoji/icon circle
         let iconCircle = UIView()

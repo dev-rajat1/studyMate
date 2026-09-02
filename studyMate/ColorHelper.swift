@@ -191,9 +191,9 @@ class ColorHelper {
 
 // MARK: - CALayer Gradient Extension
 extension CALayer {
-    /// Adds or updates a named gradient sublayer to this layer
+    /// Adds or updates a named gradient sublayer to this layer.
+    /// Uses autoresizingMask so the gradient auto-fills after layout (bounds were .zero at call time).
     func applyGradient(colors: [CGColor], startPoint: CGPoint = CGPoint(x: 0, y: 0), endPoint: CGPoint = CGPoint(x: 1, y: 1), cornerRadius: CGFloat = 0) {
-        // Remove existing gradient if any
         sublayers?.removeAll(where: { $0.name == "SMGradientLayer" })
 
         let gradient = CAGradientLayer()
@@ -201,8 +201,12 @@ extension CALayer {
         gradient.colors = colors
         gradient.startPoint = startPoint
         gradient.endPoint = endPoint
-        gradient.frame = bounds
+        // Use parent bounds if available, fall back to zero (autoresizingMask will correct it after layout)
+        gradient.frame = bounds.isEmpty ? CGRect(origin: .zero, size: CGSize(width: 1000, height: 1000)) : bounds
         gradient.cornerRadius = cornerRadius
+        gradient.needsDisplayOnBoundsChange = true
+        // Auto-resize with parent layer — this is the key fix
+        gradient.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
         insertSublayer(gradient, at: 0)
     }
 }

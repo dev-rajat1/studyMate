@@ -73,6 +73,7 @@ class TasksListViewController: UIViewController {
         aiTutorFAB.setTitleColor(.white, for: .normal)
         aiTutorFAB.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
         aiTutorFAB.tintColor = .white
+        aiTutorFAB.backgroundColor = DesignSystem.Colors.primary // Fallback
         aiTutorFAB.layer.cornerRadius = 24
         aiTutorFAB.clipsToBounds = false
         aiTutorFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
@@ -97,6 +98,7 @@ class TasksListViewController: UIViewController {
 
         let themeGradient = ColorHelper.gradientColors(named: topic?.course?.colorTag)
         let themeColor = ColorHelper.color(named: topic?.course?.colorTag)
+        addLessonFAB.backgroundColor = themeColor // Fallback
         addLessonFAB.layer.cornerRadius = 24
         addLessonFAB.clipsToBounds = false
         addLessonFAB.contentEdgeInsets = UIEdgeInsets(top: 12, left: 18, bottom: 12, right: 18)
@@ -167,6 +169,7 @@ class TasksListViewController: UIViewController {
         breadcrumbLabel.text = "📚 \(topic.course?.name ?? "Course")  ›  📖 \(topic.title ?? "Module")"
         breadcrumbLabel.font = .systemFont(ofSize: 11, weight: .bold)
         breadcrumbLabel.textColor = courseColor
+        breadcrumbLabel.lineBreakMode = .byTruncatingTail
         breadcrumbPill.addSubview(breadcrumbLabel)
         card.addSubview(breadcrumbPill)
 
@@ -174,7 +177,8 @@ class TasksListViewController: UIViewController {
             breadcrumbLabel.leadingAnchor.constraint(equalTo: breadcrumbPill.leadingAnchor, constant: 8),
             breadcrumbLabel.trailingAnchor.constraint(equalTo: breadcrumbPill.trailingAnchor, constant: -8),
             breadcrumbLabel.topAnchor.constraint(equalTo: breadcrumbPill.topAnchor, constant: 4),
-            breadcrumbLabel.bottomAnchor.constraint(equalTo: breadcrumbPill.bottomAnchor, constant: -4)
+            breadcrumbLabel.bottomAnchor.constraint(equalTo: breadcrumbPill.bottomAnchor, constant: -4),
+            breadcrumbPill.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -14)
         ])
 
         // Status label

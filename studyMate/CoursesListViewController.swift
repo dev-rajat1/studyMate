@@ -70,6 +70,7 @@ class CoursesListViewController: UIViewController {
         addCourseFAB.semanticContentAttribute = .forceLeftToRight
         addCourseFAB.imageEdgeInsets = UIEdgeInsets(top: 0, left: -4, bottom: 0, right: 4)
 
+        addCourseFAB.backgroundColor = DesignSystem.Colors.primary // Fallback
         addCourseFAB.layer.cornerRadius = 26
         addCourseFAB.clipsToBounds = false
         addCourseFAB.contentEdgeInsets = UIEdgeInsets(top: 13, left: 22, bottom: 13, right: 22)
