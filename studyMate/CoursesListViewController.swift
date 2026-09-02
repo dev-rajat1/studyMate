@@ -93,40 +93,90 @@ class CoursesListViewController: UIViewController {
         addCourseFAB.bounceTouchUp()
     }
     
-    // MARK: - Summary Header
+    // MARK: - Summary Header (Consistent with Planner & Analytics Tabs)
     private func setupHeaderView() {
         guard !courses.isEmpty else {
             tableView.tableHeaderView = nil
             return
         }
         
-        let (coursesCount, modulesCount, _, _, overallRate) = CoreDataManager.shared.getAppStats()
+        let (coursesCount, modulesCount, tasksCount, _, overallRate) = CoreDataManager.shared.getAppStats()
         
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 98))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 156))
         headerView.backgroundColor = .clear
         
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: 16)
+        card.applyCardStyle(cornerRadius: 18)
         headerView.addSubview(card)
         
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        let topStack = UIStackView()
+        topStack.axis = .horizontal
+        topStack.distribution = .equalSpacing
+        topStack.alignment = .center
+        topStack.translatesAutoresizingMaskIntoConstraints = false
         
-        // Column 1: Courses
-        let col1 = createStatColumn(value: "\(coursesCount)", label: "Courses", icon: "books.vertical.fill", tintColor: .systemBlue)
-        // Column 2: Modules
-        let col2 = createStatColumn(value: "\(modulesCount)", label: "Modules", icon: "square.stack.3d.up.fill", tintColor: .systemPurple)
-        // Column 3: Overall Progress
-        let col3 = createStatColumn(value: "\(Int(overallRate))%", label: "Completed", icon: "checkmark.circle.fill", tintColor: .systemGreen)
+        // Curriculum Pill Badge
+        let badgePill = UIView()
+        badgePill.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.12)
+        badgePill.layer.cornerRadius = 6
+        badgePill.clipsToBounds = true
         
-        stack.addArrangedSubview(col1)
-        stack.addArrangedSubview(col2)
-        stack.addArrangedSubview(col3)
-        card.addSubview(stack)
+        let badgeLabel = UILabel()
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        badgeLabel.text = "📚 ENROLLED CURRICULUM"
+        badgeLabel.font = .systemFont(ofSize: 11, weight: .bold)
+        badgeLabel.textColor = .systemBlue
+        badgePill.addSubview(badgeLabel)
+        
+        NSLayoutConstraint.activate([
+            badgeLabel.leadingAnchor.constraint(equalTo: badgePill.leadingAnchor, constant: 8),
+            badgeLabel.trailingAnchor.constraint(equalTo: badgePill.trailingAnchor, constant: -8),
+            badgeLabel.topAnchor.constraint(equalTo: badgePill.topAnchor, constant: 3),
+            badgeLabel.bottomAnchor.constraint(equalTo: badgePill.bottomAnchor, constant: -3)
+        ])
+        
+        let dateLabel = UILabel()
+        dateLabel.text = "🗓️ ACTIVE SEMESTER"
+        dateLabel.font = .systemFont(ofSize: 11, weight: .bold)
+        dateLabel.textColor = .secondaryLabel
+        
+        topStack.addArrangedSubview(badgePill)
+        topStack.addArrangedSubview(dateLabel)
+        card.addSubview(topStack)
+        
+        // Title
+        let greetingLabel = UILabel()
+        greetingLabel.translatesAutoresizingMaskIntoConstraints = false
+        greetingLabel.text = "⚡ \(coursesCount) \(coursesCount == 1 ? "Subject" : "Subjects") Enrolled"
+        greetingLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        greetingLabel.textColor = .label
+        card.addSubview(greetingLabel)
+        
+        // Subtitle
+        let subLabel = UILabel()
+        subLabel.translatesAutoresizingMaskIntoConstraints = false
+        subLabel.text = "Select a subject to explore chapters, study lessons, and launch AI Tutor."
+        subLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        subLabel.textColor = .secondaryLabel
+        subLabel.numberOfLines = 2
+        card.addSubview(subLabel)
+        
+        // Bottom Mini Stats Row
+        let statsStack = UIStackView()
+        statsStack.axis = .horizontal
+        statsStack.distribution = .equalSpacing
+        statsStack.spacing = 8
+        statsStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        let modChip = createChip(text: "📖 \(modulesCount) Modules", color: .systemPurple)
+        let lesChip = createChip(text: "📝 \(tasksCount) Lessons", color: .systemBlue)
+        let rateChip = createChip(text: "🎯 \(Int(overallRate))% Mastered", color: .systemGreen)
+        
+        statsStack.addArrangedSubview(modChip)
+        statsStack.addArrangedSubview(lesChip)
+        statsStack.addArrangedSubview(rateChip)
+        card.addSubview(statsStack)
         
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 4),
@@ -134,56 +184,47 @@ class CoursesListViewController: UIViewController {
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
             
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 10),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -10)
+            topStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            topStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 10),
+            topStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            
+            greetingLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
+            greetingLabel.topAnchor.constraint(equalTo: topStack.bottomAnchor, constant: 6),
+            greetingLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            
+            subLabel.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
+            subLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: 3),
+            subLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            
+            statsStack.leadingAnchor.constraint(equalTo: topStack.leadingAnchor),
+            statsStack.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 8),
+            statsStack.bottomAnchor.constraint(lessThanOrEqualTo: card.bottomAnchor, constant: -10)
         ])
         
         tableView.tableHeaderView = headerView
     }
     
-    private func createStatColumn(value: String, label: String, icon: String, tintColor: UIColor) -> UIView {
-        let container = UIView()
+    private func createChip(text: String, color: UIColor) -> UIView {
+        let pill = UIView()
+        pill.backgroundColor = color.withAlphaComponent(0.10)
+        pill.layer.cornerRadius = 6
+        pill.clipsToBounds = true
         
-        let iconView = UIImageView(image: UIImage(systemName: icon))
-        iconView.tintColor = tintColor
-        iconView.contentMode = .scaleAspectFit
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let valLabel = UILabel()
-        valLabel.text = value
-        valLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        valLabel.textColor = .label
-        valLabel.textAlignment = .center
-        valLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let textLabel = UILabel()
-        textLabel.text = label
-        textLabel.font = .systemFont(ofSize: 11, weight: .medium)
-        textLabel.textColor = .secondaryLabel
-        textLabel.textAlignment = .center
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        container.addSubview(iconView)
-        container.addSubview(valLabel)
-        container.addSubview(textLabel)
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = text
+        label.font = .systemFont(ofSize: 11, weight: .semibold)
+        label.textColor = color
+        pill.addSubview(label)
         
         NSLayoutConstraint.activate([
-            iconView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            iconView.topAnchor.constraint(equalTo: container.topAnchor, constant: 2),
-            iconView.widthAnchor.constraint(equalToConstant: 18),
-            iconView.heightAnchor.constraint(equalToConstant: 18),
-            
-            valLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 3),
-            valLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            
-            textLabel.topAnchor.constraint(equalTo: valLabel.bottomAnchor, constant: 1),
-            textLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            textLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -2)
+            label.leadingAnchor.constraint(equalTo: pill.leadingAnchor, constant: 6),
+            label.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -6),
+            label.topAnchor.constraint(equalTo: pill.topAnchor, constant: 3),
+            label.bottomAnchor.constraint(equalTo: pill.bottomAnchor, constant: -3)
         ])
         
-        return container
+        return pill
     }
     
     // MARK: - Data Management
