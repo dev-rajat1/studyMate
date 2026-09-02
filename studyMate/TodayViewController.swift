@@ -323,8 +323,7 @@ class TodayViewController: UIViewController {
         NSLayoutConstraint.activate([
             emptyStateContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             emptyStateContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            emptyStateContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 220),
-            emptyStateContainer.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            emptyStateContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 65),
 
             stack.topAnchor.constraint(equalTo: emptyStateContainer.topAnchor),
             stack.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor),
