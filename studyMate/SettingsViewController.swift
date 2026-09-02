@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Tab 4 — Full-Screen InsetGrouped Settings table with Theme switcher, AI engine config, and Data management.
+//  Purpose: Tab 4 — Clean, Professional Native iOS InsetGrouped Settings.
 //
 
 import UIKit
@@ -38,21 +38,8 @@ class SettingsViewController: UIViewController {
         tableView.backgroundColor = .systemGroupedBackground
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 60
-        tableView.keyboardDismissMode = .interactive
-        
-        // Footer View
-        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 80))
-        let footerLabel = UILabel(frame: CGRect(x: 16, y: 20, width: view.bounds.width - 32, height: 40))
-        footerLabel.text = "StudyMate AI v1.0 • Built with UIKit & CoreData\nDesigned for Deep Focus & Active Recall 🚀"
-        footerLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        footerLabel.textColor = .tertiaryLabel
-        footerLabel.textAlignment = .center
-        footerLabel.numberOfLines = 2
-        footerLabel.autoresizingMask = [.flexibleWidth]
-        footerView.addSubview(footerLabel)
-        tableView.tableFooterView = footerView
+        tableView.rowHeight = 52
+        tableView.estimatedRowHeight = 52
         
         view.addSubview(tableView)
     }
@@ -66,104 +53,68 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0: return 1 // Appearance
-        case 1: return 3 // AI Engine (Toggle, API Key, Model)
-        case 2: return 2 // Data Management (Seed, Reset)
-        case 3: return 2 // About
-        default: return 0
-        }
+        return 1
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "🎨 APPEARANCE & THEME"
-        case 1: return "🤖 AI STUDY ENGINE"
-        case 2: return "📦 CURRICULUM & DATA MANAGEMENT"
-        case 3: return "ℹ️ ABOUT STUDYMATE"
+        case 0: return "APPEARANCE"
+        case 1: return "AI STUDY ENGINE"
+        case 2: return "DATA MANAGEMENT"
+        case 3: return "ABOUT"
         default: return nil
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "SettingsCell")
+        let cell = UITableViewCell(style: .value1, reuseIdentifier: "CleanSettingsCell")
         cell.backgroundColor = .secondarySystemGroupedBackground
-        cell.selectionStyle = .default
-        cell.textLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        cell.detailTextLabel?.font = .systemFont(ofSize: 12, weight: .regular)
+        cell.textLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        cell.detailTextLabel?.font = .systemFont(ofSize: 15, weight: .regular)
         cell.detailTextLabel?.textColor = .secondaryLabel
         cell.accessoryView = nil
         cell.accessoryType = .none
+        cell.selectionStyle = .none
         
-        switch (indexPath.section, indexPath.row) {
-        // Section 0: Theme
-        case (0, 0):
-            cell.textLabel?.text = "Interface Theme"
-            cell.detailTextLabel?.text = "Select your preferred color appearance"
-            cell.selectionStyle = .none
+        switch indexPath.section {
+        case 0:
+            // Theme: Light / Dark / System
+            cell.textLabel?.text = "Theme"
+            let segment = UISegmentedControl(items: ["Light", "Dark", "System"])
+            // Map: 1 -> Light (idx 0), 2 -> Dark (idx 1), 0 -> System (idx 2)
+            let current = UserDefaultsManager.shared.themeStyle
+            if current == 1 { segment.selectedSegmentIndex = 0 }
+            else if current == 2 { segment.selectedSegmentIndex = 1 }
+            else { segment.selectedSegmentIndex = 2 }
             
-            let segment = UISegmentedControl(items: ["System", "Light", "Dark"])
-            segment.selectedSegmentIndex = UserDefaultsManager.shared.themeStyle
             segment.selectedSegmentTintColor = .systemPurple
-            segment.setTitleTextAttributes([.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 11, weight: .bold)], for: .selected)
-            segment.setTitleTextAttributes([.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 11, weight: .medium)], for: .normal)
-            segment.addTarget(self, action: #selector(themeSegmentChanged(_:)), for: .valueChanged)
+            segment.setTitleTextAttributes([.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 12, weight: .bold)], for: .selected)
+            segment.setTitleTextAttributes([.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 12, weight: .medium)], for: .normal)
+            segment.addTarget(self, action: #selector(themeChanged(_:)), for: .valueChanged)
             segment.sizeToFit()
             cell.accessoryView = segment
             
-        // Section 1: AI Engine
-        case (1, 0):
-            cell.textLabel?.text = "AI Study Tutor"
-            cell.detailTextLabel?.text = "Enable interactive Q&A, summaries & quizzes"
-            cell.selectionStyle = .none
+        case 1:
+            // AI Study Engine Toggle
+            cell.textLabel?.text = "AI Study Assistant"
+            let aiSwitch = UISwitch()
+            aiSwitch.isOn = UserDefaultsManager.shared.isAIEnabled
+            aiSwitch.onTintColor = .systemPurple
+            aiSwitch.addTarget(self, action: #selector(aiToggleChanged(_:)), for: .valueChanged)
+            cell.accessoryView = aiSwitch
             
-            let toggle = UISwitch()
-            toggle.isOn = UserDefaultsManager.shared.isAIEnabled
-            toggle.onTintColor = .systemPurple
-            toggle.addTarget(self, action: #selector(aiToggleChanged(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            
-        case (1, 1):
-            cell.textLabel?.text = "Gemini API Key"
-            let hasKey = UserDefaultsManager.shared.customAPIKey != nil
-            cell.detailTextLabel?.text = hasKey ? "●●●●●●●●●●●● (Custom Key Active)" : "Default DeepMind API Key Configured"
-            cell.accessoryType = .disclosureIndicator
-            
-        case (1, 2):
-            cell.textLabel?.text = "AI Intelligence Model"
-            cell.detailTextLabel?.text = UserDefaultsManager.shared.aiModelName
-            cell.accessoryType = .none
-            cell.selectionStyle = .none
-            
-            let badge = UILabel()
-            badge.text = "⚡ Flash 3.7"
-            badge.font = .systemFont(ofSize: 12, weight: .bold)
-            badge.textColor = .systemPurple
-            badge.sizeToFit()
-            cell.accessoryView = badge
-            
-        // Section 2: Data Management
-        case (2, 0):
-            cell.textLabel?.text = "📥 Seed Sample Curriculum"
-            cell.detailTextLabel?.text = "Add demo courses (iOS Dev, Algorithms, System Design)"
-            cell.accessoryType = .disclosureIndicator
-            
-        case (2, 1):
-            cell.textLabel?.text = "🗑️ Clear All Study Data"
+        case 2:
+            // Clear All Data
+            cell.textLabel?.text = "Clear All Data"
             cell.textLabel?.textColor = .systemRed
-            cell.detailTextLabel?.text = "Permanently delete all courses, modules, and notes"
-            cell.accessoryType = .disclosureIndicator
+            cell.textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            cell.selectionStyle = .default
+            cell.accessoryType = .none
             
-        // Section 3: About
-        case (3, 0):
+        case 3:
+            // App Version
             cell.textLabel?.text = "App Version"
-            cell.detailTextLabel?.text = "1.0.0 • Production Build"
-            cell.selectionStyle = .none
-            
-        case (3, 1):
-            cell.textLabel?.text = "AI Architecture"
-            cell.detailTextLabel?.text = "Context-Grounded RAG with Note Synthesis"
-            cell.selectionStyle = .none
+            cell.detailTextLabel?.text = "1.0.0"
             
         default:
             break
@@ -175,84 +126,46 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        switch (indexPath.section, indexPath.row) {
-        case (1, 1):
-            showAPIKeyPrompt()
-            
-        case (2, 0):
-            seedSampleData()
-            
-        case (2, 1):
-            confirmResetAllData()
-            
-        default:
-            break
+        if indexPath.section == 2 && indexPath.row == 0 {
+            confirmClearData()
         }
     }
     
-    // MARK: - Actions & Handlers
-    @objc private func themeSegmentChanged(_ sender: UISegmentedControl) {
+    // MARK: - Handlers
+    @objc private func themeChanged(_ sender: UISegmentedControl) {
         HapticHelper.selection()
-        UserDefaultsManager.shared.themeStyle = sender.selectedSegmentIndex
-        showToast(message: "Theme Updated!", icon: "paintpalette.fill", tintColor: .systemPurple)
+        // Map: idx 0 -> Light (1), idx 1 -> Dark (2), idx 2 -> System (0)
+        let newStyle: Int
+        if sender.selectedSegmentIndex == 0 { newStyle = 1 }
+        else if sender.selectedSegmentIndex == 1 { newStyle = 2 }
+        else { newStyle = 0 }
+        
+        UserDefaultsManager.shared.themeStyle = newStyle
+        showToast(message: "Theme Updated", icon: "paintpalette.fill", tintColor: .systemPurple)
     }
     
     @objc private func aiToggleChanged(_ sender: UISwitch) {
         HapticHelper.lightImpact()
         UserDefaultsManager.shared.isAIEnabled = sender.isOn
         showToast(
-            message: sender.isOn ? "AI Study Assistant Enabled" : "AI Assistant Disabled",
+            message: sender.isOn ? "AI Engine Enabled" : "AI Engine Disabled",
             icon: sender.isOn ? "sparkles" : "xmark.circle",
             tintColor: sender.isOn ? .systemPurple : .systemGray
         )
     }
     
-    private func showAPIKeyPrompt() {
-        HapticHelper.lightImpact()
-        let alert = UIAlertController(
-            title: "Gemini API Key",
-            message: "Enter your Google Gemini API key to power study tutor responses.",
-            preferredStyle: .alert
-        )
-        
-        alert.addTextField { textField in
-            textField.placeholder = "Enter API Key"
-            textField.text = UserDefaultsManager.shared.customAPIKey
-            textField.isSecureTextEntry = true
-            textField.autocapitalizationType = .none
-        }
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Save Key", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            let key = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-            UserDefaultsManager.shared.customAPIKey = (key?.isEmpty == false) ? key : nil
-            HapticHelper.success()
-            self.tableView.reloadData()
-            self.showToast(message: "API Key Saved Successfully!", icon: "key.fill", tintColor: .systemGreen)
-        }))
-        
-        present(alert, animated: true)
-    }
-    
-    private func seedSampleData() {
-        HapticHelper.success()
-        CoreDataManager.shared.createSampleDataIfEmpty()
-        showToast(message: "Sample Study Data Loaded!", icon: "arrow.clockwise.circle.fill", tintColor: .systemBlue)
-    }
-    
-    private func confirmResetAllData() {
+    private func confirmClearData() {
         HapticHelper.warning()
         showConfirmationAlert(
             title: "Clear All Study Data?",
-            message: "This will permanently remove all courses, chapters, lessons, notes, and AI summaries from your device. This action cannot be undone.",
-            confirmTitle: "Reset All",
+            message: "This will permanently delete all courses, modules, lessons, notes, and AI summaries.",
+            confirmTitle: "Clear All",
             isDestructive: true,
             onConfirm: { [weak self] in
                 let courses = CoreDataManager.shared.fetchCourses()
                 courses.forEach { CoreDataManager.shared.deleteCourse($0) }
                 HapticHelper.success()
-                self?.showToast(message: "All Study Data Cleared.", icon: "trash.fill", tintColor: .systemRed)
+                self?.showToast(message: "All Data Cleared", icon: "trash.fill", tintColor: .systemRed)
             }
         )
     }
