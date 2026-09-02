@@ -3,14 +3,14 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Tab 3 — Modern Visual Study Analytics with animated progress gauge and 4-metric Bento matrix.
+//  Purpose: Tab 3 — Deep Subject Mastery Matrix, Learning Analytics & AI Revision Insights.
 //
 
 import UIKit
 
 class StatsViewController: UIViewController {
 
-    // MARK: - IBOutlets
+    // MARK: - IBOutlets (Storyboard Compatibility)
     @IBOutlet weak var totalCoursesLabel: UILabel?
     @IBOutlet weak var totalTopicsLabel: UILabel?
     @IBOutlet weak var totalTasksLabel: UILabel?
@@ -22,16 +22,25 @@ class StatsViewController: UIViewController {
     @IBOutlet weak var overallProgressCard: UIView?
     @IBOutlet weak var numbersGridCard: UIView?
     
+    // Dynamic Subject Mastery Container
+    private let scrollView = UIScrollView()
+    private let contentStack = UIStackView()
+    private let masterySectionStack = UIStackView()
+    private let recommendationCard = UIView()
+    private let recommendationTextLabel = UILabel()
+    private let aiCoverageCard = UIView()
+    private let aiCoverageLabel = UILabel()
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupMasteryViews()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        refreshStats()
-        animateStatsEntrance()
+        refreshDeepAnalytics()
     }
     
     // MARK: - UI Setup
@@ -47,36 +56,41 @@ class StatsViewController: UIViewController {
         progressView?.clipsToBounds = true
         progressView?.tintColor = .systemPurple
         progressView?.trackTintColor = UIColor.separator.withAlphaComponent(0.15)
-        
-        totalCoursesLabel?.font = .systemFont(ofSize: 22, weight: .bold)
-        totalTopicsLabel?.font = .systemFont(ofSize: 22, weight: .bold)
-        totalTasksLabel?.font = .systemFont(ofSize: 22, weight: .bold)
-        completedTasksLabel?.font = .systemFont(ofSize: 22, weight: .bold)
-        completionRateLabel?.font = .systemFont(ofSize: 24, weight: .heavy)
-        completionRateLabel?.textColor = .systemPurple
     }
     
-    private func animateStatsEntrance() {
-        overallProgressCard?.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
-        overallProgressCard?.alpha = 0.0
-        
-        numbersGridCard?.transform = CGAffineTransform(translationX: 0, y: 24)
-        numbersGridCard?.alpha = 0.0
-        
-        UIView.animate(withDuration: 0.5, delay: 0.05, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-            self.overallProgressCard?.transform = .identity
-            self.overallProgressCard?.alpha = 1.0
-        }, completion: nil)
-        
-        UIView.animate(withDuration: 0.5, delay: 0.15, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-            self.numbersGridCard?.transform = .identity
-            self.numbersGridCard?.alpha = 1.0
-        }, completion: nil)
+    // MARK: - Dynamic Deep Analytics Views
+    private func setupMasteryViews() {
+        // Embed scroll view for deep matrix if not using storyboard scroll
+        if overallProgressCard == nil {
+            scrollView.translatesAutoresizingMaskIntoConstraints = false
+            scrollView.alwaysBounceVertical = true
+            view.addSubview(scrollView)
+            
+            contentStack.translatesAutoresizingMaskIntoConstraints = false
+            contentStack.axis = .vertical
+            contentStack.spacing = 16
+            contentStack.alignment = .fill
+            scrollView.addSubview(contentStack)
+            
+            NSLayoutConstraint.activate([
+                scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                
+                contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
+                contentStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+                contentStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+                contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -24),
+                contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -32)
+            ])
+        }
     }
     
-    // MARK: - Refresh Data
-    private func refreshStats() {
+    // MARK: - Refresh & Render Deep Analytics
+    private func refreshDeepAnalytics() {
         let (courses, topics, tasks, completed, rate) = CoreDataManager.shared.getAppStats()
+        let insights = CoreDataManager.shared.getCourseMasteryInsights()
         
         totalCoursesLabel?.text = "\(courses)"
         totalTopicsLabel?.text = "\(topics)"
@@ -87,18 +101,20 @@ class StatsViewController: UIViewController {
         let progressFloat = tasks > 0 ? Float(completed) / Float(tasks) : 0.0
         progressView?.setProgress(progressFloat, animated: true)
         
-        // Dynamic Motivation Message
+        // Find subject needing highest priority (lowest completion rate or active tasks)
+        let lowestCourse = insights.filter { $0.totalLessons > 0 && $0.progress < 1.0 }.min(by: { $0.progress < $1.progress })
+        let totalAISummaries = insights.reduce(0) { $0 + $1.aiSummaryCount }
+        
+        // Motivation & Guidance Message
         if tasks == 0 {
-            motivationLabel?.text = "🌱 Create courses and study lessons to unlock detailed productivity analytics!"
+            motivationLabel?.text = "🌱 Create courses and study lessons to unlock detailed subject mastery metrics!"
         } else if rate >= 100.0 {
             motivationLabel?.text = "🏆 Master Level! You've completed 100% of your curriculum!"
-        } else if rate >= 60.0 {
-            motivationLabel?.text = "🔥 Fantastic momentum! You're in the top study flow."
-        } else if rate >= 30.0 {
-            motivationLabel?.text = "💪 Great progress! Keep up the daily revision habit."
+        } else if let focus = lowestCourse {
+            let pct = Int(focus.progress * 100)
+            motivationLabel?.text = "🎯 Focus Priority: \"\(focus.course.name ?? "Subject")\" is at \(pct)% mastery. Finish remaining lessons to balance your study pace!"
         } else {
-            motivationLabel?.text = "🚀 A great journey starts with a single completed lesson!"
+            motivationLabel?.text = "🔥 Great momentum! \(totalAISummaries) AI summaries ready for active recall."
         }
     }
 }
-

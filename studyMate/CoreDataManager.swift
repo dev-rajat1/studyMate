@@ -9,6 +9,36 @@
 import UIKit
 import CoreData
 
+// MARK: - Study Planner Timeframe
+enum StudyTimeframe: Int, CaseIterable {
+    case today = 0
+    case tomorrow = 1
+    case thisWeek = 2
+    case thisMonth = 3
+    case all = 4
+    
+    var title: String {
+        switch self {
+        case .today: return "Today"
+        case .tomorrow: return "Tomorrow"
+        case .thisWeek: return "This Week"
+        case .thisMonth: return "This Month"
+        case .all: return "All Tasks"
+        }
+    }
+}
+
+// MARK: - Deep Subject Mastery Insight
+struct CourseMasteryInsight {
+    let course: Course
+    let totalLessons: Int
+    let completedLessons: Int
+    let progress: Float
+    let moduleCount: Int
+    let colorTag: String
+    let aiSummaryCount: Int
+}
+
 class CoreDataManager {
     
     // MARK: - Singleton
@@ -174,22 +204,57 @@ class CoreDataManager {
         saveContext()
     }
     
-    /// Fetches all pending (incomplete) tasks across all courses/topics for Today view
-    func fetchTodayPendingTasks() -> [Task] {
+    // MARK: - Study Schedule & Timeframe Filtering
+    
+    /// Fetches tasks organized by time horizon (Today, Tomorrow, Weekly, Monthly, All)
+    func fetchTasks(for timeframe: StudyTimeframe) -> [Task] {
         let request: NSFetchRequest<Task> = Task.fetchRequest()
         request.predicate = NSPredicate(format: "isDone == NO")
-        do {
-            let tasks = try context.fetch(request)
-            // Sort by topic's deadline if present, otherwise by title
-            return tasks.sorted { (t1, t2) -> Bool in
-                let d1 = t1.topic?.deadline ?? Date.distantFuture
-                let d2 = t2.topic?.deadline ?? Date.distantFuture
-                return d1 < d2
+        
+        guard let allPending = try? context.fetch(request) else { return [] }
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let filtered = allPending.filter { task -> Bool in
+            guard let deadline = task.topic?.deadline else {
+                // If no specific deadline is set, include in "Today" and "All" so the student never misses it
+                return timeframe == .today || timeframe == .all || timeframe == .thisWeek
             }
-        } catch {
-            print("❌ Failed to fetch today's pending tasks: \(error)")
-            return []
+            
+            switch timeframe {
+            case .today:
+                // Due today or overdue
+                return calendar.isDateInToday(deadline) || deadline < now
+                
+            case .tomorrow:
+                return calendar.isDateInTomorrow(deadline)
+                
+            case .thisWeek:
+                // Within 7 days
+                let weekFromNow = calendar.date(byAdding: .day, value: 7, to: now) ?? now
+                return deadline >= now && deadline <= weekFromNow
+                
+            case .thisMonth:
+                // Within 30 days
+                let monthFromNow = calendar.date(byAdding: .day, value: 30, to: now) ?? now
+                return deadline >= now && deadline <= monthFromNow
+                
+            case .all:
+                return true
+            }
         }
+        
+        // Sort by deadline (soonest first)
+        return filtered.sorted { (t1, t2) -> Bool in
+            let d1 = t1.topic?.deadline ?? Date.distantFuture
+            let d2 = t2.topic?.deadline ?? Date.distantFuture
+            return d1 < d2
+        }
+    }
+    
+    /// Fetches all pending (incomplete) tasks across all courses/topics for Today view
+    func fetchTodayPendingTasks() -> [Task] {
+        return fetchTasks(for: .today)
     }
     
     // MARK: - AI Summary Operations
@@ -209,7 +274,7 @@ class CoreDataManager {
         saveContext()
     }
     
-    // MARK: - Statistics & Progress Calculation
+    // MARK: - Deep Statistics & Course Mastery Insights
     
     /// Calculates progress for a course (completed tasks / total tasks)
     func getCourseProgress(course: Course) -> (totalTasks: Int, completedTasks: Int, progress: Float) {
@@ -237,6 +302,44 @@ class CoreDataManager {
         let completed = tasks.filter { $0.isDone }.count
         let progress = total > 0 ? Float(completed) / Float(total) : 0.0
         return (total, completed, progress)
+    }
+    
+    /// Returns deep subject mastery insights for each enrolled course (Used in Analytics tab)
+    func getCourseMasteryInsights() -> [CourseMasteryInsight] {
+        let courses = fetchCourses()
+        var insights: [CourseMasteryInsight] = []
+        
+        for course in courses {
+            let topics = (course.topics as? Set<Topic>) ?? []
+            var totalTasks = 0
+            var completedTasks = 0
+            var aiSummariesCount = 0
+            
+            for topic in topics {
+                if topic.aiSummary != nil {
+                    aiSummariesCount += 1
+                }
+                if let tasks = topic.tasks as? Set<Task> {
+                    totalTasks += tasks.count
+                    completedTasks += tasks.filter { $0.isDone }.count
+                }
+            }
+            
+            let progress = totalTasks > 0 ? Float(completedTasks) / Float(totalTasks) : 0.0
+            
+            let insight = CourseMasteryInsight(
+                course: course,
+                totalLessons: totalTasks,
+                completedLessons: completedTasks,
+                progress: progress,
+                moduleCount: topics.count,
+                colorTag: course.colorTag ?? "Purple",
+                aiSummaryCount: aiSummariesCount
+            )
+            insights.append(insight)
+        }
+        
+        return insights
     }
     
     /// Calculates overall application statistics for Stats Screen

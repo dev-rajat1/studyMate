@@ -3,7 +3,7 @@
 //  studyMate
 //
 //  Created for StudyMate AI.
-//  Purpose: Tab 1 — Modern Study Dashboard displaying today's pending lessons, daily greeting, and progress.
+//  Purpose: Tab 1 — Interactive Multi-Timeframe Study Planner (Today, Tomorrow, Weekly, Monthly, All Tasks).
 //
 
 import UIKit
@@ -15,7 +15,9 @@ class TodayViewController: UIViewController {
     @IBOutlet weak var emptyStateLabel: UILabel?
     
     // MARK: - Properties
-    private var pendingTasks: [Task] = []
+    private var currentTimeframe: StudyTimeframe = .today
+    private var filteredTasks: [Task] = []
+    private let timeframeSegmentedControl = UISegmentedControl(items: ["📅 Today", "🌅 Tomorrow", "📆 Week", "🗓️ Month", "📋 All"])
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -25,13 +27,12 @@ class TodayViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        loadPendingTasks()
-        setupDashboardHeader()
+        loadTasksForCurrentTimeframe()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
-        title = "Today's Focus"
+        title = "Study Planner"
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
         
@@ -46,16 +47,26 @@ class TodayViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 92
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
+        tableView.estimatedRowHeight = 96
+        tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 28, right: 0)
     }
     
-    // MARK: - Dashboard Header Banner
+    // MARK: - Header with Timeframe Filter & Progress Card
     private func setupDashboardHeader() {
-        let count = pendingTasks.count
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 136))
+        let count = filteredTasks.count
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 200))
         headerView.backgroundColor = .clear
         
+        // 1. Timeframe Switcher
+        timeframeSegmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        timeframeSegmentedControl.selectedSegmentIndex = currentTimeframe.rawValue
+        timeframeSegmentedControl.selectedSegmentTintColor = .systemPurple
+        timeframeSegmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 12, weight: .bold)], for: .selected)
+        timeframeSegmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 12, weight: .medium)], for: .normal)
+        timeframeSegmentedControl.addTarget(self, action: #selector(timeframeChanged(_:)), for: .valueChanged)
+        headerView.addSubview(timeframeSegmentedControl)
+        
+        // 2. Hero Progress Card
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
         card.applyCardStyle(cornerRadius: 18)
@@ -67,67 +78,77 @@ class TodayViewController: UIViewController {
         topStack.alignment = .center
         topStack.translatesAutoresizingMaskIntoConstraints = false
         
-        // Date Pill Badge
-        let datePill = UIView()
-        datePill.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.12)
-        datePill.layer.cornerRadius = 8
-        datePill.clipsToBounds = true
+        // Badge
+        let badgePill = UIView()
+        badgePill.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.12)
+        badgePill.layer.cornerRadius = 8
+        badgePill.clipsToBounds = true
+        
+        let badgeLabel = UILabel()
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        badgeLabel.text = "🎯 \(currentTimeframe.title.uppercased()) TARGET"
+        badgeLabel.font = .systemFont(ofSize: 11, weight: .bold)
+        badgeLabel.textColor = .systemPurple
+        badgePill.addSubview(badgeLabel)
+        
+        NSLayoutConstraint.activate([
+            badgeLabel.leadingAnchor.constraint(equalTo: badgePill.leadingAnchor, constant: 8),
+            badgeLabel.trailingAnchor.constraint(equalTo: badgePill.trailingAnchor, constant: -8),
+            badgeLabel.topAnchor.constraint(equalTo: badgePill.topAnchor, constant: 4),
+            badgeLabel.bottomAnchor.constraint(equalTo: badgePill.bottomAnchor, constant: -4)
+        ])
         
         let dateLabel = UILabel()
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.text = "🗓 \(Date().formattedGreetingDate().uppercased())"
-        dateLabel.font = .systemFont(ofSize: 11, weight: .bold)
-        dateLabel.textColor = .systemPurple
-        datePill.addSubview(dateLabel)
+        dateLabel.text = "🗓 \(Date().formattedGreetingDate())"
+        dateLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        dateLabel.textColor = .secondaryLabel
         
-        NSLayoutConstraint.activate([
-            dateLabel.leadingAnchor.constraint(equalTo: datePill.leadingAnchor, constant: 8),
-            dateLabel.trailingAnchor.constraint(equalTo: datePill.trailingAnchor, constant: -8),
-            dateLabel.topAnchor.constraint(equalTo: datePill.topAnchor, constant: 4),
-            dateLabel.bottomAnchor.constraint(equalTo: datePill.bottomAnchor, constant: -4)
-        ])
-        
-        // Streak Badge
-        let streakPill = UIView()
-        streakPill.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
-        streakPill.layer.cornerRadius = 8
-        streakPill.clipsToBounds = true
-        
-        let streakBadge = UILabel()
-        streakBadge.translatesAutoresizingMaskIntoConstraints = false
-        streakBadge.text = "🔥 Daily Focus"
-        streakBadge.font = .systemFont(ofSize: 11, weight: .bold)
-        streakBadge.textColor = .systemOrange
-        streakPill.addSubview(streakBadge)
-        
-        NSLayoutConstraint.activate([
-            streakBadge.leadingAnchor.constraint(equalTo: streakPill.leadingAnchor, constant: 8),
-            streakBadge.trailingAnchor.constraint(equalTo: streakPill.trailingAnchor, constant: -8),
-            streakBadge.topAnchor.constraint(equalTo: streakPill.topAnchor, constant: 4),
-            streakBadge.bottomAnchor.constraint(equalTo: streakPill.bottomAnchor, constant: -4)
-        ])
-        
-        topStack.addArrangedSubview(datePill)
-        topStack.addArrangedSubview(streakPill)
+        topStack.addArrangedSubview(badgePill)
+        topStack.addArrangedSubview(dateLabel)
         card.addSubview(topStack)
         
+        // Title
         let greetingLabel = UILabel()
         greetingLabel.translatesAutoresizingMaskIntoConstraints = false
-        greetingLabel.text = count == 0 ? "🎉 You're all caught up today!" : "⚡ \(count) \(count == 1 ? "Lesson" : "Lessons") Remaining"
-        greetingLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        greetingLabel.textColor = .label
+        if count == 0 {
+            greetingLabel.text = "🎉 All caught up for \(currentTimeframe.title.lowercased())!"
+            greetingLabel.textColor = .systemGreen
+        } else {
+            greetingLabel.text = "⚡ \(count) \(count == 1 ? "Lesson" : "Lessons") Scheduled"
+            greetingLabel.textColor = .label
+        }
+        greetingLabel.font = .systemFont(ofSize: 17, weight: .bold)
         card.addSubview(greetingLabel)
         
+        // Subtitle
         let subLabel = UILabel()
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.text = count == 0 ? "Great job! Keep up the momentum and review AI notes." : "Review notes, take practice quizzes, and check off items."
-        subLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        switch currentTimeframe {
+        case .today:
+            subLabel.text = count == 0 ? "Great job! Review notes or check upcoming modules." : "Focus on high-priority items and check off lessons as you finish."
+        case .tomorrow:
+            subLabel.text = count == 0 ? "No immediate deadlines tomorrow. Relax or prepare ahead!" : "Get a head-start on tomorrow's lessons today."
+        case .thisWeek:
+            subLabel.text = "Keep a steady daily pace to conquer all weekly goals."
+        case .thisMonth:
+            subLabel.text = "Track your monthly academic momentum and master all topics."
+        case .all:
+            subLabel.text = "Complete curriculum roadmap across all enrolled subjects."
+        }
+        subLabel.font = .systemFont(ofSize: 12, weight: .regular)
         subLabel.textColor = .secondaryLabel
         subLabel.numberOfLines = 2
         card.addSubview(subLabel)
         
         NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
+            // Segmented Control
+            timeframeSegmentedControl.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
+            timeframeSegmentedControl.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            timeframeSegmentedControl.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            timeframeSegmentedControl.heightAnchor.constraint(equalToConstant: 34),
+            
+            // Card
+            card.topAnchor.constraint(equalTo: timeframeSegmentedControl.bottomAnchor, constant: 10),
             card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
@@ -148,20 +169,44 @@ class TodayViewController: UIViewController {
         tableView.tableHeaderView = headerView
     }
     
+    // MARK: - Actions
+    @objc private func timeframeChanged(_ sender: UISegmentedControl) {
+        HapticHelper.lightImpact()
+        if let selected = StudyTimeframe(rawValue: sender.selectedSegmentIndex) {
+            currentTimeframe = selected
+            loadTasksForCurrentTimeframe()
+        }
+    }
+    
     // MARK: - Data Loading
-    private func loadPendingTasks() {
-        pendingTasks = CoreDataManager.shared.fetchTodayPendingTasks()
+    private func loadTasksForCurrentTimeframe() {
+        filteredTasks = CoreDataManager.shared.fetchTasks(for: currentTimeframe)
+        setupDashboardHeader()
         tableView.reloadData()
         updateEmptyState()
     }
     
     private func updateEmptyState() {
-        if pendingTasks.isEmpty {
+        if filteredTasks.isEmpty {
             emptyStateLabel?.isHidden = false
+            let msg: String
+            switch currentTimeframe {
+            case .today:
+                msg = "No pending lessons due today.\nTap 'Tomorrow' or 'This Week' to plan ahead!"
+            case .tomorrow:
+                msg = "No lessons due tomorrow.\nYou are well ahead of schedule!"
+            case .thisWeek:
+                msg = "No lessons scheduled for this week.\nAdd lessons with deadlines in your Courses tab."
+            case .thisMonth:
+                msg = "No lessons due this month.\nEnjoy your free time or explore new topics!"
+            case .all:
+                msg = "No pending lessons found!\nCreate a new course or lesson to get started."
+            }
+            
             tableView.setEmptyState(
-                iconName: "sparkles",
-                title: "🎉 All Caught Up!",
-                message: "No pending lessons for today.\nExplore your courses or create a new lesson!"
+                iconName: "calendar.badge.clock",
+                title: "🎉 Clear Schedule",
+                message: msg
             )
         } else {
             emptyStateLabel?.isHidden = true
@@ -178,11 +223,11 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return pendingTasks.count
+        return filteredTasks.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let task = pendingTasks[indexPath.row]
+        let task = filteredTasks[indexPath.row]
         
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as? TaskCell {
             cell.configure(with: task)
@@ -190,8 +235,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
                 guard let self = self else { return }
                 HapticHelper.success()
                 CoreDataManager.shared.toggleTaskDone(task)
-                self.loadPendingTasks()
-                self.setupDashboardHeader()
+                self.loadTasksForCurrentTimeframe()
                 self.showToast(message: "✅ Lesson Completed!", icon: "checkmark.circle.fill", tintColor: .systemGreen)
             }
             cell.animateGlideIn(delayIndex: indexPath.row)
@@ -211,7 +255,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let task = pendingTasks[indexPath.row]
+        let task = filteredTasks[indexPath.row]
         HapticHelper.lightImpact()
         
         if let topic = task.topic {
@@ -224,14 +268,13 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let task = pendingTasks[indexPath.row]
+        let task = filteredTasks[indexPath.row]
         
         let completeAction = UIContextualAction(style: .normal, title: "Done") { [weak self] (_, _, completion) in
             guard let self = self else { return }
             HapticHelper.success()
             CoreDataManager.shared.toggleTaskDone(task)
-            self.loadPendingTasks()
-            self.setupDashboardHeader()
+            self.loadTasksForCurrentTimeframe()
             self.showToast(message: "🎉 Lesson Completed!", icon: "sparkles", tintColor: .systemGreen)
             completion(true)
         }
@@ -241,4 +284,3 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [completeAction])
     }
 }
-
