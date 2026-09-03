@@ -268,6 +268,8 @@ extension UITableViewCell {
 }
 
 // MARK: - Animated Progress Ring (Circular Gauge)
+typealias CircularProgressView = ProgressRingView
+
 class ProgressRingView: UIView {
 
     var progress: CGFloat = 0.0 {

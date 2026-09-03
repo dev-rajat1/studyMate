@@ -23,6 +23,8 @@ struct DesignSystem {
     struct Colors {
         /// Primary Electric Indigo
         static let primary = UIColor(red: 0.424, green: 0.388, blue: 1.000, alpha: 1.0)
+        /// Deep Midnight Navy
+        static let navy = UIColor(red: 0.094, green: 0.118, blue: 0.373, alpha: 1.0)
         /// Violet Secondary
         static let secondary = UIColor(red: 0.659, green: 0.408, blue: 0.988, alpha: 1.0)
         /// Teal Accent

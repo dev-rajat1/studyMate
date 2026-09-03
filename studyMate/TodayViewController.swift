@@ -212,7 +212,7 @@ class TodayViewController: UIViewController {
         heroCard.clipsToBounds = true
         heroCard.backgroundColor = DesignSystem.Colors.navy
         heroCard.applyGradientBackground(
-            colors: [DesignSystem.Colors.navy.cgColor, UIColor(red: 0.12, green: 0.12, blue: 0.32, alpha: 1.0).cgColor],
+            colors: DesignSystem.Gradients.hero,
             startPoint: CGPoint(x: 0, y: 0),
             endPoint: CGPoint(x: 1, y: 1),
             cornerRadius: 20
@@ -245,7 +245,7 @@ class TodayViewController: UIViewController {
         greetingStack.addArrangedSubview(subGreetingLabel)
 
         // Progress Ring inside hero
-        let progressRing = CircularProgressView(frame: CGRect(x: 0, y: 0, width: 62, height: 62))
+        let progressRing = ProgressRingView(frame: CGRect(x: 0, y: 0, width: 62, height: 62))
         progressRing.translatesAutoresizingMaskIntoConstraints = false
         progressRing.lineWidth = 6
         progressRing.configure(progress: CGFloat(pct), ringColor: DesignSystem.Colors.teal)
@@ -296,11 +296,11 @@ class TodayViewController: UIViewController {
     private func buildHeroPill(icon: String, text: String) -> UIView {
         let hStack = UIStackView.make(axis: .horizontal, spacing: 6)
         let img = UIImageView(image: UIImage(systemName: icon))
-        img.tintColor = .white.withAlphaComponent(0.6)
+        img.tintColor = UIColor.white.withAlphaComponent(0.6)
         let lbl = UILabel()
         lbl.text = text
         lbl.font = .systemFont(ofSize: 11, weight: .semibold)
-        lbl.textColor = .white.withAlphaComponent(0.9)
+        lbl.textColor = UIColor.white.withAlphaComponent(0.9)
         hStack.addArrangedSubview(img)
         hStack.addArrangedSubview(lbl)
         return hStack
