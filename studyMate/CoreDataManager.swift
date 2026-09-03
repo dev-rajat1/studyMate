@@ -1,4 +1,4 @@
-//
+﻿//
 //  CoreDataManager.swift
 //  studyMate
 //
@@ -183,6 +183,12 @@ class CoreDataManager {
         task.topic = topic
         saveContext()
         return task
+    }
+
+    /// Convenience overload supporting (topic: ..., deadline: ...) argument order
+    @discardableResult
+    func createTask(title: String, notes: String? = nil, isDone: Bool = false, topic: Topic, deadline: Date? = nil) -> Task {
+        return createTask(title: title, notes: notes, isDone: isDone, deadline: deadline, topic: topic)
     }
     
     /// Updates an existing task
@@ -468,8 +474,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: m1,
-            deadline: calendar.date(byAdding: .day, value: 1, to: now)
+            deadline: calendar.date(byAdding: .day, value: 1, to: now),
+            topic: m1
         )
 
         createTask(
@@ -526,8 +532,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: m1,
-            deadline: calendar.date(byAdding: .day, value: 2, to: now)
+            deadline: calendar.date(byAdding: .day, value: 2, to: now),
+            topic: m1
         )
 
         createTask(
@@ -605,8 +611,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: m1,
-            deadline: calendar.date(byAdding: .day, value: 3, to: now)
+            deadline: calendar.date(byAdding: .day, value: 3, to: now),
+            topic: m1
         )
 
         // Module 2: Intermediate Swift & OOP
@@ -688,8 +694,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: m2,
-            deadline: calendar.date(byAdding: .day, value: 4, to: now)
+            deadline: calendar.date(byAdding: .day, value: 4, to: now),
+            topic: m2
         )
 
         createTask(
@@ -763,8 +769,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: m2,
-            deadline: calendar.date(byAdding: .day, value: 5, to: now)
+            deadline: calendar.date(byAdding: .day, value: 5, to: now),
+            topic: m2
         )
 
         // Module 3: Advanced Swift & Concurrency
@@ -894,8 +900,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: m3,
-            deadline: calendar.date(byAdding: .day, value: 7, to: now)
+            deadline: calendar.date(byAdding: .day, value: 7, to: now),
+            topic: m3
         )
 
         // =========================================================================
@@ -952,8 +958,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: uikitM1,
-            deadline: calendar.date(byAdding: .day, value: 2, to: now)
+            deadline: calendar.date(byAdding: .day, value: 2, to: now),
+            topic: uikitM1
         )
 
         createTask(
@@ -1016,8 +1022,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: uikitM1,
-            deadline: calendar.date(byAdding: .day, value: 3, to: now)
+            deadline: calendar.date(byAdding: .day, value: 3, to: now),
+            topic: uikitM1
         )
 
         let uikitM2 = createTopic(title: "Views, Controls & Navigation", deadline: calendar.date(byAdding: .day, value: 6, to: now), course: uikitCourse)
@@ -1105,8 +1111,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: uikitM2,
-            deadline: calendar.date(byAdding: .day, value: 5, to: now)
+            deadline: calendar.date(byAdding: .day, value: 5, to: now),
+            topic: uikitM2
         )
 
         // =========================================================================
@@ -1172,8 +1178,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: alM1,
-            deadline: calendar.date(byAdding: .day, value: 3, to: now)
+            deadline: calendar.date(byAdding: .day, value: 3, to: now),
+            topic: alM1
         )
 
         createTask(
@@ -1226,8 +1232,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: alM1,
-            deadline: calendar.date(byAdding: .day, value: 4, to: now)
+            deadline: calendar.date(byAdding: .day, value: 4, to: now),
+            topic: alM1
         )
 
         // =========================================================================
@@ -1288,8 +1294,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: true,
-            topic: cdM1,
-            deadline: calendar.date(byAdding: .day, value: 4, to: now)
+            deadline: calendar.date(byAdding: .day, value: 4, to: now),
+            topic: cdM1
         )
 
         createTask(
@@ -1340,8 +1346,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: cdM1,
-            deadline: calendar.date(byAdding: .day, value: 6, to: now)
+            deadline: calendar.date(byAdding: .day, value: 6, to: now),
+            topic: cdM1
         )
 
         // =========================================================================
@@ -1414,8 +1420,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: netM1,
-            deadline: calendar.date(byAdding: .day, value: 6, to: now)
+            deadline: calendar.date(byAdding: .day, value: 6, to: now),
+            topic: netM1
         )
 
         createTask(
@@ -1471,8 +1477,8 @@ class CoreDataManager {
                 """
             ]),
             isDone: false,
-            topic: netM1,
-            deadline: calendar.date(byAdding: .day, value: 7, to: now)
+            deadline: calendar.date(byAdding: .day, value: 7, to: now),
+            topic: netM1
         )
 
         UserDefaultsManager.shared.hasSeededInitialData = true

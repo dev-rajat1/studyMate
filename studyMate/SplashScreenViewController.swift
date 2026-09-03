@@ -37,9 +37,9 @@ class SplashScreenViewController: UIViewController {
         backgroundGradientView.frame = view.bounds
         backgroundGradientView.applyGradientBackground(
             colors: [
-                UIColor(red: 0.07, green: 0.07, blue: 0.16, alpha: 1.0), // Deep Navy
-                UIColor(red: 0.12, green: 0.08, blue: 0.28, alpha: 1.0), // Midnight Indigo
-                UIColor(red: 0.05, green: 0.05, blue: 0.12, alpha: 1.0)  // Dark Obsidian
+                UIColor(red: 0.07, green: 0.07, blue: 0.16, alpha: 1.0).cgColor,
+                UIColor(red: 0.12, green: 0.08, blue: 0.28, alpha: 1.0).cgColor,
+                UIColor(red: 0.05, green: 0.05, blue: 0.12, alpha: 1.0).cgColor
             ],
             startPoint: CGPoint(x: 0.2, y: 0.0),
             endPoint: CGPoint(x: 0.8, y: 1.0)
