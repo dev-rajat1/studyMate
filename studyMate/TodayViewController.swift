@@ -53,6 +53,31 @@ class TodayViewController: UIViewController {
         loadTasksForCurrentTimeframe()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateDashboardHeaderFrame()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.updateDashboardHeaderFrame()
+        }, completion: nil)
+    }
+
+    private func updateDashboardHeaderFrame() {
+        guard let header = tableView.tableHeaderView else { return }
+        let currentWidth = tableView.bounds.width
+        guard currentWidth > 0 else { return }
+        if header.frame.width != currentWidth {
+            header.frame.size.width = currentWidth
+            layoutPills()
+            header.setNeedsLayout()
+            header.layoutIfNeeded()
+            tableView.tableHeaderView = header
+        }
+    }
+
     // MARK: - UI Setup
     private func setupUI() {
         title = "Study Planner"
@@ -155,11 +180,12 @@ class TodayViewController: UIViewController {
         let total = filteredTasks.count
         let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
 
+        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
         let headerHeight: CGFloat = 210
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: headerHeight))
         headerView.backgroundColor = .clear
 
-        segmentScrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 44)
+        segmentScrollView.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(segmentScrollView)
         layoutPills()
 
@@ -243,9 +269,14 @@ class TodayViewController: UIViewController {
         heroCard.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
+            segmentScrollView.topAnchor.constraint(equalTo: headerView.topAnchor),
+            segmentScrollView.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor),
+            segmentScrollView.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor),
+            segmentScrollView.heightAnchor.constraint(equalToConstant: 44),
+
             heroCard.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 48),
-            heroCard.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            heroCard.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            heroCard.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            heroCard.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             heroCard.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
 
             mainStack.leadingAnchor.constraint(equalTo: heroCard.leadingAnchor, constant: 18),
@@ -321,9 +352,11 @@ class TodayViewController: UIViewController {
         emptyStateContainer.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            emptyStateContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            emptyStateContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            emptyStateContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 65),
+            emptyStateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
+            emptyStateContainer.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
+            emptyStateContainer.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            emptyStateContainer.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: 20),
+            emptyStateContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 420),
 
             stack.topAnchor.constraint(equalTo: emptyStateContainer.topAnchor),
             stack.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor),

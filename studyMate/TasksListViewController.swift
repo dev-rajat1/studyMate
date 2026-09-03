@@ -37,6 +37,30 @@ class TasksListViewController: UIViewController {
         setupHeaderBanner()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateHeaderViewFrame()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.updateHeaderViewFrame()
+        }, completion: nil)
+    }
+
+    private func updateHeaderViewFrame() {
+        guard let header = tableView.tableHeaderView else { return }
+        let currentWidth = tableView.bounds.width
+        guard currentWidth > 0 else { return }
+        if header.frame.width != currentWidth {
+            header.frame.size.width = currentWidth
+            header.setNeedsLayout()
+            header.layoutIfNeeded()
+            tableView.tableHeaderView = header
+        }
+    }
+
     // MARK: - UI Setup
     private func setupUI() {
         title = "Lessons"
@@ -113,7 +137,7 @@ class TasksListViewController: UIViewController {
         view.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+            stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -18),
             stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
             aiTutorFAB.heightAnchor.constraint(equalToConstant: 48),
             addLessonFAB.heightAnchor.constraint(equalToConstant: 48)
@@ -132,7 +156,8 @@ class TasksListViewController: UIViewController {
             return
         }
 
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 110))
+        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 110))
         headerView.backgroundColor = .clear
 
         let card = UIView()
@@ -205,8 +230,8 @@ class TasksListViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
-            card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            card.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
 
             mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor),

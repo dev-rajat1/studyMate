@@ -34,6 +34,30 @@ class TopicsListViewController: UIViewController {
         setupHeaderBanner()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateHeaderViewFrame()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.updateHeaderViewFrame()
+        }, completion: nil)
+    }
+
+    private func updateHeaderViewFrame() {
+        guard let header = tableView.tableHeaderView else { return }
+        let currentWidth = tableView.bounds.width
+        guard currentWidth > 0 else { return }
+        if header.frame.width != currentWidth {
+            header.frame.size.width = currentWidth
+            header.setNeedsLayout()
+            header.layoutIfNeeded()
+            tableView.tableHeaderView = header
+        }
+    }
+
     // MARK: - UI Setup
     private func setupUI() {
         title = "Modules"
@@ -85,7 +109,7 @@ class TopicsListViewController: UIViewController {
         view.addSubview(addTopicFAB)
 
         NSLayoutConstraint.activate([
-            addTopicFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            addTopicFAB.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             addTopicFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             addTopicFAB.heightAnchor.constraint(equalToConstant: 52)
         ])
@@ -101,7 +125,8 @@ class TopicsListViewController: UIViewController {
             return
         }
 
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 130))
+        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 130))
         headerView.backgroundColor = .clear
 
         let card = UIView()
@@ -182,8 +207,8 @@ class TopicsListViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
-            card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            card.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
 
             mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
