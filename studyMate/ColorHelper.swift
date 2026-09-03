@@ -44,10 +44,10 @@ struct DesignSystem {
             UIColor(red: 0.424, green: 0.388, blue: 1.000, alpha: 1.0).cgColor,
             UIColor(red: 0.659, green: 0.408, blue: 0.988, alpha: 1.0).cgColor
         ]
-        /// Hero banner soft dark gradient: Dark Slate → Soft Gray Blue
+        /// Hero banner dark gradient: Deep Navy → Indigo
         static let hero: [CGColor] = [
-            UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 1.0).cgColor, // Dark slate
-            UIColor(red: 0.20, green: 0.22, blue: 0.27, alpha: 1.0).cgColor  // Soft gray blue
+            UIColor(red: 0.094, green: 0.118, blue: 0.373, alpha: 1.0).cgColor,
+            UIColor(red: 0.424, green: 0.388, blue: 1.000, alpha: 1.0).cgColor
         ]
         /// Streak fire gradient
         static let streak: [CGColor] = [
