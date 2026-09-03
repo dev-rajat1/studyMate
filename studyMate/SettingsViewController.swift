@@ -25,6 +25,18 @@ class SettingsViewController: UIViewController {
         tableView.reloadData()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.updateHeaderViewLayout()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.tableView.updateHeaderViewLayout()
+        }, completion: nil)
+    }
+
     // MARK: - UI Setup
     private func setupUI() {
         title = "Settings"
@@ -47,8 +59,10 @@ class SettingsViewController: UIViewController {
 
     // MARK: - Profile Header Card
     private func setupProfileHeader() {
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 140))
+        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 140))
         headerView.backgroundColor = .clear
+
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false

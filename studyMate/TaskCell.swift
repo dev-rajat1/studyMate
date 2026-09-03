@@ -99,6 +99,11 @@ class TaskCell: UITableViewCell {
             dateBadgeLabel.bottomAnchor.constraint(equalTo: dateBadge.bottomAnchor, constant: -2)
         ])
         
+        dateBadge.setContentCompressionResistancePriority(.required, for: .horizontal)
+        pageBadge.setContentCompressionResistancePriority(.required, for: .horizontal)
+        notesL.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        notesL.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
         let notesStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center)
         notesStack.addArrangedSubview(notesL)
         let spacer = UIView()
@@ -106,6 +111,7 @@ class TaskCell: UITableViewCell {
         notesStack.addArrangedSubview(spacer)
         notesStack.addArrangedSubview(dateBadge)
         notesStack.addArrangedSubview(pageBadge)
+
 
         let rightContentStack = UIStackView.make(axis: .vertical, spacing: 4)
         rightContentStack.addArrangedSubview(titleL)

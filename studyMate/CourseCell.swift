@@ -45,7 +45,7 @@ class CourseCell: UITableViewCell {
         contentView.addSubview(card)
         programmaticCard = card
 
-        let bar = UIView()
+        let bar = GradientView()
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.layer.cornerRadius = 4
         bar.layer.masksToBounds = true
@@ -54,11 +54,13 @@ class CourseCell: UITableViewCell {
         let nameL = UILabel()
         nameL.font = .systemFont(ofSize: 19, weight: .bold)
         nameL.numberOfLines = 1
+        nameL.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         progNameLabel = nameL
 
         let badge = UIView()
         badge.layer.cornerRadius = 8
         badge.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.12)
+        badge.setContentCompressionResistancePriority(.required, for: .horizontal)
         moduleBadge = badge
 
         let badgeLabel = UILabel()
@@ -111,7 +113,9 @@ class CourseCell: UITableViewCell {
         let chevron = UIImageView(image: UIImage(systemName: "chevron.right", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)))
         chevron.tintColor = .tertiaryLabel
         chevron.contentMode = .scaleAspectFit
+        chevron.setContentCompressionResistancePriority(.required, for: .horizontal)
         chevronIcon = chevron
+
 
         let mainStack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
         mainStack.addArrangedSubview(contentStack)
@@ -175,20 +179,11 @@ class CourseCell: UITableViewCell {
             : "📖 \(modulesCount) \(modulesCount == 1 ? "Module" : "Modules")  •  \(completedTasks)/\(totalTasks) Done"
         progSubtitleLabel?.text = subtitle
 
-        // Gradient accent bar
-        if let bar = accentBar {
-            gradientLayer?.removeFromSuperlayer()
-            let gl = CAGradientLayer()
-            gl.colors = gradientCols
-            gl.startPoint = CGPoint(x: 0, y: 0)
-            gl.endPoint = CGPoint(x: 0, y: 1)
-            gl.frame = bar.bounds.isEmpty ? CGRect(x: 0, y: 0, width: 6, height: 90) : bar.bounds
-            gl.cornerRadius = 4
-            bar.layer.sublayers?.removeAll(where: { $0.name == "SMGradientLayer" })
-            gl.name = "SMGradientLayer"
-            bar.layer.insertSublayer(gl, at: 0)
-            gradientLayer = gl
+        // Gradient accent bar (auto-resizes on rotation/layout via GradientView)
+        if let bar = accentBar as? GradientView {
+            bar.setGradient(colors: gradientCols, startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 0, y: 1), cornerRadius: 4)
         }
+
 
         // Module badge
         moduleBadgeLabel?.text = "\(modulesCount) Modules"

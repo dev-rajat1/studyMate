@@ -33,6 +33,7 @@ class TaskDetailViewController: UIViewController {
     private let nextPageButton = UIButton(type: .system)
     private let pageIndicatorLabel = UILabel()
     private let addPageButton = UIButton(type: .system)
+    private var paginationBottomConstraint: NSLayoutConstraint!
 
     private var completionBarButton: UIBarButtonItem!
 
@@ -40,6 +41,7 @@ class TaskDetailViewController: UIViewController {
     private let formattingToolbar = UIToolbar()
 
     private let pageDelimiter = "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n"
+
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -137,34 +139,48 @@ class TaskDetailViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             titleField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            titleField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             titleField.heightAnchor.constraint(equalToConstant: 52),
 
             deadlineStack.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 12),
-            deadlineStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22),
-            deadlineStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22),
+            deadlineStack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            deadlineStack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             deadlineStack.heightAnchor.constraint(equalToConstant: 32),
 
             textView.topAnchor.constraint(equalTo: deadlineStack.bottomAnchor, constant: 12),
-            textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            textView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            textView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
         ])
 
-        // Keyboard observers for textview bottom constraint
+        // Keyboard observers for dynamic pagination adjustment
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
     @objc private func keyboardWillShow(_ notification: Notification) {
-        guard let kbFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else { return }
-        let inset = view.bounds.height - kbFrame.origin.y + 10
-        notesTextView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset, right: 0)
+        guard let userInfo = notification.userInfo,
+              let kbFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+
+        let bottomSafe = view.safeAreaInsets.bottom
+        let offset = kbFrame.height - bottomSafe
+        paginationBottomConstraint?.constant = -(offset + 8)
+
+        UIView.animate(withDuration: duration) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     @objc private func keyboardWillHide(_ notification: Notification) {
-        notesTextView?.contentInset = .zero
+        guard let userInfo = notification.userInfo,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+        paginationBottomConstraint?.constant = -12
+        UIView.animate(withDuration: duration) {
+            self.view.layoutIfNeeded()
+        }
     }
+
 
     // MARK: - Keyboard Formatting Toolbar (Icon-Only)
     private func setupKeyboardToolbar() {
@@ -245,10 +261,18 @@ class TaskDetailViewController: UIViewController {
         paginationContainer.addSubview(pagStack)
         view.addSubview(paginationContainer)
 
+        paginationBottomConstraint = paginationContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12)
+
+        let widthCon = paginationContainer.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor, constant: -40)
+        widthCon.priority = UILayoutPriority(999)
+
         NSLayoutConstraint.activate([
-            paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            paginationContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            paginationContainer.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            paginationContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 420),
+            paginationContainer.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            paginationContainer.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            widthCon,
+            paginationBottomConstraint,
             paginationContainer.heightAnchor.constraint(equalToConstant: 52),
 
             pagStack.leadingAnchor.constraint(equalTo: paginationContainer.leadingAnchor, constant: 18),
@@ -256,6 +280,7 @@ class TaskDetailViewController: UIViewController {
             pagStack.topAnchor.constraint(equalTo: paginationContainer.topAnchor),
             pagStack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor)
         ])
+
 
         if let tv = notesTextView {
             tv.bottomAnchor.constraint(equalTo: paginationContainer.topAnchor, constant: -12).isActive = true
