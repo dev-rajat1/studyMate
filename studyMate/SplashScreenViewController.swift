@@ -253,7 +253,7 @@ class SplashScreenViewController: UIViewController {
             },
             completion: { _ in
                 // Automatically finish after delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
                     self?.finishAndDismiss()
                 }
             }
