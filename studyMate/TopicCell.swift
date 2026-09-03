@@ -196,7 +196,7 @@ class TopicCell: UITableViewCell {
 
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
-        let target = programmaticCard ?? cardContainerView
+        let target = programmaticCard
         if highlighted {
             target?.bounceTouchDown()
         } else {
