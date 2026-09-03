@@ -198,35 +198,34 @@ class AISummaryViewController: UIViewController {
         NSLayoutConstraint.activate([
             // TableView
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: quickActionsContainer.topAnchor, constant: -6),
             
             // Quick Actions Container
-            quickActionsContainer.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            quickActionsContainer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            quickActionsContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            quickActionsContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             quickActionsContainer.bottomAnchor.constraint(equalTo: inputContainer.topAnchor, constant: -8),
             quickActionsContainer.heightAnchor.constraint(equalToConstant: 36),
             
-            // Input Container (Background spans full width)
+            // Input Container
             inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             inputBottomConstraint,
             inputContainer.heightAnchor.constraint(equalToConstant: 58),
             
-            // Input controls stay within safe area margins so they aren't hidden by horizontal landscape notch
-            inputTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 14),
+            inputTextField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 14),
             inputTextField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -10),
             inputTextField.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
             inputTextField.heightAnchor.constraint(equalToConstant: 40),
             
-            sendButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -14),
+            sendButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -14),
             sendButton.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 36),
             sendButton.heightAnchor.constraint(equalToConstant: 36),
             
             // Typing Indicator
-            typingIndicatorContainer.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            typingIndicatorContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             typingIndicatorContainer.bottomAnchor.constraint(equalTo: quickActionsContainer.topAnchor, constant: -8),
             typingIndicatorContainer.heightAnchor.constraint(equalToConstant: 34),
             
@@ -234,7 +233,6 @@ class AISummaryViewController: UIViewController {
             typeStack.trailingAnchor.constraint(equalTo: typingIndicatorContainer.trailingAnchor, constant: -12),
             typeStack.centerYAnchor.constraint(equalTo: typingIndicatorContainer.centerYAnchor)
         ])
-
     }
     
     // MARK: - Initial Greeting (No Auto-Trigger)
@@ -803,14 +801,7 @@ class AIQuizBubbleCell: UITableViewCell {
             qHeaderLabel.topAnchor.constraint(equalTo: qHeader.topAnchor, constant: 3),
             qHeaderLabel.bottomAnchor.constraint(equalTo: qHeader.bottomAnchor, constant: -3)
         ])
-
-        let headerRow = UIStackView.make(axis: .horizontal, spacing: 0, alignment: .leading)
-        headerRow.addArrangedSubview(qHeader)
-        let headerSpacer = UIView()
-        headerSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        headerRow.addArrangedSubview(headerSpacer)
-        stack.addArrangedSubview(headerRow)
-
+        stack.addArrangedSubview(qHeader)
 
         // Question Text
         let qText = UILabel()

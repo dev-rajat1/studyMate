@@ -206,30 +206,11 @@ extension CALayer {
     }
 }
 
-// MARK: - GradientView (CoreAnimation-backed responsive gradient view)
-class GradientView: UIView {
-    override class var layerClass: AnyClass {
-        return CAGradientLayer.self
-    }
-
-    var gradientLayer: CAGradientLayer {
-        return layer as! CAGradientLayer
-    }
-
-    func setGradient(colors: [CGColor], startPoint: CGPoint = CGPoint(x: 0, y: 0), endPoint: CGPoint = CGPoint(x: 1, y: 1), cornerRadius: CGFloat = 0) {
-        gradientLayer.colors = colors
-        gradientLayer.startPoint = startPoint
-        gradientLayer.endPoint = endPoint
-        layer.cornerRadius = cornerRadius
-        layer.masksToBounds = cornerRadius > 0
-    }
-}
-
 // MARK: - UIView Gradient Helpers
 private var gradientObserverKey: UInt8 = 0
 
 extension UIView {
-    /// Applies a gradient background to this view using a CAGradientLayer that stays in sync across rotations and resizes
+    /// Applies a gradient background to this view using a CAGradientLayer
     func applyGradientBackground(colors: [CGColor], startPoint: CGPoint = CGPoint(x: 0, y: 0.5), endPoint: CGPoint = CGPoint(x: 1, y: 0.5), cornerRadius: CGFloat = 0) {
         layer.applyGradient(colors: colors, startPoint: startPoint, endPoint: endPoint, cornerRadius: cornerRadius)
         layer.cornerRadius = cornerRadius
@@ -239,22 +220,9 @@ extension UIView {
                 CATransaction.begin()
                 CATransaction.setDisableActions(true)
                 grad.frame = bounds
-                grad.cornerRadius = view.layer.cornerRadius
                 CATransaction.commit()
             }
         }
         objc_setAssociatedObject(self, &gradientObserverKey, observer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
-
-    /// Explicitly syncs gradient sublayer to current bounds (useful in viewDidLayoutSubviews or layoutSubviews)
-    func syncGradientBounds() {
-        if let grad = layer.sublayers?.first(where: { $0.name == "SMGradientLayer" }) {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            grad.frame = bounds
-            grad.cornerRadius = layer.cornerRadius
-            CATransaction.commit()
-        }
-    }
 }
-

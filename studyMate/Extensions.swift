@@ -479,38 +479,7 @@ extension UITableView {
     func removeEmptyState() {
         self.backgroundView = nil
     }
-
-    /// Recalculates and updates tableHeaderView size dynamically for orientation changes and different device widths
-    func updateHeaderViewLayout() {
-        guard let header = tableHeaderView else { return }
-        header.setNeedsLayout()
-        header.layoutIfNeeded()
-
-        let targetWidth = bounds.width
-        guard targetWidth > 0 else { return }
-
-        var newFrame = header.frame
-        newFrame.size.width = targetWidth
-
-        let fittingSize = header.systemLayoutSizeFitting(
-            CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height),
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel
-        )
-
-        let finalHeight = fittingSize.height > 0 ? ceil(fittingSize.height) : newFrame.size.height
-        if newFrame.size.height != finalHeight || newFrame.size.width != targetWidth {
-            newFrame.size.height = finalHeight
-            header.frame = newFrame
-            tableHeaderView = header
-        }
-        
-        // Sync any gradients in the header hierarchy
-        header.syncGradientBounds()
-        header.subviews.forEach { $0.syncGradientBounds() }
-    }
 }
-
 
 // MARK: - Gradient FAB Builder
 extension UIButton {

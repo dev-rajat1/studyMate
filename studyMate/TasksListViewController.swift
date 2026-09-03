@@ -37,18 +37,6 @@ class TasksListViewController: UIViewController {
         setupHeaderBanner()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.updateHeaderViewLayout()
-    }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.tableView.updateHeaderViewLayout()
-        }, completion: nil)
-    }
-
     // MARK: - UI Setup
     private func setupUI() {
         title = "Lessons"
@@ -125,7 +113,7 @@ class TasksListViewController: UIViewController {
         view.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -18),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
             stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
             aiTutorFAB.heightAnchor.constraint(equalToConstant: 48),
             addLessonFAB.heightAnchor.constraint(equalToConstant: 48)
@@ -144,8 +132,7 @@ class TasksListViewController: UIViewController {
             return
         }
 
-        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 110))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 110))
         headerView.backgroundColor = .clear
 
         let card = UIView()
@@ -156,14 +143,13 @@ class TasksListViewController: UIViewController {
         let courseColor = ColorHelper.color(named: topic.course?.colorTag)
         let gradientCols = ColorHelper.gradientColors(named: topic.course?.colorTag)
 
-        let accentBar = GradientView()
+        let accentBar = UIView()
         accentBar.translatesAutoresizingMaskIntoConstraints = false
         accentBar.layer.cornerRadius = 4
         accentBar.clipsToBounds = true
         accentBar.widthAnchor.constraint(equalToConstant: 6).isActive = true
         card.addSubview(accentBar)
-        accentBar.setGradient(colors: gradientCols, startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 0, y: 1), cornerRadius: 4)
-
+        accentBar.applyGradientBackground(colors: gradientCols, startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 0, y: 1), cornerRadius: 4)
 
         let breadcrumbPill = UIView()
         breadcrumbPill.backgroundColor = courseColor.withAlphaComponent(0.10)

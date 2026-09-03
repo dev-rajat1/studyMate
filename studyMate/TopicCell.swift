@@ -78,8 +78,6 @@ class TopicCell: UITableViewCell {
         ])
 
         let titleStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .top)
-        titleL.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        aiBadge.setContentCompressionResistancePriority(.required, for: .horizontal)
         titleStack.addArrangedSubview(titleL)
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -88,7 +86,6 @@ class TopicCell: UITableViewCell {
 
         let chip = UIView()
         chip.layer.cornerRadius = 7
-        chip.setContentCompressionResistancePriority(.required, for: .horizontal)
         deadlineChip = chip
 
         let chipLabel = UILabel()
@@ -107,7 +104,6 @@ class TopicCell: UITableViewCell {
         let lessonB = UIView()
         lessonB.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
         lessonB.layer.cornerRadius = 7
-        lessonB.setContentCompressionResistancePriority(.required, for: .horizontal)
         lessonBadge = lessonB
 
         let lessonL = UILabel()
@@ -130,7 +126,6 @@ class TopicCell: UITableViewCell {
         let chipSpacer = UIView()
         chipSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         chipStack.addArrangedSubview(chipSpacer)
-
 
         let track = UIView()
         track.backgroundColor = UIColor.separator.withAlphaComponent(0.12)

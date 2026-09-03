@@ -36,14 +36,6 @@ class StatsViewController: UIViewController {
         setupScrollLayout()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        contentStack.arrangedSubviews.forEach { card in
-            card.syncGradientBounds()
-            card.subviews.forEach { $0.syncGradientBounds() }
-        }
-    }
-
     private func setupScrollLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
@@ -58,8 +50,8 @@ class StatsViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
             contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
@@ -69,7 +61,6 @@ class StatsViewController: UIViewController {
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -32)
         ])
     }
-
 
     // MARK: - Refresh All Analytics
     private func refreshAnalytics() {
@@ -472,7 +463,7 @@ class StatsViewController: UIViewController {
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.tintColor = .white
         iconView.contentMode = .scaleAspectFit
-        iconView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        card.addSubview(iconView)
 
         let msgLabel = UILabel()
         msgLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -480,22 +471,20 @@ class StatsViewController: UIViewController {
         msgLabel.font = .systemFont(ofSize: 15, weight: .bold)
         msgLabel.textColor = .white
         msgLabel.numberOfLines = 0
-
-        let stack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
-        stack.addArrangedSubview(iconView)
-        stack.addArrangedSubview(msgLabel)
-        card.addSubview(stack)
+        card.addSubview(msgLabel)
 
         NSLayoutConstraint.activate([
+            iconView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
+            iconView.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
             iconView.widthAnchor.constraint(equalToConstant: 32),
             iconView.heightAnchor.constraint(equalToConstant: 32),
 
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18)
+            msgLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 14),
+            msgLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -20),
+            msgLabel.centerYAnchor.constraint(equalTo: iconView.centerYAnchor),
+            msgLabel.topAnchor.constraint(greaterThanOrEqualTo: card.topAnchor, constant: 16),
+            msgLabel.bottomAnchor.constraint(lessThanOrEqualTo: card.bottomAnchor, constant: -16)
         ])
-
 
         return card
     }

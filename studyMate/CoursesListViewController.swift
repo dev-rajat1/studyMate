@@ -33,18 +33,6 @@ class CoursesListViewController: UIViewController {
         setupHeaderView()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.updateHeaderViewLayout()
-    }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.tableView.updateHeaderViewLayout()
-        }, completion: nil)
-    }
-
     // MARK: - UI Setup
     private func setupUI() {
         title = "Courses"
@@ -95,7 +83,7 @@ class CoursesListViewController: UIViewController {
         view.addSubview(addCourseFAB)
 
         NSLayoutConstraint.activate([
-            addCourseFAB.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            addCourseFAB.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             addCourseFAB.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             addCourseFAB.heightAnchor.constraint(equalToConstant: 52)
         ])
@@ -113,10 +101,8 @@ class CoursesListViewController: UIViewController {
 
         let (coursesCount, modulesCount, tasksCount, completedCount, overallRate) = CoreDataManager.shared.getAppStats()
 
-        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 126))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 126))
         headerView.backgroundColor = .clear
-
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
@@ -137,15 +123,10 @@ class CoursesListViewController: UIViewController {
         let lesChip = buildStatChip(text: "📝 \(tasksCount) Lessons", color: DesignSystem.Colors.teal)
         let rateChip = buildStatChip(text: "🎯 \(Int(overallRate))% Mastered", color: DesignSystem.Colors.success)
 
-        modChip.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        lesChip.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        rateChip.setContentCompressionResistancePriority(.required, for: .horizontal)
-
-        let statsStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center, distribution: .fillProportionally)
+        let statsStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center, distribution: .equalSpacing)
         statsStack.addArrangedSubview(modChip)
         statsStack.addArrangedSubview(lesChip)
         statsStack.addArrangedSubview(rateChip)
-
 
         let mainStack = UIStackView.make(axis: .vertical, spacing: 4)
         mainStack.addArrangedSubview(titleLabel)

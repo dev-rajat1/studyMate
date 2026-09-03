@@ -53,19 +53,6 @@ class TodayViewController: UIViewController {
         loadTasksForCurrentTimeframe()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        updateDashboardHeaderFrame()
-    }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.updateDashboardHeaderFrame()
-        }, completion: nil)
-    }
-
-
     // MARK: - UI Setup
     private func setupUI() {
         title = "Study Planner"
@@ -161,11 +148,6 @@ class TodayViewController: UIViewController {
         }, completion: nil)
     }
 
-    // Header view references for responsive layout
-    private var dashboardHeaderView: UIView?
-    private var dashboardHeroCard: UIView?
-    private var dashboardProgressRing: ProgressRingView?
-
     // MARK: - Gradient Hero Header
     private func setupDashboardHeader() {
         let count = filteredTasks.count
@@ -173,13 +155,11 @@ class TodayViewController: UIViewController {
         let total = filteredTasks.count
         let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
 
-        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
         let headerHeight: CGFloat = 210
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: headerHeight))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
         headerView.backgroundColor = .clear
-        dashboardHeaderView = headerView
 
-        segmentScrollView.frame = CGRect(x: 0, y: 0, width: headerWidth, height: 44)
+        segmentScrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 44)
         headerView.addSubview(segmentScrollView)
         layoutPills()
 
@@ -189,7 +169,6 @@ class TodayViewController: UIViewController {
         heroCard.layer.masksToBounds = false
         heroCard.clipsToBounds = true
         headerView.addSubview(heroCard)
-        dashboardHeroCard = heroCard
 
         heroCard.backgroundColor = DesignSystem.Colors.primary
         heroCard.applyGradientBackground(
@@ -198,6 +177,9 @@ class TodayViewController: UIViewController {
             endPoint: CGPoint(x: 1, y: 1),
             cornerRadius: 24
         )
+
+        heroCard.layer.masksToBounds = false
+        heroCard.clipsToBounds = true
 
         let dateLabel = UILabel()
         dateLabel.text = Date().formattedGreetingDate()
@@ -220,7 +202,6 @@ class TodayViewController: UIViewController {
             targetLabel.textColor = UIColor.white.withAlphaComponent(0.90)
         }
         targetLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        targetLabel.numberOfLines = 0
 
         let subLabel = UILabel()
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
@@ -254,8 +235,6 @@ class TodayViewController: UIViewController {
         progressRing.trackColor = UIColor.white.withAlphaComponent(0.15)
         progressRing.widthAnchor.constraint(equalToConstant: 72).isActive = true
         progressRing.heightAnchor.constraint(equalToConstant: 72).isActive = true
-        progressRing.setContentCompressionResistancePriority(.required, for: .horizontal)
-        dashboardProgressRing = progressRing
 
         let mainStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
         mainStack.addArrangedSubview(leftContentStack)
@@ -281,20 +260,6 @@ class TodayViewController: UIViewController {
             progressRing.setNeedsLayout()
             progressRing.layoutIfNeeded()
             progressRing.configure(progress: CGFloat(pct), ringColor: DesignSystem.Colors.teal)
-        }
-    }
-
-    private func updateDashboardHeaderFrame() {
-        guard let header = tableView.tableHeaderView else { return }
-        let currentWidth = tableView.bounds.width
-        guard currentWidth > 0 else { return }
-
-        if header.frame.width != currentWidth {
-            header.frame.size.width = currentWidth
-            segmentScrollView.frame = CGRect(x: 0, y: 0, width: currentWidth, height: 44)
-            layoutPills()
-            tableView.tableHeaderView = header
-            dashboardHeroCard?.syncGradientBounds()
         }
     }
 
@@ -356,11 +321,9 @@ class TodayViewController: UIViewController {
         emptyStateContainer.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            emptyStateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
-            emptyStateContainer.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
-            emptyStateContainer.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            emptyStateContainer.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: 20),
-            emptyStateContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 400),
+            emptyStateContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            emptyStateContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            emptyStateContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 65),
 
             stack.topAnchor.constraint(equalTo: emptyStateContainer.topAnchor),
             stack.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor),
@@ -373,13 +336,12 @@ class TodayViewController: UIViewController {
             emptyStateIconView.centerYAnchor.constraint(equalTo: emptyStateIconContainer.centerYAnchor),
             emptyStateIconView.widthAnchor.constraint(equalToConstant: 38),
             emptyStateIconView.heightAnchor.constraint(equalToConstant: 38),
+
             emptyStateExploreButton.heightAnchor.constraint(equalToConstant: 48)
         ])
     }
 
     @objc private func exploreCoursesTapped() {
-
-
         HapticHelper.mediumImpact()
         tabBarController?.selectedIndex = 1
     }
