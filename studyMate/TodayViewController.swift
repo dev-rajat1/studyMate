@@ -97,7 +97,7 @@ class TodayViewController: UIViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 96
         tableView.backgroundColor = .systemGroupedBackground
-        tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 28, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 90, right: 0)
     }
     
     // MARK: - Search Setup
@@ -140,10 +140,10 @@ class TodayViewController: UIViewController {
         for btn in pillButtons {
             btn.sizeToFit()
             let width = btn.intrinsicContentSize.width + 28
-            btn.frame = CGRect(x: x, y: 4, width: width, height: 32)
-            x += width + 8
+            btn.frame = CGRect(x: x, y: 6, width: width, height: 32)
+            x += width + 10
         }
-        segmentScrollView.contentSize = CGSize(width: x, height: 40)
+        segmentScrollView.contentSize = CGSize(width: x, height: 44)
     }
 
     private func updatePillAppearance() {
@@ -182,7 +182,7 @@ class TodayViewController: UIViewController {
         let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
 
         let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
-        let headerHeight: CGFloat = 210
+        let headerHeight: CGFloat = 220
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: headerHeight))
         headerView.backgroundColor = .clear
 
@@ -270,20 +270,20 @@ class TodayViewController: UIViewController {
         heroCard.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
-            segmentScrollView.topAnchor.constraint(equalTo: headerView.topAnchor),
+            segmentScrollView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 2),
             segmentScrollView.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor),
             segmentScrollView.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor),
             segmentScrollView.heightAnchor.constraint(equalToConstant: 44),
 
-            heroCard.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 48),
+            heroCard.topAnchor.constraint(equalTo: segmentScrollView.bottomAnchor, constant: 6),
             heroCard.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             heroCard.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            heroCard.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            heroCard.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10),
 
-            mainStack.leadingAnchor.constraint(equalTo: heroCard.leadingAnchor, constant: 18),
-            mainStack.trailingAnchor.constraint(equalTo: heroCard.trailingAnchor, constant: -18),
-            mainStack.topAnchor.constraint(equalTo: heroCard.topAnchor, constant: 18),
-            mainStack.bottomAnchor.constraint(lessThanOrEqualTo: heroCard.bottomAnchor, constant: -16)
+            mainStack.leadingAnchor.constraint(equalTo: heroCard.leadingAnchor, constant: 20),
+            mainStack.trailingAnchor.constraint(equalTo: heroCard.trailingAnchor, constant: -16),
+            mainStack.topAnchor.constraint(equalTo: heroCard.topAnchor, constant: 16),
+            mainStack.bottomAnchor.constraint(lessThanOrEqualTo: heroCard.bottomAnchor, constant: -14)
         ])
 
         tableView.tableHeaderView = headerView
@@ -360,7 +360,7 @@ class TodayViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             // Layout guide covers the visible region between bottom of greeting header and bottom tab bar
-            emptyStateAreaGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 250),
+            emptyStateAreaGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 260),
             emptyStateAreaGuide.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             emptyStateAreaGuide.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             emptyStateAreaGuide.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
@@ -452,6 +452,7 @@ class TodayViewController: UIViewController {
         } else {
             emptyStateContainer.isHidden = true
             emptyStateLabel?.isHidden = true
+            tableView.isScrollEnabled = true
         }
         
         if isSearching && searchedTasks.isEmpty {
