@@ -31,6 +31,7 @@
 		AA000002000000000000000F /* AISummaryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000000F /* AISummaryViewController.swift */; };
 		AA0000020000000000000010 /* StatsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000010000000000000010 /* StatsViewController.swift */; };
 		AA0000020000000000000011 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000010000000000000011 /* SettingsViewController.swift */; };
+		AA0000020000000000000012 /* SplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000010000000000000012 /* SplashScreenViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		AA000001000000000000000F /* AISummaryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISummaryViewController.swift; sourceTree = "<group>"; };
 		AA0000010000000000000010 /* StatsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewController.swift; sourceTree = "<group>"; };
 		AA0000010000000000000011 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		AA0000010000000000000012 /* SplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenViewController.swift; sourceTree = "<group>"; };
 		00F807433046CA380022D4DA /* studyMateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = studyMateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00F807473046CA380022D4DA /* studyMateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = studyMateTests.swift; sourceTree = "<group>"; };
 		00F807493046CA380022D4DA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				AA000001000000000000000F /* AISummaryViewController.swift */,
 				AA0000010000000000000010 /* StatsViewController.swift */,
 				AA0000010000000000000011 /* SettingsViewController.swift */,
+				AA0000010000000000000012 /* SplashScreenViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -373,6 +376,7 @@
 				AA000002000000000000000F /* AISummaryViewController.swift in Sources */,
 				AA0000020000000000000010 /* StatsViewController.swift in Sources */,
 				AA0000020000000000000011 /* SettingsViewController.swift in Sources */,
+				AA0000020000000000000012 /* SplashScreenViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

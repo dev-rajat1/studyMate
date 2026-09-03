@@ -387,13 +387,13 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
         HapticHelper.mediumImpact()
         showConfirmationAlert(
             title: "Load Sample Data?",
-            message: "This will add sample courses, modules, and lessons for demonstration.",
+            message: "This will add comprehensive multi-page courses (Swift, UIKit, Auto Layout, Core Data, URLSession) for demonstration.",
             confirmTitle: "Load",
             isDestructive: false,
             onConfirm: { [weak self] in
-                CoreDataManager.shared.createSampleDataIfEmpty()
+                CoreDataManager.shared.seedComprehensiveCurriculum(force: true)
                 HapticHelper.success()
-                self?.showToast(message: "📚 Sample Data Loaded!", icon: "tray.and.arrow.down.fill", tintColor: DesignSystem.Colors.success)
+                self?.showToast(message: "📚 Comprehensive Curriculum Loaded!", icon: "tray.and.arrow.down.fill", tintColor: DesignSystem.Colors.success)
             }
         )
     }

@@ -22,14 +22,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
         
-        // Build Programmatic Root TabBarController
-        let tabBarController = createRootTabBarController()
-        window.rootViewController = tabBarController
-        window.makeKeyAndVisible()
-        
         // Apply saved theme (System / Light / Dark)
         UserDefaultsManager.shared.applyTheme()
         configureGlobalNavigationAppearance()
+
+        // Build Programmatic Root TabBarController
+        let tabBarController = createRootTabBarController()
+
+        // Present Animated Splash Screen first, then transition smoothly into TabBarController
+        let splashVC = SplashScreenViewController()
+        splashVC.onAnimationCompleted = { [weak window, weak tabBarController] in
+            guard let window = window, let tabBarController = tabBarController else { return }
+            UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = tabBarController
+            }, completion: nil)
+        }
+        
+        window.rootViewController = splashVC
+        window.makeKeyAndVisible()
     }
 
     private func configureGlobalNavigationAppearance() {
