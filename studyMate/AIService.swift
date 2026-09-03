@@ -122,19 +122,16 @@ class AIService {
         flush()
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            callGeminiAPI(contents: apiContents, apiKey: apiKey, model: model, maxTokens: 1800) { [weak self] result in
+            callGeminiAPI(contents: apiContents, apiKey: apiKey, model: model, maxTokens: 1800) { result in
                 switch result {
                 case .success(let text):
                     completion(.success(text))
                 case .failure(let error):
-                    print("⚠️ AI API call failed (\(error.localizedDescription)), falling back to simulation...")
-                    let latestQ = history.last(where: { $0.isUser })?.text ?? ""
-                    self?.generateSimulatedQAReply(topicTitle: topicTitle, question: latestQ, completion: completion)
+                    completion(.failure(error))
                 }
             }
         } else {
-            let latestQ = history.last(where: { $0.isUser })?.text ?? ""
-            generateSimulatedQAReply(topicTitle: topicTitle, question: latestQ, completion: completion)
+            completion(.failure(.serverError("Please enter your Gemini API Key in Settings to chat with the AI.")))
         }
     }
     
@@ -183,17 +180,16 @@ class AIService {
         """
         
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model, maxTokens: 2500) { [weak self] result in
+            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model, maxTokens: 2500) { result in
                 switch result {
                 case .success(let text):
                     completion(.success(text))
                 case .failure(let error):
-                    print("⚠️ AI API call failed (\(error.localizedDescription)), falling back to simulation...")
-                    self?.generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent, completion: completion)
+                    completion(.failure(error))
                 }
             }
         } else {
-            generateSimulatedSummary(topicTitle: topicTitle, tasks: tasks, notes: notesContent, completion: completion)
+            completion(.failure(.serverError("Please enter your Gemini API Key in Settings to generate a summary.")))
         }
     }
     
@@ -249,14 +245,14 @@ class AIService {
                     if !parsed.isEmpty {
                         completion(.success(parsed))
                     } else {
-                        self?.generateSimulatedStructuredQuiz(topicTitle: topicTitle, tasks: tasks, count: targetCount, completion: completion)
+                        completion(.failure(.decodingFailed))
                     }
-                case .failure:
-                    self?.generateSimulatedStructuredQuiz(topicTitle: topicTitle, tasks: tasks, count: targetCount, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
                 }
             }
         } else {
-            generateSimulatedStructuredQuiz(topicTitle: topicTitle, tasks: tasks, count: targetCount, completion: completion)
+            completion(.failure(.serverError("Please enter your Gemini API Key in Settings to generate a quiz.")))
         }
     }
     
@@ -399,81 +395,5 @@ class AIService {
         task.resume()
     }
     
-    // MARK: - Smart Offline Simulation
-    private func generateSimulatedQAReply(topicTitle: String, question: String, completion: @escaping (Result<String, APIError>) -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
-            let lowerQ = question.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            if lowerQ == "hi" || lowerQ == "hello" || lowerQ == "hey" {
-                completion(.success("Hello! 👋 How can I help you today?\n\n*(⚠️ Note: You are seeing a simulated offline response. Please enter your Gemini API Key in Settings to chat with the real AI!)*"))
-                return
-            }
-            
-            let reply = """
-            *(⚠️ Offline Mode: Please enter your Gemini API Key in the Settings tab to get dynamic real-time AI answers!)*
-            
-            💡 **Simulated Tutor Response**:
-            
-            Regarding your question about **"\(question)"** in **\(topicTitle)**:
-            
-            • **Key Concept**: In this module, the fundamental principle revolves around systematic understanding and verified application.
-            • **Application**: When working through your lesson notes, ensure you break down the problem into individual components and verify boundary cases.
-            • **Tip**: Review your practice examples and test yourself with the Quiz button to reinforce this topic!
-            """
-            completion(.success(reply))
-        }
-    }
-    
-    private func generateSimulatedSummary(topicTitle: String, tasks: Set<Task>, notes: String, completion: @escaping (Result<String, APIError>) -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
-            let taskTitles = tasks.map { "• \($0.title ?? "Lesson")" }.joined(separator: "\n")
-            let summary = """
-            📌 EXECUTIVE OVERVIEW: \(topicTitle)
-            This module covers core principles and practical problem-solving in "\(topicTitle)".
-            
-            🎯 KEY TAKEAWAYS & LESSON PRINCIPLES:
-            \(taskTitles.isEmpty ? "• Foundational exercises and principles" : taskTitles)
-            
-            💡 FORMULAS & HIGHLIGHTS:
-            \(notes.isEmpty ? "• Master core definitions and apply active recall regularly." : notes)
-            
-            ⚠️ COMMON PITFALLS:
-            • Overlooking edge conditions during practice.
-            • Skipping conceptual verification.
-            
-            ⚡ RAPID REVISION CHECKLIST:
-            ☑ Review main definitions
-            ☑ Solve 2 practice exercises without looking at notes
-            ☑ Summarize the key idea in your own words
-            """
-            completion(.success(summary))
-        }
-    }
-    
-    private func generateSimulatedStructuredQuiz(topicTitle: String, tasks: Set<Task>, count: Int, completion: @escaping (Result<[QuizQuestion], APIError>) -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
-            let taskList = Array(tasks)
-            var questions: [QuizQuestion] = []
-            
-            for i in 1...count {
-                let currentLesson = !taskList.isEmpty ? (taskList[(i - 1) % taskList.count].title ?? "Lesson") : "Concept \(i)"
-                let q = QuizQuestion(
-                    questionNumber: i,
-                    questionText: "In \"\(topicTitle)\", what is the most important consideration regarding \"\(currentLesson)\"?",
-                    options: [
-                        "A) Systematic verification and optimal time/space complexity",
-                        "B) Skipping boundary checks to write fewer lines of code",
-                        "C) Memorizing outputs without understanding underlying logic",
-                        "D) None of the above"
-                    ],
-                    correctAnswer: "A",
-                    explanation: "Rigorous verification and understanding underlying complexity are essential for mastering \"\(currentLesson)\".",
-                    isAnswerRevealed: false
-                )
-                questions.append(q)
-            }
-            
-            completion(.success(questions))
-        }
-    }
 }
 
