@@ -110,11 +110,7 @@ class StatsViewController: UIViewController {
         let card = UIView()
         card.applyCardStyle(cornerRadius: 24)
 
-        // Gradient top accent line
-        let accentLine = UIView()
-        accentLine.translatesAutoresizingMaskIntoConstraints = false
-        accentLine.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 0)
-        card.addSubview(accentLine)
+
 
         let headerLabel = UILabel()
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -203,12 +199,7 @@ class StatsViewController: UIViewController {
         card.addSubview(contentHStack)
 
         NSLayoutConstraint.activate([
-            accentLine.topAnchor.constraint(equalTo: card.topAnchor),
-            accentLine.leadingAnchor.constraint(equalTo: card.leadingAnchor),
-            accentLine.trailingAnchor.constraint(equalTo: card.trailingAnchor),
-            accentLine.heightAnchor.constraint(equalToConstant: 4),
-
-            headerLabel.topAnchor.constraint(equalTo: accentLine.bottomAnchor, constant: 18),
+            headerLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
             headerLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
 
             subLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 4),
