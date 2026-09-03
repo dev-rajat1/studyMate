@@ -360,6 +360,12 @@ class AIService {
     // MARK: - Smart Offline Simulation
     private func generateSimulatedQAReply(topicTitle: String, question: String, completion: @escaping (Result<String, APIError>) -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
+            let lowerQ = question.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            if lowerQ == "hi" || lowerQ == "hello" || lowerQ == "hey" {
+                completion(.success("Hello! 👋 How can I help you today? Feel free to ask me anything about **\(topicTitle)**."))
+                return
+            }
+            
             let reply = """
             💡 **StudyMate AI Tutor**:
             
