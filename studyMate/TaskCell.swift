@@ -40,52 +40,41 @@ class TaskCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
 
-        // Main card
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
+        card.applyCardStyle(cornerRadius: 16)
         contentView.addSubview(card)
         programmaticCard = card
 
-        // Checkbox button
         let checkbox = UIButton(type: .custom)
         checkbox.translatesAutoresizingMaskIntoConstraints = false
         checkbox.addTarget(self, action: #selector(checkboxTapped(_:)), for: .touchUpInside)
-        card.addSubview(checkbox)
+        checkbox.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        checkbox.heightAnchor.constraint(equalToConstant: 30).isActive = true
         progCheckbox = checkbox
 
-        // Title label
         let titleL = UILabel()
-        titleL.translatesAutoresizingMaskIntoConstraints = false
         titleL.font = .systemFont(ofSize: 17, weight: .semibold)
         titleL.textColor = .label
         titleL.numberOfLines = 2
-        card.addSubview(titleL)
         progTitleLabel = titleL
 
-        // Notes preview
         let notesL = UILabel()
-        notesL.translatesAutoresizingMaskIntoConstraints = false
         notesL.font = .systemFont(ofSize: 14, weight: .regular)
         notesL.textColor = .secondaryLabel
         notesL.numberOfLines = 2
-        card.addSubview(notesL)
         progNotesLabel = notesL
 
-        // Page badge
         let pageBadge = UIView()
-        pageBadge.translatesAutoresizingMaskIntoConstraints = false
         pageBadge.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
         pageBadge.layer.cornerRadius = 6
-        pageBadge.layer.masksToBounds = true
         pageBadge.isHidden = true
-        card.addSubview(pageBadge)
         progPageBadge = pageBadge
 
         let pageBadgeLabel = UILabel()
-        pageBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
         pageBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
         pageBadgeLabel.textColor = DesignSystem.Colors.primary
+        pageBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
         pageBadge.addSubview(pageBadgeLabel)
         progPageBadgeLabel = pageBadgeLabel
 
@@ -95,34 +84,34 @@ class TaskCell: UITableViewCell {
             pageBadgeLabel.topAnchor.constraint(equalTo: pageBadge.topAnchor, constant: 2),
             pageBadgeLabel.bottomAnchor.constraint(equalTo: pageBadge.bottomAnchor, constant: -2)
         ])
+        
+        let notesStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center)
+        notesStack.addArrangedSubview(notesL)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        notesStack.addArrangedSubview(spacer)
+        notesStack.addArrangedSubview(pageBadge)
+
+        let rightContentStack = UIStackView.make(axis: .vertical, spacing: 4)
+        rightContentStack.addArrangedSubview(titleL)
+        rightContentStack.addArrangedSubview(notesStack)
+
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
+        mainStack.addArrangedSubview(checkbox)
+        mainStack.addArrangedSubview(rightContentStack)
+
+        card.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
-            // Card
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
-            // Checkbox
-            checkbox.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            checkbox.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            checkbox.widthAnchor.constraint(equalToConstant: 30),
-            checkbox.heightAnchor.constraint(equalToConstant: 30),
-
-            // Title
-            titleL.leadingAnchor.constraint(equalTo: checkbox.trailingAnchor, constant: 12),
-            titleL.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            titleL.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-
-            // Notes
-            notesL.leadingAnchor.constraint(equalTo: titleL.leadingAnchor),
-            notesL.trailingAnchor.constraint(equalTo: pageBadge.leadingAnchor, constant: -8),
-            notesL.topAnchor.constraint(equalTo: titleL.bottomAnchor, constant: 4),
-            notesL.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
-
-            // Page badge
-            pageBadge.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            pageBadge.centerYAnchor.constraint(equalTo: notesL.centerYAnchor)
+            mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
         ])
     }
 

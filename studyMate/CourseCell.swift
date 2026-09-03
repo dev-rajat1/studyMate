@@ -39,127 +39,103 @@ class CourseCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
 
-        // Main card
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
+        card.applyCardStyle(cornerRadius: 16)
         contentView.addSubview(card)
         programmaticCard = card
 
-        // Left gradient accent bar
         let bar = UIView()
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.layer.cornerRadius = 4
         bar.layer.masksToBounds = true
-        card.addSubview(bar)
         accentBar = bar
 
-        // Module count badge (top right)
+        let nameL = UILabel()
+        nameL.font = .systemFont(ofSize: 19, weight: .bold)
+        nameL.numberOfLines = 1
+        progNameLabel = nameL
+
         let badge = UIView()
-        badge.translatesAutoresizingMaskIntoConstraints = false
-        badge.layer.cornerRadius = DesignSystem.Radius.chip
-        badge.layer.masksToBounds = true
+        badge.layer.cornerRadius = 8
         badge.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.12)
-        card.addSubview(badge)
         moduleBadge = badge
 
         let badgeLabel = UILabel()
-        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
         badgeLabel.font = .systemFont(ofSize: 11, weight: .bold)
         badgeLabel.textColor = DesignSystem.Colors.primary
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
         badge.addSubview(badgeLabel)
         moduleBadgeLabel = badgeLabel
 
-        // Course Name
-        let nameL = UILabel()
-        nameL.translatesAutoresizingMaskIntoConstraints = false
-        nameL.font = .systemFont(ofSize: 20, weight: .heavy)
-        nameL.textColor = .label
-        nameL.numberOfLines = 1
-        card.addSubview(nameL)
-        progNameLabel = nameL
+        NSLayoutConstraint.activate([
+            badgeLabel.leadingAnchor.constraint(equalTo: badge.leadingAnchor, constant: 8),
+            badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -8),
+            badgeLabel.topAnchor.constraint(equalTo: badge.topAnchor, constant: 4),
+            badgeLabel.bottomAnchor.constraint(equalTo: badge.bottomAnchor, constant: -4)
+        ])
 
-        // Subtitle
+        let topRowStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center)
+        topRowStack.addArrangedSubview(nameL)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        topRowStack.addArrangedSubview(spacer)
+        topRowStack.addArrangedSubview(badge)
+
         let subL = UILabel()
-        subL.translatesAutoresizingMaskIntoConstraints = false
         subL.font = .systemFont(ofSize: 14, weight: .medium)
         subL.textColor = .secondaryLabel
-        subL.numberOfLines = 1
-        card.addSubview(subL)
         progSubtitleLabel = subL
 
-        // Progress bar (taller, rounded)
         let pBar = UIProgressView(progressViewStyle: .default)
-        pBar.translatesAutoresizingMaskIntoConstraints = false
         pBar.layer.cornerRadius = 4
         pBar.clipsToBounds = true
         pBar.trackTintColor = UIColor.separator.withAlphaComponent(0.12)
-        card.addSubview(pBar)
         progProgressBar = pBar
-
-        // Progress % label
+        
         let pLabel = UILabel()
-        pLabel.translatesAutoresizingMaskIntoConstraints = false
         pLabel.font = .systemFont(ofSize: 13, weight: .black)
-        card.addSubview(pLabel)
         progProgressLabel = pLabel
 
-        // Chevron
-        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
-        let chevron = UIImageView(image: UIImage(systemName: "chevron.right", withConfiguration: config))
-        chevron.translatesAutoresizingMaskIntoConstraints = false
+        let progressStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
+        progressStack.addArrangedSubview(pBar)
+        progressStack.addArrangedSubview(pLabel)
+        pBar.heightAnchor.constraint(equalToConstant: 6).isActive = true
+
+        let contentStack = UIStackView.make(axis: .vertical, spacing: 4)
+        contentStack.addArrangedSubview(topRowStack)
+        contentStack.addArrangedSubview(subL)
+        contentStack.setCustomSpacing(12, after: subL)
+        contentStack.addArrangedSubview(progressStack)
+
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)))
         chevron.tintColor = .tertiaryLabel
         chevron.contentMode = .scaleAspectFit
-        card.addSubview(chevron)
         chevronIcon = chevron
 
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
+        mainStack.addArrangedSubview(contentStack)
+        mainStack.addArrangedSubview(chevron)
+
+        card.addSubviews(bar, mainStack)
+
         NSLayoutConstraint.activate([
-            // Card
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
-            // Accent bar
             bar.leadingAnchor.constraint(equalTo: card.leadingAnchor),
             bar.topAnchor.constraint(equalTo: card.topAnchor),
             bar.bottomAnchor.constraint(equalTo: card.bottomAnchor),
-            bar.widthAnchor.constraint(equalToConstant: 8),
+            bar.widthAnchor.constraint(equalToConstant: 6),
 
-            // Module badge (top right)
-            badge.trailingAnchor.constraint(equalTo: chevron.leadingAnchor, constant: -8),
-            badge.centerYAnchor.constraint(equalTo: nameL.centerYAnchor),
-
-            badgeLabel.leadingAnchor.constraint(equalTo: badge.leadingAnchor, constant: 8),
-            badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -8),
-            badgeLabel.topAnchor.constraint(equalTo: badge.topAnchor, constant: 4),
-            badgeLabel.bottomAnchor.constraint(equalTo: badge.bottomAnchor, constant: -4),
-
-            // Name label
-            nameL.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: 14),
-            nameL.trailingAnchor.constraint(equalTo: badge.leadingAnchor, constant: -8),
-            nameL.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
-
-            // Subtitle
-            subL.leadingAnchor.constraint(equalTo: nameL.leadingAnchor),
-            subL.trailingAnchor.constraint(equalTo: nameL.trailingAnchor),
-            subL.topAnchor.constraint(equalTo: nameL.bottomAnchor, constant: 4),
-
-            // Progress bar
-            pBar.leadingAnchor.constraint(equalTo: nameL.leadingAnchor),
-            pBar.trailingAnchor.constraint(equalTo: pLabel.leadingAnchor, constant: -10),
-            pBar.topAnchor.constraint(equalTo: subL.bottomAnchor, constant: 12),
-            pBar.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
-            pBar.heightAnchor.constraint(equalToConstant: 7),
-
-            // Progress label
-            pLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            pLabel.centerYAnchor.constraint(equalTo: pBar.centerYAnchor),
-
-            // Chevron (centered vertically in card)
-            chevron.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            chevron.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
-            chevron.widthAnchor.constraint(equalToConstant: 14)
+            mainStack.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: 16),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
+            
+            chevron.widthAnchor.constraint(equalToConstant: 12)
         ])
     }
 

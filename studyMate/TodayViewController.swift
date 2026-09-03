@@ -134,17 +134,14 @@ class TodayViewController: UIViewController {
         let total = filteredTasks.count
         let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
 
-        // Dynamic height based on content
         let headerHeight: CGFloat = 210
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
         headerView.backgroundColor = .clear
 
-        // ---- Pill Segment Scroll Bar ----
         segmentScrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 44)
         headerView.addSubview(segmentScrollView)
         layoutPills()
 
-        // ---- Gradient Hero Card ----
         let heroCard = UIView()
         heroCard.translatesAutoresizingMaskIntoConstraints = false
         heroCard.layer.cornerRadius = 24
@@ -152,8 +149,7 @@ class TodayViewController: UIViewController {
         heroCard.clipsToBounds = true
         headerView.addSubview(heroCard)
 
-        // Gradient background
-        heroCard.backgroundColor = DesignSystem.Colors.primary // Fallback
+        heroCard.backgroundColor = DesignSystem.Colors.primary
         heroCard.applyGradientBackground(
             colors: DesignSystem.Gradients.hero,
             startPoint: CGPoint(x: 0, y: 0),
@@ -161,31 +157,22 @@ class TodayViewController: UIViewController {
             cornerRadius: 24
         )
 
-        // Shadow
         heroCard.layer.masksToBounds = false
         heroCard.clipsToBounds = true
 
-        // Date label (top left)
         let dateLabel = UILabel()
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.text = Date().formattedGreetingDate()
         dateLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         dateLabel.textColor = UIColor.white.withAlphaComponent(0.70)
-        heroCard.addSubview(dateLabel)
 
-        // Greeting
         let hour = Calendar.current.component(.hour, from: Date())
         let greeting = hour < 12 ? "Good Morning ☀️" : hour < 17 ? "Good Afternoon ⚡" : "Good Evening 🌙"
         let greetingLabel = UILabel()
-        greetingLabel.translatesAutoresizingMaskIntoConstraints = false
         greetingLabel.text = greeting
         greetingLabel.font = .systemFont(ofSize: 22, weight: .black)
         greetingLabel.textColor = .white
-        heroCard.addSubview(greetingLabel)
 
-        // Target label
         let targetLabel = UILabel()
-        targetLabel.translatesAutoresizingMaskIntoConstraints = false
         if count == 0 {
             targetLabel.text = "🎉 All caught up for \(currentTimeframe.title.lowercased())!"
             targetLabel.textColor = DesignSystem.Colors.teal
@@ -194,11 +181,8 @@ class TodayViewController: UIViewController {
             targetLabel.textColor = UIColor.white.withAlphaComponent(0.90)
         }
         targetLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        heroCard.addSubview(targetLabel)
 
-        // Sub label
         let subLabel = UILabel()
-        subLabel.translatesAutoresizingMaskIntoConstraints = false
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subLabel.textColor = UIColor.white.withAlphaComponent(0.60)
         subLabel.numberOfLines = 2
@@ -214,15 +198,28 @@ class TodayViewController: UIViewController {
         case .all:
             subLabel.text = count == 0 ? "No lessons found. Create a course to start." : "Complete curriculum roadmap across all subjects."
         }
-        heroCard.addSubview(subLabel)
+        
+        let leftContentStack = UIStackView.make(axis: .vertical, spacing: 4)
+        leftContentStack.addArrangedSubview(dateLabel)
+        leftContentStack.addArrangedSubview(greetingLabel)
+        leftContentStack.setCustomSpacing(10, after: greetingLabel)
+        leftContentStack.addArrangedSubview(targetLabel)
+        leftContentStack.setCustomSpacing(6, after: targetLabel)
+        leftContentStack.addArrangedSubview(subLabel)
 
-        // Mini circular progress (right side)
         let progressRing = ProgressRingView()
         progressRing.translatesAutoresizingMaskIntoConstraints = false
         progressRing.lineWidth = 7
         progressRing.ringColor = DesignSystem.Colors.teal
         progressRing.trackColor = UIColor.white.withAlphaComponent(0.15)
-        heroCard.addSubview(progressRing)
+        progressRing.widthAnchor.constraint(equalToConstant: 72).isActive = true
+        progressRing.heightAnchor.constraint(equalToConstant: 72).isActive = true
+
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
+        mainStack.addArrangedSubview(leftContentStack)
+        mainStack.addArrangedSubview(progressRing)
+        
+        heroCard.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
             heroCard.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 48),
@@ -230,31 +227,14 @@ class TodayViewController: UIViewController {
             heroCard.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             heroCard.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
 
-            dateLabel.leadingAnchor.constraint(equalTo: heroCard.leadingAnchor, constant: 18),
-            dateLabel.topAnchor.constraint(equalTo: heroCard.topAnchor, constant: 18),
-
-            greetingLabel.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
-            greetingLabel.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 4),
-            greetingLabel.trailingAnchor.constraint(equalTo: progressRing.leadingAnchor, constant: -12),
-
-            targetLabel.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
-            targetLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: 10),
-            targetLabel.trailingAnchor.constraint(equalTo: progressRing.leadingAnchor, constant: -12),
-
-            subLabel.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
-            subLabel.topAnchor.constraint(equalTo: targetLabel.bottomAnchor, constant: 6),
-            subLabel.trailingAnchor.constraint(equalTo: progressRing.leadingAnchor, constant: -12),
-            subLabel.bottomAnchor.constraint(lessThanOrEqualTo: heroCard.bottomAnchor, constant: -16),
-
-            progressRing.trailingAnchor.constraint(equalTo: heroCard.trailingAnchor, constant: -18),
-            progressRing.centerYAnchor.constraint(equalTo: heroCard.centerYAnchor),
-            progressRing.widthAnchor.constraint(equalToConstant: 72),
-            progressRing.heightAnchor.constraint(equalToConstant: 72)
+            mainStack.leadingAnchor.constraint(equalTo: heroCard.leadingAnchor, constant: 18),
+            mainStack.trailingAnchor.constraint(equalTo: heroCard.trailingAnchor, constant: -18),
+            mainStack.topAnchor.constraint(equalTo: heroCard.topAnchor, constant: 18),
+            mainStack.bottomAnchor.constraint(lessThanOrEqualTo: heroCard.bottomAnchor, constant: -16)
         ])
 
         tableView.tableHeaderView = headerView
 
-        // Animate progress ring after layout
         DispatchQueue.main.async {
             progressRing.setNeedsLayout()
             progressRing.layoutIfNeeded()

@@ -137,62 +137,71 @@ class TasksListViewController: UIViewController {
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: 18)
+        card.applyCardStyle(cornerRadius: 16)
         headerView.addSubview(card)
 
         let courseColor = ColorHelper.color(named: topic.course?.colorTag)
         let gradientCols = ColorHelper.gradientColors(named: topic.course?.colorTag)
 
-        // Left gradient accent bar
         let accentBar = UIView()
         accentBar.translatesAutoresizingMaskIntoConstraints = false
         accentBar.layer.cornerRadius = 4
         accentBar.clipsToBounds = true
+        accentBar.widthAnchor.constraint(equalToConstant: 6).isActive = true
         card.addSubview(accentBar)
         accentBar.applyGradientBackground(colors: gradientCols, startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 0, y: 1), cornerRadius: 4)
 
-        // Breadcrumb pill
         let breadcrumbPill = UIView()
-        breadcrumbPill.translatesAutoresizingMaskIntoConstraints = false
         breadcrumbPill.backgroundColor = courseColor.withAlphaComponent(0.10)
         breadcrumbPill.layer.cornerRadius = 7
         breadcrumbPill.clipsToBounds = true
 
         let breadcrumbLabel = UILabel()
-        breadcrumbLabel.translatesAutoresizingMaskIntoConstraints = false
         breadcrumbLabel.text = "📚 \(topic.course?.name ?? "Course")  ›  📖 \(topic.title ?? "Module")"
         breadcrumbLabel.font = .systemFont(ofSize: 11, weight: .bold)
         breadcrumbLabel.textColor = courseColor
         breadcrumbLabel.lineBreakMode = .byTruncatingTail
+        breadcrumbLabel.translatesAutoresizingMaskIntoConstraints = false
         breadcrumbPill.addSubview(breadcrumbLabel)
-        card.addSubview(breadcrumbPill)
 
         NSLayoutConstraint.activate([
             breadcrumbLabel.leadingAnchor.constraint(equalTo: breadcrumbPill.leadingAnchor, constant: 8),
             breadcrumbLabel.trailingAnchor.constraint(equalTo: breadcrumbPill.trailingAnchor, constant: -8),
             breadcrumbLabel.topAnchor.constraint(equalTo: breadcrumbPill.topAnchor, constant: 4),
-            breadcrumbLabel.bottomAnchor.constraint(equalTo: breadcrumbPill.bottomAnchor, constant: -4),
-            breadcrumbPill.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -14)
+            breadcrumbLabel.bottomAnchor.constraint(equalTo: breadcrumbPill.bottomAnchor, constant: -4)
         ])
 
-        // Status label
         let (total, completed, progress) = CoreDataManager.shared.getTopicProgress(topic: topic)
         let statusLabel = UILabel()
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusLabel.text = total == 0 ? "No lessons yet — add your first one!" : "📝 \(completed) of \(total) Lessons Done (\(Int(progress * 100))%)"
         statusLabel.font = .systemFont(ofSize: 15, weight: .bold)
         statusLabel.textColor = (total > 0 && completed == total) ? DesignSystem.Colors.success : .label
-        card.addSubview(statusLabel)
 
-        // Progress bar
         let pBar = UIProgressView(progressViewStyle: .default)
-        pBar.translatesAutoresizingMaskIntoConstraints = false
         pBar.progress = progress
         pBar.tintColor = courseColor
         pBar.trackTintColor = UIColor.separator.withAlphaComponent(0.12)
         pBar.layer.cornerRadius = 4
         pBar.clipsToBounds = true
-        card.addSubview(pBar)
+        pBar.translatesAutoresizingMaskIntoConstraints = false
+        pBar.heightAnchor.constraint(equalToConstant: 6).isActive = true
+
+        let topStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center)
+        topStack.addArrangedSubview(breadcrumbPill)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        topStack.addArrangedSubview(spacer)
+
+        let contentStack = UIStackView.make(axis: .vertical, spacing: 10)
+        contentStack.addArrangedSubview(topStack)
+        contentStack.addArrangedSubview(statusLabel)
+        contentStack.addArrangedSubview(pBar)
+
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .fill)
+        mainStack.addArrangedSubview(accentBar)
+        mainStack.addArrangedSubview(contentStack)
+
+        card.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
@@ -200,23 +209,10 @@ class TasksListViewController: UIViewController {
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
 
-            accentBar.leadingAnchor.constraint(equalTo: card.leadingAnchor),
-            accentBar.topAnchor.constraint(equalTo: card.topAnchor),
-            accentBar.bottomAnchor.constraint(equalTo: card.bottomAnchor),
-            accentBar.widthAnchor.constraint(equalToConstant: 6),
-
-            breadcrumbPill.leadingAnchor.constraint(equalTo: accentBar.trailingAnchor, constant: 12),
-            breadcrumbPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-
-            statusLabel.leadingAnchor.constraint(equalTo: breadcrumbPill.leadingAnchor),
-            statusLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            statusLabel.topAnchor.constraint(equalTo: breadcrumbPill.bottomAnchor, constant: 8),
-
-            pBar.leadingAnchor.constraint(equalTo: statusLabel.leadingAnchor),
-            pBar.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            pBar.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 10),
-            pBar.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
-            pBar.heightAnchor.constraint(equalToConstant: 6)
+            mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
         ])
 
         tableView.tableHeaderView = headerView

@@ -182,33 +182,26 @@ extension UIViewController {
 extension UIView {
 
     /// Premium card style — elevated, modern surface with adaptive border and depth shadow
-    func applyCardStyle(cornerRadius: CGFloat = DesignSystem.Radius.card) {
+    func applyCardStyle(cornerRadius: CGFloat = 16) {
         self.layer.cornerRadius = cornerRadius
         self.layer.masksToBounds = false
         self.backgroundColor = .secondarySystemGroupedBackground
+        
+        // Very subtle border
         self.layer.borderWidth = 0.5
-        self.layer.borderColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark
-                ? UIColor.white.withAlphaComponent(0.08)
-                : UIColor.black.withAlphaComponent(0.06)
-        }.cgColor
+        self.layer.borderColor = UIColor.separator.withAlphaComponent(0.1).cgColor
+        
+        // Soft, minimalist flat shadow
         self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.10
-        self.layer.shadowOffset = CGSize(width: 0, height: 5)
-        self.layer.shadowRadius = 14
+        self.layer.shadowOpacity = 0.04
+        self.layer.shadowOffset = CGSize(width: 0, height: 2)
+        self.layer.shadowRadius = 8
     }
 
     /// Glassmorphic card — translucent blur-glass surface with tinted border glow
-    func applyGlassmorphicStyle(cornerRadius: CGFloat = DesignSystem.Radius.card) {
-        self.layer.cornerRadius = cornerRadius
-        self.layer.masksToBounds = true
-        self.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.88)
-        self.layer.borderWidth = 0.8
-        self.layer.borderColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark
-                ? UIColor.white.withAlphaComponent(0.18)
-                : UIColor.white.withAlphaComponent(0.50)
-        }.cgColor
+    func applyGlassmorphicStyle(cornerRadius: CGFloat = 16) {
+        // Simplified to standard card for a cleaner, flatter aesthetic
+        applyCardStyle(cornerRadius: cornerRadius)
     }
 
     /// Touch-down micro-press feedback (subtle scale down)
@@ -499,5 +492,28 @@ extension UIButton {
             let glowColor = UIColor(cgColor: firstColor)
             DesignSystem.Shadow.applyGlow(to: self.layer, color: glowColor)
         }
+    }
+}
+
+// MARK: - Layout Helpers
+extension UIView {
+    /// Adds multiple subviews at once
+    func addSubviews(_ views: UIView...) {
+        for view in views {
+            addSubview(view)
+        }
+    }
+}
+
+extension UIStackView {
+    /// Creates a UIStackView quickly
+    static func make(axis: NSLayoutConstraint.Axis, spacing: CGFloat = 8, alignment: UIStackView.Alignment = .fill, distribution: UIStackView.Distribution = .fill) -> UIStackView {
+        let stack = UIStackView()
+        stack.axis = axis
+        stack.spacing = spacing
+        stack.alignment = alignment
+        stack.distribution = distribution
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
     }
 }

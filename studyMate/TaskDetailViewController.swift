@@ -183,43 +183,37 @@ class TaskDetailViewController: UIViewController {
         paginationContainer.layer.cornerRadius = 20
         paginationContainer.layer.borderWidth = 1
         paginationContainer.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
-
-        // Shadow
         DesignSystem.Shadow.applyCard(to: paginationContainer.layer)
 
-        // Prev button
         let prevConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
         prevPageButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: prevConfig), for: .normal)
         prevPageButton.tintColor = DesignSystem.Colors.primary
         prevPageButton.addTarget(self, action: #selector(prevPageTapped), for: .touchUpInside)
 
-        // Page indicator
         pageIndicatorLabel.text = "Page 1"
         pageIndicatorLabel.font = .systemFont(ofSize: 14, weight: .bold)
         pageIndicatorLabel.textColor = DesignSystem.Colors.primary
         pageIndicatorLabel.textAlignment = .center
 
-        // Next button
         let nextConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
         nextPageButton.setImage(UIImage(systemName: "chevron.right", withConfiguration: nextConfig), for: .normal)
         nextPageButton.tintColor = DesignSystem.Colors.primary
         nextPageButton.addTarget(self, action: #selector(nextPageTapped), for: .touchUpInside)
 
-        // Add page button
         let addConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
         addPageButton.setImage(UIImage(systemName: "plus.circle.fill", withConfiguration: addConfig), for: .normal)
         addPageButton.tintColor = DesignSystem.Colors.secondary
         addPageButton.addTarget(self, action: #selector(addPageTapped), for: .touchUpInside)
 
-        let pagStack = UIStackView(arrangedSubviews: [prevPageButton, pageIndicatorLabel, nextPageButton, addPageButton])
-        pagStack.axis = .horizontal
-        pagStack.distribution = .equalSpacing
-        pagStack.alignment = .center
-        pagStack.translatesAutoresizingMaskIntoConstraints = false
+        let pagStack = UIStackView.make(axis: .horizontal, spacing: 0, alignment: .center, distribution: .equalSpacing)
+        pagStack.addArrangedSubview(prevPageButton)
+        pagStack.addArrangedSubview(pageIndicatorLabel)
+        pagStack.addArrangedSubview(nextPageButton)
+        pagStack.addArrangedSubview(addPageButton)
+        
         paginationContainer.addSubview(pagStack)
         view.addSubview(paginationContainer)
 
-        // Determine reference view for bottom constraint
         NSLayoutConstraint.activate([
             paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),

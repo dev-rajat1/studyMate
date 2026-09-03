@@ -107,66 +107,53 @@ class TopicsListViewController: UIViewController {
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
         card.backgroundColor = ColorHelper.color(named: course.colorTag)
-        card.applyCardStyle(cornerRadius: 22)
+        card.applyCardStyle(cornerRadius: 16)
         card.clipsToBounds = true
 
-        // Gradient background using course colors
         let gradientCols = ColorHelper.gradientColors(named: course.colorTag)
         card.applyGradientBackground(
             colors: gradientCols,
             startPoint: CGPoint(x: 0, y: 0.2),
             endPoint: CGPoint(x: 1, y: 0.8),
-            cornerRadius: 22
+            cornerRadius: 16
         )
         headerView.addSubview(card)
 
-        // Course emoji/icon circle
         let iconCircle = UIView()
         iconCircle.translatesAutoresizingMaskIntoConstraints = false
         iconCircle.backgroundColor = UIColor.white.withAlphaComponent(0.20)
         iconCircle.layer.cornerRadius = 22
         iconCircle.clipsToBounds = true
-        card.addSubview(iconCircle)
+        iconCircle.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        iconCircle.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
-        let iconConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
-        let iconView = UIImageView(image: UIImage(systemName: "books.vertical.fill", withConfiguration: iconConf))
-        iconView.translatesAutoresizingMaskIntoConstraints = false
+        let iconView = UIImageView(image: UIImage(systemName: "books.vertical.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)))
         iconView.tintColor = .white
         iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         iconCircle.addSubview(iconView)
-
         NSLayoutConstraint.activate([
             iconView.centerXAnchor.constraint(equalTo: iconCircle.centerXAnchor),
-            iconView.centerYAnchor.constraint(equalTo: iconCircle.centerYAnchor),
-            iconCircle.widthAnchor.constraint(equalToConstant: 44),
-            iconCircle.heightAnchor.constraint(equalToConstant: 44)
+            iconView.centerYAnchor.constraint(equalTo: iconCircle.centerYAnchor)
         ])
 
-        // Course name
         let titleLabel = UILabel()
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = course.name ?? "Course"
         titleLabel.font = .systemFont(ofSize: 20, weight: .black)
         titleLabel.textColor = .white
         titleLabel.numberOfLines = 1
-        card.addSubview(titleLabel)
 
-        // Module & lesson count
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         let subLabel = UILabel()
-        subLabel.translatesAutoresizingMaskIntoConstraints = false
         subLabel.text = "📖 \(topics.count) Modules  •  \(completedTasks)/\(totalTasks) Lessons (\(Int(progress * 100))%)"
         subLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         subLabel.textColor = UIColor.white.withAlphaComponent(0.80)
-        card.addSubview(subLabel)
 
-        // White progress bar
         let pTrack = UIView()
-        pTrack.translatesAutoresizingMaskIntoConstraints = false
         pTrack.backgroundColor = UIColor.white.withAlphaComponent(0.22)
         pTrack.layer.cornerRadius = 3
-        pTrack.clipsToBounds = true
-        card.addSubview(pTrack)
+        pTrack.translatesAutoresizingMaskIntoConstraints = false
+        pTrack.heightAnchor.constraint(equalToConstant: 5).isActive = true
 
         let pFill = UIView()
         pFill.translatesAutoresizingMaskIntoConstraints = false
@@ -181,28 +168,28 @@ class TopicsListViewController: UIViewController {
             pFill.widthAnchor.constraint(equalTo: pTrack.widthAnchor, multiplier: max(CGFloat(progress), 0.02))
         ])
 
+        let rightContentStack = UIStackView.make(axis: .vertical, spacing: 4)
+        rightContentStack.addArrangedSubview(titleLabel)
+        rightContentStack.addArrangedSubview(subLabel)
+        rightContentStack.setCustomSpacing(10, after: subLabel)
+        rightContentStack.addArrangedSubview(pTrack)
+
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
+        mainStack.addArrangedSubview(iconCircle)
+        mainStack.addArrangedSubview(rightContentStack)
+
+        card.addSubview(mainStack)
+
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
             card.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
 
-            iconCircle.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            iconCircle.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-
-            titleLabel.leadingAnchor.constraint(equalTo: iconCircle.trailingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 22),
-
-            subLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            subLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-
-            pTrack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            pTrack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            pTrack.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 10),
-            pTrack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18),
-            pTrack.heightAnchor.constraint(equalToConstant: 5)
+            mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
         ])
 
         tableView.tableHeaderView = headerView

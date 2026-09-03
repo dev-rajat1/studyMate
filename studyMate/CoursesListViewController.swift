@@ -104,42 +104,37 @@ class CoursesListViewController: UIViewController {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 126))
         headerView.backgroundColor = .clear
 
-        // Stats card
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: 20)
+        card.applyCardStyle(cornerRadius: 16)
         headerView.addSubview(card)
 
-        // Title row
         let titleLabel = UILabel()
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "📚 \(coursesCount) \(coursesCount == 1 ? "Subject" : "Subjects") Enrolled"
         titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
         titleLabel.textColor = .label
-        card.addSubview(titleLabel)
 
         let subLabel = UILabel()
-        subLabel.translatesAutoresizingMaskIntoConstraints = false
         subLabel.text = "Tap a subject to explore modules, lessons & AI tutor."
         subLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subLabel.textColor = .secondaryLabel
-        card.addSubview(subLabel)
-
-        // Stats chip row
-        let statsStack = UIStackView()
-        statsStack.axis = .horizontal
-        statsStack.distribution = .equalSpacing
-        statsStack.spacing = 8
-        statsStack.translatesAutoresizingMaskIntoConstraints = false
 
         let modChip = buildStatChip(text: "📖 \(modulesCount) Modules", color: DesignSystem.Colors.primary)
         let lesChip = buildStatChip(text: "📝 \(tasksCount) Lessons", color: DesignSystem.Colors.teal)
         let rateChip = buildStatChip(text: "🎯 \(Int(overallRate))% Mastered", color: DesignSystem.Colors.success)
 
+        let statsStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center, distribution: .equalSpacing)
         statsStack.addArrangedSubview(modChip)
         statsStack.addArrangedSubview(lesChip)
         statsStack.addArrangedSubview(rateChip)
-        card.addSubview(statsStack)
+
+        let mainStack = UIStackView.make(axis: .vertical, spacing: 4)
+        mainStack.addArrangedSubview(titleLabel)
+        mainStack.addArrangedSubview(subLabel)
+        mainStack.setCustomSpacing(10, after: subLabel)
+        mainStack.addArrangedSubview(statsStack)
+
+        card.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
@@ -147,17 +142,10 @@ class CoursesListViewController: UIViewController {
             card.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),
 
-            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-
-            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
-            subLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            subLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-
-            statsStack.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 10),
-            statsStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            statsStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
         ])
 
         tableView.tableHeaderView = headerView

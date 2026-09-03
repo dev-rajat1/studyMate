@@ -61,8 +61,8 @@ struct DesignSystem {
 
     // MARK: - Corner Radii
     struct Radius {
-        static let card: CGFloat = 18
-        static let pill: CGFloat = 22
+        static let card: CGFloat = 16
+        static let pill: CGFloat = 12
         static let chip: CGFloat = 8
         static let icon: CGFloat = 12
     }
@@ -71,17 +71,17 @@ struct DesignSystem {
     struct Shadow {
         static func applyCard(to layer: CALayer, color: UIColor = .black) {
             layer.shadowColor = color.cgColor
-            layer.shadowOpacity = 0.10
-            layer.shadowOffset = CGSize(width: 0, height: 6)
-            layer.shadowRadius = 16
+            layer.shadowOpacity = 0.04
+            layer.shadowOffset = CGSize(width: 0, height: 2)
+            layer.shadowRadius = 8
             layer.masksToBounds = false
         }
 
         static func applyGlow(to layer: CALayer, color: UIColor) {
             layer.shadowColor = color.cgColor
-            layer.shadowOpacity = 0.40
-            layer.shadowOffset = CGSize(width: 0, height: 6)
-            layer.shadowRadius = 14
+            layer.shadowOpacity = 0.20
+            layer.shadowOffset = CGSize(width: 0, height: 4)
+            layer.shadowRadius = 12
             layer.masksToBounds = false
         }
     }

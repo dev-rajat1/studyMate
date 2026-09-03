@@ -39,64 +39,58 @@ class TopicCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
 
-        // Main card
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
+        card.applyCardStyle(cornerRadius: 16)
         contentView.addSubview(card)
         programmaticCard = card
 
-        // Left accent bullet circle
         let bullet = UIView()
         bullet.translatesAutoresizingMaskIntoConstraints = false
         bullet.layer.cornerRadius = 5
-        bullet.layer.masksToBounds = true
-        card.addSubview(bullet)
+        bullet.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        bullet.heightAnchor.constraint(equalToConstant: 10).isActive = true
         accentBullet = bullet
 
-        // Module title
         let titleL = UILabel()
-        titleL.translatesAutoresizingMaskIntoConstraints = false
         titleL.font = .systemFont(ofSize: 18, weight: .bold)
         titleL.textColor = .label
         titleL.numberOfLines = 2
-        card.addSubview(titleL)
         progTitleLabel = titleL
 
-        // AI Badge
         let aiBadge = UIView()
-        aiBadge.translatesAutoresizingMaskIntoConstraints = false
         aiBadge.backgroundColor = DesignSystem.Colors.secondary.withAlphaComponent(0.15)
         aiBadge.layer.cornerRadius = 8
-        aiBadge.layer.masksToBounds = true
         aiBadge.isHidden = true
-        card.addSubview(aiBadge)
+        aiBadge.translatesAutoresizingMaskIntoConstraints = false
+        aiBadge.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        aiBadge.heightAnchor.constraint(equalToConstant: 28).isActive = true
         progAIBadge = aiBadge
 
-        let aiConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-        let aiIcon = UIImageView(image: UIImage(systemName: "sparkles", withConfiguration: aiConfig))
-        aiIcon.translatesAutoresizingMaskIntoConstraints = false
+        let aiIcon = UIImageView(image: UIImage(systemName: "sparkles", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)))
         aiIcon.tintColor = DesignSystem.Colors.secondary
         aiIcon.contentMode = .scaleAspectFit
+        aiIcon.translatesAutoresizingMaskIntoConstraints = false
         aiBadge.addSubview(aiIcon)
         NSLayoutConstraint.activate([
             aiIcon.centerXAnchor.constraint(equalTo: aiBadge.centerXAnchor),
-            aiIcon.centerYAnchor.constraint(equalTo: aiBadge.centerYAnchor),
-            aiBadge.widthAnchor.constraint(equalToConstant: 28),
-            aiBadge.heightAnchor.constraint(equalToConstant: 28)
+            aiIcon.centerYAnchor.constraint(equalTo: aiBadge.centerYAnchor)
         ])
 
-        // Deadline chip
+        let titleStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .top)
+        titleStack.addArrangedSubview(titleL)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        titleStack.addArrangedSubview(spacer)
+        titleStack.addArrangedSubview(aiBadge)
+
         let chip = UIView()
-        chip.translatesAutoresizingMaskIntoConstraints = false
         chip.layer.cornerRadius = 7
-        chip.layer.masksToBounds = true
-        card.addSubview(chip)
         deadlineChip = chip
 
         let chipLabel = UILabel()
-        chipLabel.translatesAutoresizingMaskIntoConstraints = false
         chipLabel.font = .systemFont(ofSize: 11, weight: .bold)
+        chipLabel.translatesAutoresizingMaskIntoConstraints = false
         chip.addSubview(chipLabel)
         deadlineChipLabel = chipLabel
 
@@ -107,19 +101,15 @@ class TopicCell: UITableViewCell {
             chipLabel.bottomAnchor.constraint(equalTo: chip.bottomAnchor, constant: -3)
         ])
 
-        // Lesson badge
         let lessonB = UIView()
-        lessonB.translatesAutoresizingMaskIntoConstraints = false
         lessonB.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.10)
         lessonB.layer.cornerRadius = 7
-        lessonB.layer.masksToBounds = true
-        card.addSubview(lessonB)
         lessonBadge = lessonB
 
         let lessonL = UILabel()
-        lessonL.translatesAutoresizingMaskIntoConstraints = false
         lessonL.font = .systemFont(ofSize: 11, weight: .bold)
         lessonL.textColor = DesignSystem.Colors.primary
+        lessonL.translatesAutoresizingMaskIntoConstraints = false
         lessonB.addSubview(lessonL)
         lessonBadgeLabel = lessonL
 
@@ -130,20 +120,23 @@ class TopicCell: UITableViewCell {
             lessonL.bottomAnchor.constraint(equalTo: lessonB.bottomAnchor, constant: -3)
         ])
 
-        // Progress track
+        let chipStack = UIStackView.make(axis: .horizontal, spacing: 6, alignment: .center)
+        chipStack.addArrangedSubview(chip)
+        chipStack.addArrangedSubview(lessonB)
+        let chipSpacer = UIView()
+        chipSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        chipStack.addArrangedSubview(chipSpacer)
+
         let track = UIView()
-        track.translatesAutoresizingMaskIntoConstraints = false
         track.backgroundColor = UIColor.separator.withAlphaComponent(0.12)
         track.layer.cornerRadius = 3
-        track.layer.masksToBounds = true
-        card.addSubview(track)
+        track.translatesAutoresizingMaskIntoConstraints = false
+        track.heightAnchor.constraint(equalToConstant: 6).isActive = true
         progressTrack = track
 
-        // Progress fill
         let fill = UIView()
         fill.translatesAutoresizingMaskIntoConstraints = false
         fill.layer.cornerRadius = 3
-        fill.layer.masksToBounds = true
         fill.backgroundColor = DesignSystem.Colors.primary
         track.addSubview(fill)
         progressFill = fill
@@ -152,45 +145,40 @@ class TopicCell: UITableViewCell {
             fill.leadingAnchor.constraint(equalTo: track.leadingAnchor),
             fill.topAnchor.constraint(equalTo: track.topAnchor),
             fill.bottomAnchor.constraint(equalTo: track.bottomAnchor),
-            fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: 0) // Updated in configure
+            fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: 0)
         ])
 
+        let rightContentStack = UIStackView.make(axis: .vertical, spacing: 10)
+        rightContentStack.addArrangedSubview(titleStack)
+        rightContentStack.addArrangedSubview(chipStack)
+        rightContentStack.addArrangedSubview(track)
+
+        let mainStack = UIStackView.make(axis: .horizontal, spacing: 10, alignment: .top)
+        
+        let bulletContainer = UIView()
+        bulletContainer.translatesAutoresizingMaskIntoConstraints = false
+        bulletContainer.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        bulletContainer.addSubview(bullet)
         NSLayoutConstraint.activate([
-            // Card
+            bullet.centerXAnchor.constraint(equalTo: bulletContainer.centerXAnchor),
+            bullet.topAnchor.constraint(equalTo: bulletContainer.topAnchor, constant: 5)
+        ])
+
+        mainStack.addArrangedSubview(bulletContainer)
+        mainStack.addArrangedSubview(rightContentStack)
+
+        card.addSubview(mainStack)
+
+        NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
-            // Accent bullet
-            bullet.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            bullet.centerYAnchor.constraint(equalTo: titleL.centerYAnchor),
-            bullet.widthAnchor.constraint(equalToConstant: 10),
-            bullet.heightAnchor.constraint(equalToConstant: 10),
-
-            // Title
-            titleL.leadingAnchor.constraint(equalTo: bullet.trailingAnchor, constant: 10),
-            titleL.trailingAnchor.constraint(equalTo: aiBadge.leadingAnchor, constant: -8),
-            titleL.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
-
-            // AI badge (top right)
-            aiBadge.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            aiBadge.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-
-            // Deadline chip
-            chip.leadingAnchor.constraint(equalTo: titleL.leadingAnchor),
-            chip.topAnchor.constraint(equalTo: titleL.bottomAnchor, constant: 8),
-
-            // Lesson badge
-            lessonB.leadingAnchor.constraint(equalTo: chip.trailingAnchor, constant: 6),
-            lessonB.centerYAnchor.constraint(equalTo: chip.centerYAnchor),
-
-            // Progress track
-            track.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            track.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            track.topAnchor.constraint(equalTo: chip.bottomAnchor, constant: 12),
-            track.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
-            track.heightAnchor.constraint(equalToConstant: 6)
+            mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
         ])
     }
 
