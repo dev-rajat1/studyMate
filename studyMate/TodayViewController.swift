@@ -17,6 +17,13 @@ class TodayViewController: UIViewController {
     // MARK: - Properties
     private var currentTimeframe: StudyTimeframe = .today
     private var filteredTasks: [Task] = []
+    
+    // Search
+    private var searchController: UISearchController!
+    private var searchedTasks: [Task] = []
+    private var isSearching: Bool {
+        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
+    }
 
     // Custom Pill Segment Container
     private let segmentScrollView = UIScrollView()
@@ -36,6 +43,7 @@ class TodayViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupSearchController()
         setupPillSegmentBar()
         setupEmptyStateView()
     }
@@ -64,6 +72,19 @@ class TodayViewController: UIViewController {
         tableView.estimatedRowHeight = 96
         tableView.backgroundColor = .systemGroupedBackground
         tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 28, right: 0)
+    }
+    
+    // MARK: - Search Setup
+    private func setupSearchController() {
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Lessons..."
+        searchController.searchBar.tintColor = DesignSystem.Colors.primary
+        
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        definesPresentationContext = true
     }
 
     // MARK: - Custom Pill Segment Bar
@@ -328,6 +349,9 @@ class TodayViewController: UIViewController {
     // MARK: - Data Loading
     private func loadTasksForCurrentTimeframe() {
         filteredTasks = CoreDataManager.shared.fetchTasks(for: currentTimeframe)
+        if isSearching {
+            filterContentForSearchText(searchController.searchBar.text!)
+        }
         setupDashboardHeader()
         tableView.reloadData()
         updateEmptyState()
@@ -380,6 +404,11 @@ class TodayViewController: UIViewController {
             emptyStateContainer.isHidden = true
             emptyStateLabel?.isHidden = true
         }
+        
+        if isSearching && searchedTasks.isEmpty {
+            emptyStateContainer.isHidden = true // Hide default empty state
+            // Optionally, show a custom "No search results" state here if needed
+        }
     }
 }
 
@@ -389,11 +418,11 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int { 1 }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        filteredTasks.count
+        isSearching ? searchedTasks.count : filteredTasks.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let task = filteredTasks[indexPath.row]
+        let task = isSearching ? searchedTasks[indexPath.row] : filteredTasks[indexPath.row]
 
         if let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as? TaskCell {
             cell.configure(with: task)
@@ -421,7 +450,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let task = filteredTasks[indexPath.row]
+        let task = isSearching ? searchedTasks[indexPath.row] : filteredTasks[indexPath.row]
         HapticHelper.lightImpact()
 
         let detailVC = TaskDetailViewController()
@@ -434,7 +463,7 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let task = filteredTasks[indexPath.row]
+        let task = isSearching ? searchedTasks[indexPath.row] : filteredTasks[indexPath.row]
 
         let completeAction = UIContextualAction(style: .normal, title: task.isDone ? "Undo" : "Done") { [weak self] (_, _, completion) in
             guard let self = self else { return }
@@ -448,5 +477,27 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         completeAction.image = UIImage(systemName: task.isDone ? "arrow.uturn.backward" : "checkmark.circle.fill")
 
         return UISwipeActionsConfiguration(actions: [completeAction])
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+extension TodayViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text else { return }
+        filterContentForSearchText(searchText)
+    }
+    
+    private func filterContentForSearchText(_ searchText: String) {
+        if searchText.isEmpty {
+            searchedTasks = filteredTasks
+        } else {
+            searchedTasks = filteredTasks.filter { task in
+                let titleMatch = task.title?.lowercased().contains(searchText.lowercased()) ?? false
+                let notesMatch = task.notes?.lowercased().contains(searchText.lowercased()) ?? false
+                return titleMatch || notesMatch
+            }
+        }
+        tableView.reloadData()
+        updateEmptyState()
     }
 }
