@@ -40,6 +40,60 @@ extension Date {
     }
 }
 
+// MARK: - Markdown Rendering
+extension String {
+    /// Renders basic markdown (bold, headers, inline code) into an NSAttributedString
+    func renderMarkdown() -> NSAttributedString {
+        let baseFont = UIFont.systemFont(ofSize: 15, weight: .regular)
+        let boldFont = UIFont.systemFont(ofSize: 15, weight: .bold)
+        let headerFont = UIFont.systemFont(ofSize: 17, weight: .black)
+        
+        let mutableAttr = NSMutableAttributedString(string: self, attributes: [
+            .font: baseFont,
+            .foregroundColor: UIColor.label
+        ])
+        
+        // **Bold**
+        if let boldRegex = try? NSRegularExpression(pattern: "\\*\\*(.*?)\\*\\*", options: []) {
+            let matches = boldRegex.matches(in: mutableAttr.string, options: [], range: NSRange(location: 0, length: mutableAttr.length))
+            for match in matches.reversed() {
+                let fullRange = match.range(at: 0)
+                let innerRange = match.range(at: 1)
+                let text = (mutableAttr.string as NSString).substring(with: innerRange)
+                let replacement = NSAttributedString(string: text, attributes: [.font: boldFont, .foregroundColor: UIColor.label])
+                mutableAttr.replaceCharacters(in: fullRange, with: replacement)
+            }
+        }
+        
+        // *Italic*
+        let italicFont = UIFont.italicSystemFont(ofSize: 15)
+        if let italicRegex = try? NSRegularExpression(pattern: "\\*(.*?)\\*", options: []) {
+            let matches = italicRegex.matches(in: mutableAttr.string, options: [], range: NSRange(location: 0, length: mutableAttr.length))
+            for match in matches.reversed() {
+                let fullRange = match.range(at: 0)
+                let innerRange = match.range(at: 1)
+                let text = (mutableAttr.string as NSString).substring(with: innerRange)
+                let replacement = NSAttributedString(string: text, attributes: [.font: italicFont, .foregroundColor: UIColor.label])
+                mutableAttr.replaceCharacters(in: fullRange, with: replacement)
+            }
+        }
+        
+        // # Headers (e.g. ## Header)
+        if let headerRegex = try? NSRegularExpression(pattern: "^#+\\s*(.*?)$", options: [.anchorsMatchLines]) {
+            let matches = headerRegex.matches(in: mutableAttr.string, options: [], range: NSRange(location: 0, length: mutableAttr.length))
+            for match in matches.reversed() {
+                let fullRange = match.range(at: 0)
+                let innerRange = match.range(at: 1)
+                let text = (mutableAttr.string as NSString).substring(with: innerRange)
+                let replacement = NSAttributedString(string: text, attributes: [.font: headerFont, .foregroundColor: UIColor.label])
+                mutableAttr.replaceCharacters(in: fullRange, with: replacement)
+            }
+        }
+        
+        return mutableAttr
+    }
+}
+
 // MARK: - Haptic Feedback Helper
 class HapticHelper {
     static func selection() {

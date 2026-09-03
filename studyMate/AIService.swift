@@ -86,8 +86,8 @@ class AIService {
         "\(question)"
         
         INSTRUCTIONS:
-        1. Answer the student's question accurately, directly, and concisely using the provided lesson notes as primary context.
-        2. If the notes do not contain the answer, provide the correct academic explanation based on standard principles of "\(topicTitle)".
+        1. If the question is related to the module "\(topicTitle)" or the notes, answer it using the lesson notes as primary context. If the notes lack details, provide a standard academic explanation.
+        2. If the question is entirely unrelated to the module (e.g., general knowledge, casual chat, or completely different topics), handle it normally like a general AI assistant. You do not need to restrict yourself to the module.
         3. Use clear bullet points, brief examples, or code/math formulas where appropriate. Keep explanations engaging and easy to understand.
         """
         

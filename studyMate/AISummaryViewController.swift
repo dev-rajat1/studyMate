@@ -613,7 +613,7 @@ class AITextBubbleCell: UITableViewCell {
     }
 
     func configure(text: String) {
-        messageTextView.text = text
+        messageTextView.attributedText = text.renderMarkdown()
     }
 }
 
@@ -728,7 +728,7 @@ class AISummaryBubbleCell: UITableViewCell {
     }
     
     func configure(summaryText: String) {
-        summaryTextView.text = summaryText
+        summaryTextView.attributedText = summaryText.renderMarkdown()
     }
 }
 
