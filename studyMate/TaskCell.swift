@@ -104,7 +104,6 @@ class TaskCell: UITableViewCell {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         notesStack.addArrangedSubview(spacer)
-        notesStack.addArrangedSubview(dateBadge)
         notesStack.addArrangedSubview(pageBadge)
 
         let rightContentStack = UIStackView.make(axis: .vertical, spacing: 4)
@@ -113,6 +112,7 @@ class TaskCell: UITableViewCell {
 
         let mainStack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
         mainStack.addArrangedSubview(rightContentStack)
+        mainStack.addArrangedSubview(dateBadge)
 
         card.addSubview(mainStack)
 
