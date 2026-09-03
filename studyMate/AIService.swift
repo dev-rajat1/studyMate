@@ -362,12 +362,14 @@ class AIService {
         DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
             let lowerQ = question.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
             if lowerQ == "hi" || lowerQ == "hello" || lowerQ == "hey" {
-                completion(.success("Hello! 👋 How can I help you today? Feel free to ask me anything about **\(topicTitle)**."))
+                completion(.success("Hello! 👋 How can I help you today?\n\n*(⚠️ Note: You are seeing a simulated offline response. Please enter your Gemini API Key in Settings to chat with the real AI!)*"))
                 return
             }
             
             let reply = """
-            💡 **StudyMate AI Tutor**:
+            *(⚠️ Offline Mode: Please enter your Gemini API Key in the Settings tab to get dynamic real-time AI answers!)*
+            
+            💡 **Simulated Tutor Response**:
             
             Regarding your question about **"\(question)"** in **\(topicTitle)**:
             
