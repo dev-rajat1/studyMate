@@ -265,6 +265,12 @@ class SplashScreenViewController: UIViewController {
         hasDispatchedCompletion = true
         HapticHelper.lightImpact()
 
-        onAnimationCompleted?()
+        if Thread.isMainThread {
+            self.onAnimationCompleted?()
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.onAnimationCompleted?()
+            }
+        }
     }
 }

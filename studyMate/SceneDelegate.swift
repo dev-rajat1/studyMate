@@ -11,6 +11,7 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var rootTabBarController: UITabBarController?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -26,15 +27,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UserDefaultsManager.shared.applyTheme()
         configureGlobalNavigationAppearance()
 
-        // Build Programmatic Root TabBarController
+        // Build Programmatic Root TabBarController and retain strongly
         let tabBarController = createRootTabBarController()
+        self.rootTabBarController = tabBarController
 
         // Present Animated Splash Screen first, then transition smoothly into TabBarController
         let splashVC = SplashScreenViewController()
-        splashVC.onAnimationCompleted = { [weak window, weak tabBarController] in
-            guard let window = window, let tabBarController = tabBarController else { return }
+        splashVC.onAnimationCompleted = { [weak self, weak window] in
+            guard let window = window, let root = self?.rootTabBarController else { return }
             UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {
-                window.rootViewController = tabBarController
+                window.rootViewController = root
             }, completion: nil)
         }
         
