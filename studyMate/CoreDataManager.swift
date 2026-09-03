@@ -173,22 +173,26 @@ class CoreDataManager {
     
     /// Creates a new task under a topic
     @discardableResult
-    func createTask(title: String, notes: String? = nil, isDone: Bool = false, topic: Topic) -> Task {
+    func createTask(title: String, notes: String? = nil, isDone: Bool = false, deadline: Date? = nil, topic: Topic) -> Task {
         let task = Task(context: context)
         task.id = UUID()
         task.title = title
         task.notes = notes
         task.isDone = isDone
+        task.deadline = deadline
         task.topic = topic
         saveContext()
         return task
     }
     
     /// Updates an existing task
-    func updateTask(_ task: Task, title: String, notes: String? = nil, isDone: Bool = false) {
+    func updateTask(_ task: Task, title: String, notes: String? = nil, isDone: Bool = false, deadline: Date? = nil) {
         task.title = title
         task.notes = notes
         task.isDone = isDone
+        if let deadline = deadline {
+            task.deadline = deadline
+        }
         saveContext()
     }
     
@@ -216,7 +220,7 @@ class CoreDataManager {
         let now = Date()
         
         let filtered = allPending.filter { task -> Bool in
-            guard let deadline = task.topic?.deadline else {
+            guard let deadline = task.deadline else {
                 // If no specific deadline is set, include in "Today" and "All" so the student never misses it
                 return timeframe == .today || timeframe == .all || timeframe == .thisWeek
             }
@@ -246,8 +250,8 @@ class CoreDataManager {
         
         // Sort by deadline (soonest first)
         return filtered.sorted { (t1, t2) -> Bool in
-            let d1 = t1.topic?.deadline ?? Date.distantFuture
-            let d2 = t2.topic?.deadline ?? Date.distantFuture
+            let d1 = t1.deadline ?? Date.distantFuture
+            let d2 = t2.deadline ?? Date.distantFuture
             return d1 < d2
         }
     }

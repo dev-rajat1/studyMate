@@ -13,6 +13,7 @@ class TaskDetailViewController: UIViewController {
     // MARK: - Views
     private var titleTextField: UITextField?
     private var notesTextView: UITextView?
+    private var deadlinePicker: UIDatePicker?
 
     // MARK: - Properties
     var topic: Topic!
@@ -109,13 +110,43 @@ class TaskDetailViewController: UIViewController {
         view.addSubview(textView)
         notesTextView = textView
 
+        // Deadline Picker
+        let picker = UIDatePicker()
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.datePickerMode = .date
+        picker.preferredDatePickerStyle = .compact
+        picker.tintColor = courseColor
+        
+        let deadlineLabel = UILabel()
+        deadlineLabel.text = "Goal Date"
+        deadlineLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        deadlineLabel.textColor = .secondaryLabel
+        deadlineLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        
+        let deadlineStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
+        deadlineStack.translatesAutoresizingMaskIntoConstraints = false
+        deadlineStack.addArrangedSubview(deadlineLabel)
+        deadlineStack.addArrangedSubview(picker)
+        
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        deadlineStack.addArrangedSubview(spacer)
+        
+        view.addSubview(deadlineStack)
+        deadlinePicker = picker
+
         NSLayoutConstraint.activate([
             titleField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             titleField.heightAnchor.constraint(equalToConstant: 52),
 
-            textView.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 12),
+            deadlineStack.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 12),
+            deadlineStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22),
+            deadlineStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22),
+            deadlineStack.heightAnchor.constraint(equalToConstant: 32),
+
+            textView.topAnchor.constraint(equalTo: deadlineStack.bottomAnchor, constant: 12),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
@@ -237,6 +268,11 @@ class TaskDetailViewController: UIViewController {
             titleTextField?.text = task.title
             isCompletedState = task.isDone
             updateCompletionButtonAppearance()
+            if let date = task.deadline {
+                deadlinePicker?.date = date
+            } else {
+                deadlinePicker?.date = Date()
+            }
 
             if let rawNotes = task.notes, !rawNotes.isEmpty {
                 pages = rawNotes.contains(pageDelimiter)
@@ -248,6 +284,7 @@ class TaskDetailViewController: UIViewController {
         } else {
             isCompletedState = false
             updateCompletionButtonAppearance()
+            deadlinePicker?.date = Date()
             pages = ["• "]
         }
         currentPageIndex = 0
@@ -334,10 +371,11 @@ class TaskDetailViewController: UIViewController {
         let combinedNotes = pages.joined(separator: pageDelimiter).trimmingCharacters(in: .whitespacesAndNewlines)
         HapticHelper.success()
 
+        let deadlineDate = deadlinePicker?.date
         if let existingTask = taskToEdit {
-            CoreDataManager.shared.updateTask(existingTask, title: title, notes: combinedNotes, isDone: isCompletedState)
+            CoreDataManager.shared.updateTask(existingTask, title: title, notes: combinedNotes, isDone: isCompletedState, deadline: deadlineDate)
         } else {
-            CoreDataManager.shared.createTask(title: title, notes: combinedNotes, isDone: isCompletedState, topic: self.topic)
+            CoreDataManager.shared.createTask(title: title, notes: combinedNotes, isDone: isCompletedState, deadline: deadlineDate, topic: self.topic)
         }
 
         onSaveCompleted?()

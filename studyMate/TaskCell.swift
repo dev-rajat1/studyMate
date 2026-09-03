@@ -20,6 +20,8 @@ class TaskCell: UITableViewCell {
     private var progNotesLabel: UILabel?
     private var progPageBadge: UIView?
     private var progPageBadgeLabel: UILabel?
+    private var progDateBadge: UIView?
+    private var progDateBadgeLabel: UILabel?
     private var doneOverlayView: UIView?
 
 
@@ -77,11 +79,32 @@ class TaskCell: UITableViewCell {
             pageBadgeLabel.bottomAnchor.constraint(equalTo: pageBadge.bottomAnchor, constant: -2)
         ])
         
+        let dateBadge = UIView()
+        dateBadge.backgroundColor = DesignSystem.Colors.secondary.withAlphaComponent(0.10)
+        dateBadge.layer.cornerRadius = 6
+        dateBadge.isHidden = true
+        progDateBadge = dateBadge
+
+        let dateBadgeLabel = UILabel()
+        dateBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
+        dateBadgeLabel.textColor = DesignSystem.Colors.secondary
+        dateBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        dateBadge.addSubview(dateBadgeLabel)
+        progDateBadgeLabel = dateBadgeLabel
+
+        NSLayoutConstraint.activate([
+            dateBadgeLabel.leadingAnchor.constraint(equalTo: dateBadge.leadingAnchor, constant: 6),
+            dateBadgeLabel.trailingAnchor.constraint(equalTo: dateBadge.trailingAnchor, constant: -6),
+            dateBadgeLabel.topAnchor.constraint(equalTo: dateBadge.topAnchor, constant: 2),
+            dateBadgeLabel.bottomAnchor.constraint(equalTo: dateBadge.bottomAnchor, constant: -2)
+        ])
+        
         let notesStack = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center)
         notesStack.addArrangedSubview(notesL)
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         notesStack.addArrangedSubview(spacer)
+        notesStack.addArrangedSubview(dateBadge)
         notesStack.addArrangedSubview(pageBadge)
 
         let rightContentStack = UIStackView.make(axis: .vertical, spacing: 4)
@@ -155,6 +178,24 @@ class TaskCell: UITableViewCell {
             progPageBadgeLabel?.text = "📄 \(pageCount)p"
         } else {
             progPageBadge?.isHidden = true
+        }
+
+        // Date badge
+        if let deadline = task.deadline {
+            progDateBadge?.isHidden = false
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            
+            let calendar = Calendar.current
+            if calendar.isDateInToday(deadline) {
+                progDateBadgeLabel?.text = "🗓️ Today"
+            } else if calendar.isDateInTomorrow(deadline) {
+                progDateBadgeLabel?.text = "🗓️ Tomorrow"
+            } else {
+                progDateBadgeLabel?.text = "🗓️ \(formatter.string(from: deadline))"
+            }
+        } else {
+            progDateBadge?.isHidden = true
         }
 
         // Card opacity for done
