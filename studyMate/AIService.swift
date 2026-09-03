@@ -19,6 +19,11 @@ struct QuizQuestion {
     var isAnswerRevealed: Bool = false
 }
 
+struct AIChatMessage {
+    let isUser: Bool
+    let text: String
+}
+
 class AIService {
     
     // MARK: - Singleton
@@ -59,9 +64,9 @@ class AIService {
         }
     }
     
-    // MARK: - 1. Ask Study Tutor (Context-Aware Q&A)
-    /// Answers the student's question grounded specifically in the module's lesson notes
-    func askStudyTutor(for topic: Topic, question: String, completion: @escaping (Result<String, APIError>) -> Void) {
+    // MARK: - 1. Ask Study Tutor (Context-Aware Q&A with Memory)
+    /// Answers the student's question grounded specifically in the module's lesson notes, maintaining conversation history.
+    func askStudyTutor(for topic: Topic, history: [AIChatMessage], completion: @escaping (Result<String, APIError>) -> Void) {
         guard UserDefaultsManager.shared.isAIEnabled else {
             completion(.failure(.aiDisabled))
             return
@@ -82,27 +87,54 @@ class AIService {
         \(notesContent.isEmpty ? "No detailed lesson notes written yet for \(topicTitle)." : notesContent)
         \"\"\"
         
-        STUDENT'S QUESTION:
-        "\(question)"
-        
         INSTRUCTIONS:
         1. If the question is related to the module "\(topicTitle)" or the notes, answer it using the lesson notes as primary context. If the notes lack details, provide a standard academic explanation.
         2. If the question is entirely unrelated to the module (e.g., general knowledge, casual chat, or completely different topics), handle it normally like a general AI assistant. You do not need to restrict yourself to the module.
         3. Use clear bullet points, brief examples, or code/math formulas where appropriate. Keep explanations engaging and easy to understand.
         """
         
+        var apiContents: [[String: Any]] = []
+        
+        // Seed the system prompt as the first interaction
+        apiContents.append(["role": "user", "parts": [["text": prompt]]])
+        apiContents.append(["role": "model", "parts": [["text": "Understood. I am ready to help the student!"]]])
+        
+        // Append conversation history
+        var currentRole = ""
+        var combinedText = ""
+        
+        func flush() {
+            if !combinedText.isEmpty {
+                apiContents.append(["role": currentRole, "parts": [["text": combinedText]]])
+            }
+        }
+        
+        for msg in history {
+            let role = msg.isUser ? "user" : "model"
+            if role == currentRole {
+                combinedText += "\n\n" + msg.text
+            } else {
+                flush()
+                currentRole = role
+                combinedText = msg.text
+            }
+        }
+        flush()
+        
         if !apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
-            callGeminiAPI(prompt: prompt, apiKey: apiKey, model: model, maxTokens: 1800) { [weak self] result in
+            callGeminiAPI(contents: apiContents, apiKey: apiKey, model: model, maxTokens: 1800) { [weak self] result in
                 switch result {
                 case .success(let text):
                     completion(.success(text))
                 case .failure(let error):
                     print("⚠️ AI API call failed (\(error.localizedDescription)), falling back to simulation...")
-                    self?.generateSimulatedQAReply(topicTitle: topicTitle, question: question, completion: completion)
+                    let latestQ = history.last(where: { $0.isUser })?.text ?? ""
+                    self?.generateSimulatedQAReply(topicTitle: topicTitle, question: latestQ, completion: completion)
                 }
             }
         } else {
-            generateSimulatedQAReply(topicTitle: topicTitle, question: question, completion: completion)
+            let latestQ = history.last(where: { $0.isUser })?.text ?? ""
+            generateSimulatedQAReply(topicTitle: topicTitle, question: latestQ, completion: completion)
         }
     }
     
@@ -278,7 +310,7 @@ class AIService {
     }
     
     // MARK: - Google Gemini REST API Call
-    private func callGeminiAPI(prompt: String, apiKey: String, model: String, maxTokens: Int = 2000, completion: @escaping (Result<String, APIError>) -> Void) {
+    private func callGeminiAPI(prompt: String? = nil, contents: [[String: Any]]? = nil, apiKey: String, model: String, maxTokens: Int = 2000, completion: @escaping (Result<String, APIError>) -> Void) {
         let endpointString = "\(geminiBaseURL)/\(model):generateContent?key=\(apiKey)"
         
         guard let url = URL(string: endpointString) else {
@@ -291,14 +323,24 @@ class AIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 30.0
         
-        let payload: [String: Any] = [
-            "contents": [
+        let finalContents: [[String: Any]]
+        if let contents = contents {
+            finalContents = contents
+        } else if let prompt = prompt {
+            finalContents = [
                 [
                     "parts": [
                         ["text": prompt]
                     ]
                 ]
-            ],
+            ]
+        } else {
+            completion(.failure(.missingData))
+            return
+        }
+        
+        let payload: [String: Any] = [
+            "contents": finalContents,
             "generationConfig": [
                 "temperature": 0.7,
                 "maxOutputTokens": maxTokens

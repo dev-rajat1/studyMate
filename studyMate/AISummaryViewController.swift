@@ -294,8 +294,16 @@ class AISummaryViewController: UIViewController {
         scrollToBottom(animated: true)
         
         // Call AI Context Q&A
-        setLoadingState(true, message: "StudyMate AI is analyzing your lessons...")
-        AIService.shared.askStudyTutor(for: self.topic, question: text) { [weak self] result in
+        setLoadingState(true, message: "StudyMate AI is thinking...")
+        
+        let chatHistory = messages.compactMap { msg -> AIChatMessage? in
+            if case let .text(txt) = msg.kind {
+                return AIChatMessage(isUser: msg.sender == .user, text: txt)
+            }
+            return nil
+        }
+        
+        AIService.shared.askStudyTutor(for: self.topic, history: chatHistory) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 self.setLoadingState(false)
