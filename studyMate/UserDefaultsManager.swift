@@ -17,7 +17,6 @@ class UserDefaultsManager {
     private enum Keys {
         static let themeStyle = "studyMate_themeStyle" // 0: System, 1: Light, 2: Dark
         static let isAIEnabled = "studyMate_isAIEnabled"
-        static let customAPIKey = "studyMate_customAPIKey"
         static let aiModelName = "studyMate_aiModelName"
         static let hasSeededInitialData = "studyMate_hasSeededInitialData"
     }
@@ -27,7 +26,6 @@ class UserDefaultsManager {
         defaults.register(defaults: [
             Keys.themeStyle: 0,
             Keys.isAIEnabled: true,
-            Keys.customAPIKey: "AQ.Ab8RN6I_Uo-qxQrdlDR6tm3PkBvm3_ePp8PRjiUD5UkP6fyetA",
             Keys.aiModelName: "gemini-3.7-flash",
             Keys.hasSeededInitialData: false
         ])
@@ -68,14 +66,6 @@ class UserDefaultsManager {
     var isAIEnabled: Bool {
         get { return defaults.bool(forKey: Keys.isAIEnabled) }
         set { defaults.set(newValue, forKey: Keys.isAIEnabled) }
-    }
-    
-    var customAPIKey: String? {
-        get {
-            let key = defaults.string(forKey: Keys.customAPIKey)
-            return (key?.isEmpty == false) ? key : "AQ.Ab8RN6I_Uo-qxQrdlDR6tm3PkBvm3_ePp8PRjiUD5UkP6fyetA"
-        }
-        set { defaults.set(newValue, forKey: Keys.customAPIKey) }
     }
     
     var aiModelName: String {

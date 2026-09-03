@@ -179,7 +179,7 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return 1  // Appearance
-        case 1: return 2  // AI Engine
+        case 1: return 1  // AI Engine
         case 2: return 2  // Data (Clear + Sample Data)
         case 3: return 1  // About
         default: return 0
@@ -231,14 +231,6 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
             sw.addTarget(self, action: #selector(aiToggleChanged(_:)), for: .valueChanged)
             cell.accessoryView = sw
 
-        case (1, 1):
-            addIconToCell(cell, systemName: "key.fill", color: DesignSystem.Colors.teal)
-            cell.textLabel?.text = "Gemini API Key"
-            let hasKey = UserDefaultsManager.shared.customAPIKey != nil
-            cell.detailTextLabel?.text = hasKey ? "Configured ●●●●" : "Not Set"
-            cell.detailTextLabel?.textColor = hasKey ? DesignSystem.Colors.success : .tertiaryLabel
-            cell.accessoryType = .disclosureIndicator
-            cell.selectionStyle = .default
 
         case (2, 0):
             addIconToCell(cell, systemName: "trash.fill", color: DesignSystem.Colors.coral)
@@ -307,9 +299,7 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 1 && indexPath.row == 1 {
-            showAPIKeyPrompt()
-        } else if indexPath.section == 2 && indexPath.row == 0 {
+        if indexPath.section == 2 && indexPath.row == 0 {
             confirmClearData()
         } else if indexPath.section == 2 && indexPath.row == 1 {
             loadSampleData()
@@ -342,30 +332,6 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
         )
     }
 
-    private func showAPIKeyPrompt() {
-        HapticHelper.lightImpact()
-        let alert = UIAlertController(
-            title: "Gemini API Key",
-            message: "Enter your Google Gemini API key to power AI study responses.",
-            preferredStyle: .alert
-        )
-        alert.addTextField { tf in
-            tf.placeholder = "Enter API Key"
-            tf.text = UserDefaultsManager.shared.customAPIKey
-            tf.isSecureTextEntry = true
-            tf.autocapitalizationType = .none
-        }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            let key = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-            UserDefaultsManager.shared.customAPIKey = (key?.isEmpty == false) ? key : nil
-            HapticHelper.success()
-            self.tableView.reloadData()
-            self.showToast(message: "API Key Saved", icon: "key.fill", tintColor: DesignSystem.Colors.teal)
-        }))
-        present(alert, animated: true)
-    }
 
     private func confirmClearData() {
         HapticHelper.warning()

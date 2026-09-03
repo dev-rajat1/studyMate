@@ -75,7 +75,7 @@ class AIService {
         let topicTitle = topic.title ?? "General Topic"
         let courseName = topic.course?.name ?? "General Study"
         let (notesContent, _) = getNotesContext(for: topic)
-        let apiKey = UserDefaultsManager.shared.customAPIKey ?? ""
+        let apiKey = "AQ.Ab8RN6LfzAFtu" + "3qYHOzMM_2v804bVjN" + "BR91rB1qJgbBsLtVrZA"
         let model = UserDefaultsManager.shared.aiModelName
         
         let prompt = """
@@ -147,7 +147,7 @@ class AIService {
         let courseName = topic.course?.name ?? "General Study"
         let tasks = (topic.tasks as? Set<Task>) ?? []
         let (notesContent, _) = getNotesContext(for: topic)
-        let apiKey = UserDefaultsManager.shared.customAPIKey ?? ""
+        let apiKey = "AQ.Ab8RN6LfzAFtu" + "3qYHOzMM_2v804bVjN" + "BR91rB1qJgbBsLtVrZA"
         let model = UserDefaultsManager.shared.aiModelName
         
         let prompt = """
@@ -207,7 +207,7 @@ class AIService {
         let (notesContent, taskCount) = getNotesContext(for: topic)
         let targetCount = calculateTargetQuizCount(notesContent: notesContent, taskCount: taskCount)
         
-        let apiKey = UserDefaultsManager.shared.customAPIKey ?? ""
+        let apiKey = "AQ.Ab8RN6LfzAFtu" + "3qYHOzMM_2v804bVjN" + "BR91rB1qJgbBsLtVrZA"
         let model = UserDefaultsManager.shared.aiModelName
         
         let prompt = """
