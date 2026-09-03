@@ -298,6 +298,12 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         }
         deleteAction.image = UIImage(systemName: "trash")
 
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let course = courses[indexPath.row]
+        
         let editAction = UIContextualAction(style: .normal, title: "Edit") { [weak self] (_, _, completion) in
             self?.showCoursePrompt(existingCourse: course)
             completion(true)
@@ -305,6 +311,6 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         editAction.backgroundColor = DesignSystem.Colors.primary
         editAction.image = UIImage(systemName: "pencil")
 
-        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+        return UISwipeActionsConfiguration(actions: [editAction])
     }
 }

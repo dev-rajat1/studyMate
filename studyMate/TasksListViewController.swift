@@ -254,9 +254,7 @@ class TasksListViewController: UIViewController {
             self?.loadTasks()
             self?.setupHeaderBanner()
         }
-        let nav = UINavigationController(rootViewController: detailVC)
-        nav.modalPresentationStyle = .pageSheet
-        present(nav, animated: true)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 
     @objc func aiAssistantTapped() {
@@ -328,13 +326,24 @@ extension TasksListViewController: UITableViewDataSource, UITableViewDelegate {
         }
         deleteAction.image = UIImage(systemName: "trash")
 
-        let editAction = UIContextualAction(style: .normal, title: "Edit") { [weak self] (_, _, completion) in
-            self?.presentTaskDetail(taskToEdit: task)
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let task = tasks[indexPath.row]
+
+        let completeAction = UIContextualAction(style: .normal, title: task.isDone ? "Undo" : "Done") { [weak self] (_, _, completion) in
+            guard let self = self else { return }
+            HapticHelper.success()
+            CoreDataManager.shared.toggleTaskDone(task)
+            self.loadTasks()
+            self.setupHeaderBanner()
+            self.showToast(message: task.isDone ? "Lesson Marked Done!" : "Lesson Marked Pending", icon: task.isDone ? "checkmark.circle.fill" : "circle", tintColor: task.isDone ? DesignSystem.Colors.success : .systemGray)
             completion(true)
         }
-        editAction.backgroundColor = DesignSystem.Colors.primary
-        editAction.image = UIImage(systemName: "pencil")
+        completeAction.backgroundColor = task.isDone ? .systemGray : DesignSystem.Colors.success
+        completeAction.image = UIImage(systemName: task.isDone ? "arrow.uturn.backward" : "checkmark.circle.fill")
 
-        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+        return UISwipeActionsConfiguration(actions: [completeAction])
     }
 }

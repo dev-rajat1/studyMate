@@ -341,11 +341,11 @@ class TaskDetailViewController: UIViewController {
         }
 
         onSaveCompleted?()
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 
     @IBAction @objc func cancelTapped(_ sender: Any) {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 
     deinit {

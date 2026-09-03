@@ -16,7 +16,6 @@ class TaskCell: UITableViewCell {
 
     // MARK: - Programmatic UI Elements
     private var programmaticCard: UIView?
-    private var progCheckbox: UIButton?
     private var progTitleLabel: UILabel?
     private var progNotesLabel: UILabel?
     private var progPageBadge: UIView?
@@ -45,13 +44,6 @@ class TaskCell: UITableViewCell {
         card.applyCardStyle(cornerRadius: 16)
         contentView.addSubview(card)
         programmaticCard = card
-
-        let checkbox = UIButton(type: .custom)
-        checkbox.translatesAutoresizingMaskIntoConstraints = false
-        checkbox.addTarget(self, action: #selector(checkboxTapped(_:)), for: .touchUpInside)
-        checkbox.widthAnchor.constraint(equalToConstant: 30).isActive = true
-        checkbox.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        progCheckbox = checkbox
 
         let titleL = UILabel()
         titleL.font = .systemFont(ofSize: 17, weight: .semibold)
@@ -97,7 +89,6 @@ class TaskCell: UITableViewCell {
         rightContentStack.addArrangedSubview(notesStack)
 
         let mainStack = UIStackView.make(axis: .horizontal, spacing: 14, alignment: .center)
-        mainStack.addArrangedSubview(checkbox)
         mainStack.addArrangedSubview(rightContentStack)
 
         card.addSubview(mainStack)
@@ -168,31 +159,5 @@ class TaskCell: UITableViewCell {
 
         // Card opacity for done
         programmaticCard?.alpha = isDone ? 0.60 : 1.0
-
-        updateCheckboxAppearance(isDone: isDone)
-    }
-
-    private func updateCheckboxAppearance(isDone: Bool) {
-        let imageName = isDone ? "checkmark.circle.fill" : "circle"
-        let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .medium)
-        let image = UIImage(systemName: imageName, withConfiguration: config)
-
-        progCheckbox?.setImage(image, for: .normal)
-        progCheckbox?.tintColor = isDone ? DesignSystem.Colors.success : UIColor.tertiaryLabel
-    }
-
-    // MARK: - Checkbox Action
-    @objc func checkboxTapped(_ sender: UIButton) {
-        HapticHelper.success()
-        // Spring bounce animation
-        UIView.animate(withDuration: 0.10, animations: {
-            sender.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
-        }) { _ in
-            UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.55, initialSpringVelocity: 1.0, options: .curveEaseOut, animations: {
-                sender.transform = .identity
-            }, completion: nil)
-        }
-        onToggleDone?()
-        onToggleCompletion?()
     }
 }

@@ -424,26 +424,50 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         let task = filteredTasks[indexPath.row]
         HapticHelper.lightImpact()
 
-        if let topic = task.topic {
-            let tasksVC = TasksListViewController()
-            tasksVC.topic = topic
-            navigationController?.pushViewController(tasksVC, animated: true)
+        let detailVC = TaskDetailViewController()
+        detailVC.topic = task.topic
+        detailVC.taskToEdit = task
+        detailVC.onSaveCompleted = { [weak self] in
+            self?.loadTasksForCurrentTimeframe()
         }
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let task = filteredTasks[indexPath.row]
 
-        let completeAction = UIContextualAction(style: .normal, title: "Done") { [weak self] (_, _, completion) in
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
+            self?.showConfirmationAlert(
+                title: "Delete Lesson?",
+                message: "Are you sure you want to delete '\(task.title ?? "this lesson")' and its notes?",
+                confirmTitle: "Delete",
+                isDestructive: true,
+                onConfirm: {
+                    CoreDataManager.shared.deleteTask(task)
+                    self?.loadTasksForCurrentTimeframe()
+                    self?.showToast(message: "Lesson deleted.", icon: "trash.fill", tintColor: DesignSystem.Colors.coral)
+                    completion(true)
+                }
+            )
+        }
+        deleteAction.image = UIImage(systemName: "trash")
+
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let task = filteredTasks[indexPath.row]
+
+        let completeAction = UIContextualAction(style: .normal, title: task.isDone ? "Undo" : "Done") { [weak self] (_, _, completion) in
             guard let self = self else { return }
             HapticHelper.success()
             CoreDataManager.shared.toggleTaskDone(task)
             self.loadTasksForCurrentTimeframe()
-            self.showToast(message: "🎉 Lesson Completed!", icon: "sparkles", tintColor: DesignSystem.Colors.success)
+            self.showToast(message: task.isDone ? "Lesson Marked Done!" : "Lesson Marked Pending", icon: task.isDone ? "checkmark.circle.fill" : "circle", tintColor: task.isDone ? DesignSystem.Colors.success : .systemGray)
             completion(true)
         }
-        completeAction.backgroundColor = DesignSystem.Colors.success
-        completeAction.image = UIImage(systemName: "checkmark.circle.fill")
+        completeAction.backgroundColor = task.isDone ? .systemGray : DesignSystem.Colors.success
+        completeAction.image = UIImage(systemName: task.isDone ? "arrow.uturn.backward" : "checkmark.circle.fill")
 
         return UISwipeActionsConfiguration(actions: [completeAction])
     }
