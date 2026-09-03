@@ -29,6 +29,8 @@ class CoursesListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
         loadCourses()
         setupHeaderView()
     }
@@ -59,10 +61,20 @@ class CoursesListViewController: UIViewController {
 
     // MARK: - UI Setup
     private func setupUI() {
-        navigationItem.title = ""
+        title = "Courses"
         navigationItem.backButtonTitle = "Courses"
-        navigationItem.largeTitleDisplayMode = .never
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
         view.backgroundColor = .systemGroupedBackground
+
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithDefaultBackground()
+        navAppearance.backgroundColor = .systemGroupedBackground
+        navAppearance.shadowColor = .clear
+        navAppearance.shadowImage = UIImage()
+        navigationController?.navigationBar.standardAppearance = navAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navAppearance
+        navigationController?.navigationBar.compactAppearance = navAppearance
 
         let tv = UITableView(frame: view.bounds, style: .plain)
         tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -118,40 +130,16 @@ class CoursesListViewController: UIViewController {
 
     // MARK: - Stats Header
     private func setupHeaderView() {
-        let (coursesCount, modulesCount, tasksCount, completedCount, overallRate) = CoreDataManager.shared.getAppStats()
-        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
-
         guard !courses.isEmpty else {
-            let emptyHeader = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: 60))
-            emptyHeader.backgroundColor = .clear
-
-            let headingLabel = UILabel()
-            headingLabel.translatesAutoresizingMaskIntoConstraints = false
-            headingLabel.text = "Courses"
-            headingLabel.font = .systemFont(ofSize: 32, weight: .bold)
-            headingLabel.textColor = .label
-            emptyHeader.addSubview(headingLabel)
-
-            NSLayoutConstraint.activate([
-                headingLabel.topAnchor.constraint(equalTo: emptyHeader.topAnchor, constant: 10),
-                headingLabel.leadingAnchor.constraint(equalTo: emptyHeader.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                headingLabel.trailingAnchor.constraint(equalTo: emptyHeader.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-            ])
-
-            tableView.tableHeaderView = emptyHeader
+            tableView.tableHeaderView = nil
             return
         }
 
-        let headerHeight: CGFloat = 186
+        let (coursesCount, modulesCount, tasksCount, completedCount, overallRate) = CoreDataManager.shared.getAppStats()
+        let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
+        let headerHeight: CGFloat = 126
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: headerHeight))
         headerView.backgroundColor = .clear
-
-        let headingLabel = UILabel()
-        headingLabel.translatesAutoresizingMaskIntoConstraints = false
-        headingLabel.text = "Courses"
-        headingLabel.font = .systemFont(ofSize: 32, weight: .bold)
-        headingLabel.textColor = .label
-        headerView.addSubview(headingLabel)
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
@@ -186,11 +174,7 @@ class CoursesListViewController: UIViewController {
         card.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
-            headingLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
-            headingLabel.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            headingLabel.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-
-            card.topAnchor.constraint(equalTo: headingLabel.bottomAnchor, constant: 12),
+            card.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 6),
             card.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             card.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -6),

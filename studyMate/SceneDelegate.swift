@@ -29,6 +29,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // Apply saved theme (System / Light / Dark)
         UserDefaultsManager.shared.applyTheme()
+        configureGlobalNavigationAppearance()
+    }
+
+    private func configureGlobalNavigationAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = .systemGroupedBackground
+        appearance.shadowColor = .clear
+        appearance.shadowImage = UIImage()
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
     }
 
     // MARK: - Programmatic TabBar Hierarchy Setup
