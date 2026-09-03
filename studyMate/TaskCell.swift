@@ -10,13 +10,7 @@ import UIKit
 
 class TaskCell: UITableViewCell {
 
-    // MARK: - IBOutlets (Storyboard Compatibility)
-    @IBOutlet weak var titleLabel: UILabel?
-    @IBOutlet weak var notesLabel: UILabel?
-    @IBOutlet weak var checkboxButton: UIButton?
-    @IBOutlet weak var cardContainerView: UIView?
-
-    /// Callback when checkbox is tapped
+    // MARK: - Callbacks
     var onToggleDone: (() -> Void)?
     var onToggleCompletion: (() -> Void)?
 
@@ -29,10 +23,7 @@ class TaskCell: UITableViewCell {
     private var progPageBadgeLabel: UILabel?
     private var doneOverlayView: UIView?
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        setupStyles()
-    }
+
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -43,18 +34,7 @@ class TaskCell: UITableViewCell {
         super.init(coder: coder)
     }
 
-    // MARK: - Storyboard Style Setup
-    private func setupStyles() {
-        selectionStyle = .none
-        backgroundColor = .clear
-        contentView.backgroundColor = .clear
-        cardContainerView?.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
-        titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        notesLabel?.font = .systemFont(ofSize: 13, weight: .regular)
-        notesLabel?.textColor = .secondaryLabel
-    }
 
-    // MARK: - Programmatic Full Layout
     private func buildProgrammaticLayout() {
         selectionStyle = .none
         backgroundColor = .clear
@@ -174,24 +154,6 @@ class TaskCell: UITableViewCell {
             notesText = "Tap to write study notes…"
         }
 
-        // ---- IBOutlet path ----
-        if titleLabel != nil {
-            if isDone {
-                let attr = NSMutableAttributedString(string: taskTitle)
-                attr.addAttribute(.strikethroughStyle, value: 2, range: NSMakeRange(0, attr.length))
-                attr.addAttribute(.foregroundColor, value: UIColor.secondaryLabel, range: NSMakeRange(0, attr.length))
-                titleLabel?.attributedText = attr
-            } else {
-                titleLabel?.text = taskTitle
-                titleLabel?.textColor = .label
-            }
-            notesLabel?.text = notesText
-            notesLabel?.textColor = .secondaryLabel
-            updateCheckboxAppearance(isDone: isDone)
-            cardContainerView?.alpha = isDone ? 0.62 : 1.0
-            return
-        }
-
         // ---- Programmatic path ----
         if isDone {
             let attr = NSMutableAttributedString(string: taskTitle)
@@ -226,19 +188,12 @@ class TaskCell: UITableViewCell {
         let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .medium)
         let image = UIImage(systemName: imageName, withConfiguration: config)
 
-        checkboxButton?.setImage(image, for: .normal)
-        checkboxButton?.tintColor = isDone ? DesignSystem.Colors.success : UIColor.tertiaryLabel
-
         progCheckbox?.setImage(image, for: .normal)
         progCheckbox?.tintColor = isDone ? DesignSystem.Colors.success : UIColor.tertiaryLabel
-
-        if checkboxButton == nil && progCheckbox == nil {
-            accessoryType = isDone ? .checkmark : .none
-        }
     }
 
-    // MARK: - IBAction + Programmatic Checkbox
-    @IBAction func checkboxTapped(_ sender: UIButton) {
+    // MARK: - Checkbox Action
+    @objc func checkboxTapped(_ sender: UIButton) {
         HapticHelper.success()
         // Spring bounce animation
         UIView.animate(withDuration: 0.10, animations: {

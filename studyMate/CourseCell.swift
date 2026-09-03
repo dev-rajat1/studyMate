@@ -10,14 +10,6 @@ import UIKit
 
 class CourseCell: UITableViewCell {
 
-    // MARK: - IBOutlets (Storyboard Compatibility)
-    @IBOutlet weak var nameLabel: UILabel?
-    @IBOutlet weak var topicCountLabel: UILabel?
-    @IBOutlet weak var colorTagView: UIView?
-    @IBOutlet weak var progressBar: UIProgressView?
-    @IBOutlet weak var progressLabel: UILabel?
-    @IBOutlet weak var cardContainerView: UIView?
-
     // MARK: - Programmatic UI Elements
     private var programmaticCard: UIView?
     private var accentBar: UIView?
@@ -30,10 +22,7 @@ class CourseCell: UITableViewCell {
     private var chevronIcon: UIImageView?
     private var gradientLayer: CAGradientLayer?
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        setupStyles()
-    }
+
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -44,27 +33,7 @@ class CourseCell: UITableViewCell {
         super.init(coder: coder)
     }
 
-    // MARK: - Storyboard Style Setup (IBOutlet path)
-    private func setupStyles() {
-        selectionStyle = .none
-        backgroundColor = .clear
-        contentView.backgroundColor = .clear
 
-        cardContainerView?.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
-        colorTagView?.layer.cornerRadius = 4
-        colorTagView?.layer.masksToBounds = true
-
-        progressBar?.layer.cornerRadius = 4
-        progressBar?.clipsToBounds = true
-        progressBar?.trackTintColor = UIColor.separator.withAlphaComponent(0.12)
-
-        nameLabel?.font = .systemFont(ofSize: 19, weight: .bold)
-        topicCountLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        topicCountLabel?.textColor = .secondaryLabel
-        progressLabel?.font = .systemFont(ofSize: 13, weight: .bold)
-    }
-
-    // MARK: - Programmatic Full Layout (No IBOutlets)
     private func buildProgrammaticLayout() {
         selectionStyle = .none
         backgroundColor = .clear
@@ -221,33 +190,6 @@ class CourseCell: UITableViewCell {
         let modulesCount = (course.topics as? Set<Topic>)?.count ?? 0
         let (totalTasks, completedTasks, progress) = CoreDataManager.shared.getCourseProgress(course: course)
         let isFullyDone = (totalTasks > 0 && completedTasks == totalTasks)
-
-        // ---- IBOutlet path ----
-        if nameLabel != nil {
-            nameLabel?.text = courseName
-            let subtitle = isFullyDone
-                ? "✨ All \(totalTasks) lessons mastered!"
-                : "📖 \(modulesCount) \(modulesCount == 1 ? "Module" : "Modules")  •  \(completedTasks)/\(totalTasks) Done"
-            topicCountLabel?.text = subtitle
-
-            colorTagView?.backgroundColor = courseColor
-            // Apply gradient to colorTagView
-            colorTagView?.layer.sublayers?.removeAll(where: { $0.name == "SMGradientLayer" })
-            let gl = CAGradientLayer()
-            gl.name = "SMGradientLayer"
-            gl.colors = gradientCols
-            gl.startPoint = CGPoint(x: 0, y: 0)
-            gl.endPoint = CGPoint(x: 0, y: 1)
-            gl.frame = colorTagView?.bounds ?? .zero
-            colorTagView?.layer.insertSublayer(gl, at: 0)
-
-            progressBar?.progress = progress
-            progressBar?.tintColor = courseColor
-
-            progressLabel?.text = "\(Int(progress * 100))%"
-            progressLabel?.textColor = isFullyDone ? DesignSystem.Colors.success : courseColor
-            return
-        }
 
         // ---- Programmatic path ----
         progNameLabel?.text = courseName

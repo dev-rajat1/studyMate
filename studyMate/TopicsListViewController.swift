@@ -10,9 +10,9 @@ import UIKit
 
 class TopicsListViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var emptyStateLabel: UILabel?
+    // MARK: - Views
+    var tableView: UITableView!
+    var emptyStateLabel: UILabel?
 
     // MARK: - Properties
     var course: Course!
@@ -41,12 +41,11 @@ class TopicsListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
 
-        if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .plain)
-            tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.addSubview(tv)
-            tableView = tv
-        }
+        let tv = UITableView(frame: view.bounds, style: .plain)
+        tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(tv)
+        tableView = tv
+        tableView.register(TopicCell.self, forCellReuseIdentifier: "TopicCell")
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -295,11 +294,9 @@ extension TopicsListViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedTopic = topics[indexPath.row]
         HapticHelper.lightImpact()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let tasksVC = storyboard.instantiateViewController(withIdentifier: "TasksListViewController") as? TasksListViewController {
-            tasksVC.topic = selectedTopic
-            navigationController?.pushViewController(tasksVC, animated: true)
-        }
+        let tasksVC = TasksListViewController()
+        tasksVC.topic = selectedTopic
+        navigationController?.pushViewController(tasksVC, animated: true)
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

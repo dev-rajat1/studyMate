@@ -10,13 +10,6 @@ import UIKit
 
 class TopicCell: UITableViewCell {
 
-    // MARK: - IBOutlets (Storyboard Compatibility)
-    @IBOutlet weak var titleLabel: UILabel?
-    @IBOutlet weak var deadlineLabel: UILabel?
-    @IBOutlet weak var taskCountLabel: UILabel?
-    @IBOutlet weak var aiBadgeView: UIView?
-    @IBOutlet weak var cardContainerView: UIView?
-
     // MARK: - Programmatic UI Elements
     private var programmaticCard: UIView?
     private var accentBullet: UIView?
@@ -29,10 +22,7 @@ class TopicCell: UITableViewCell {
     private var progressFill: UIView?
     private var progressTrack: UIView?
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        setupStyles()
-    }
+
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -43,20 +33,7 @@ class TopicCell: UITableViewCell {
         super.init(coder: coder)
     }
 
-    // MARK: - Storyboard Style Setup
-    private func setupStyles() {
-        selectionStyle = .none
-        backgroundColor = .clear
-        contentView.backgroundColor = .clear
-        cardContainerView?.applyCardStyle(cornerRadius: DesignSystem.Radius.card)
-        aiBadgeView?.layer.cornerRadius = 8
-        aiBadgeView?.layer.masksToBounds = true
-        titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
-        deadlineLabel?.font = .systemFont(ofSize: 12, weight: .medium)
-        taskCountLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-    }
 
-    // MARK: - Programmatic Full Layout
     private func buildProgrammaticLayout() {
         selectionStyle = .none
         backgroundColor = .clear
@@ -233,25 +210,6 @@ class TopicCell: UITableViewCell {
         let courseColor = ColorHelper.color(named: topic.course?.colorTag)
         let (total, completed, progress) = CoreDataManager.shared.getTopicProgress(topic: topic)
         let isDone = (total > 0 && completed == total)
-
-        // ---- IBOutlet path ----
-        if titleLabel != nil {
-            titleLabel?.text = topicTitle
-            let tasksText = isDone ? "✅ \(completed)/\(total) Completed" : "📝 \(completed)/\(total) Lessons"
-            taskCountLabel?.text = tasksText
-            taskCountLabel?.textColor = isDone ? DesignSystem.Colors.success : DesignSystem.Colors.primary
-
-            if let deadline = topic.deadline {
-                deadlineLabel?.text = "🗓 \(deadline.deadlineRelativeString())"
-                let (chipColor, _) = deadlineChipStyle(for: deadline)
-                deadlineLabel?.textColor = chipColor
-            } else {
-                deadlineLabel?.text = "🗓 No target date"
-                deadlineLabel?.textColor = .tertiaryLabel
-            }
-            aiBadgeView?.isHidden = (topic.aiSummary == nil)
-            return
-        }
 
         // ---- Programmatic path ----
         progTitleLabel?.text = topicTitle

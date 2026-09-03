@@ -10,11 +10,11 @@ import UIKit
 
 class TasksListViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var progressBar: UIProgressView?
-    @IBOutlet weak var progressLabel: UILabel?
-    @IBOutlet weak var emptyStateLabel: UILabel?
+    // MARK: - Views
+    var tableView: UITableView!
+    var progressBar: UIProgressView?
+    var progressLabel: UILabel?
+    var emptyStateLabel: UILabel?
 
     // MARK: - Properties
     var topic: Topic!
@@ -44,12 +44,11 @@ class TasksListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemGroupedBackground
 
-        if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .plain)
-            tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.addSubview(tv)
-            tableView = tv
-        }
+        let tv = UITableView(frame: view.bounds, style: .plain)
+        tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(tv)
+        tableView = tv
+        tableView.register(TaskCell.self, forCellReuseIdentifier: "TaskCell")
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -252,28 +251,24 @@ class TasksListViewController: UIViewController {
     }
 
     private func presentTaskDetail(taskToEdit: Task?) {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let detailVC = storyboard.instantiateViewController(withIdentifier: "TaskDetailViewController") as? TaskDetailViewController {
-            detailVC.topic = self.topic
-            detailVC.taskToEdit = taskToEdit
-            detailVC.onSaveCompleted = { [weak self] in
-                self?.loadTasks()
-                self?.setupHeaderBanner()
-            }
-            let nav = UINavigationController(rootViewController: detailVC)
-            nav.modalPresentationStyle = .pageSheet
-            present(nav, animated: true)
+        let detailVC = TaskDetailViewController()
+        detailVC.topic = self.topic
+        detailVC.taskToEdit = taskToEdit
+        detailVC.onSaveCompleted = { [weak self] in
+            self?.loadTasks()
+            self?.setupHeaderBanner()
         }
+        let nav = UINavigationController(rootViewController: detailVC)
+        nav.modalPresentationStyle = .pageSheet
+        present(nav, animated: true)
     }
 
     @objc func aiAssistantTapped() {
         HapticHelper.mediumImpact()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let aiVC = storyboard.instantiateViewController(withIdentifier: "AISummaryViewController") as? AISummaryViewController {
-            aiVC.topic = self.topic
-            aiVC.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(aiVC, animated: true)
-        }
+        let aiVC = AISummaryViewController()
+        aiVC.topic = self.topic
+        aiVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(aiVC, animated: true)
     }
 }
 

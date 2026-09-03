@@ -10,10 +10,9 @@ import UIKit
 
 class TaskDetailViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet weak var titleTextField: UITextField?
-    @IBOutlet weak var notesTextView: UITextView?
-    @IBOutlet weak var isDoneSwitch: UISwitch?
+    // MARK: - Views
+    private var titleTextField: UITextField?
+    private var notesTextView: UITextView?
 
     // MARK: - Properties
     var topic: Topic!
@@ -25,9 +24,7 @@ class TaskDetailViewController: UIViewController {
     private var pages: [String] = [""]
     private var currentPageIndex: Int = 0
 
-    // Programmatic UI
-    private var progTitleField: UITextField?
-    private var progNotesTextView: UITextView?
+
 
     // Pagination Island (Glassmorphic)
     private let paginationContainer = UIView()
@@ -77,27 +74,7 @@ class TaskDetailViewController: UIViewController {
 
         navigationItem.rightBarButtonItems = [saveBtn, completionBarButton]
 
-        // ---- Style storyboard outlets if present ----
-        if titleTextField != nil {
-            titleTextField?.placeholder = "Lesson / Note Title"
-            titleTextField?.font = .systemFont(ofSize: 18, weight: .bold)
-            titleTextField?.layer.cornerRadius = 12
-            titleTextField?.backgroundColor = .secondarySystemGroupedBackground
-            titleTextField?.layer.borderWidth = 1.0
-            titleTextField?.layer.borderColor = courseColor.withAlphaComponent(0.35).cgColor
-            titleTextField?.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 1))
-            titleTextField?.leftViewMode = .always
 
-            notesTextView?.layer.cornerRadius = 16
-            notesTextView?.layer.borderWidth = 0.5
-            notesTextView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.18).cgColor
-            notesTextView?.backgroundColor = .secondarySystemGroupedBackground
-            notesTextView?.font = .systemFont(ofSize: 16, weight: .regular)
-            notesTextView?.textContainerInset = UIEdgeInsets(top: 16, left: 14, bottom: 16, right: 14)
-            return
-        }
-
-        // ---- Programmatic layout (no storyboard outlets) ----
         buildProgrammaticEditorUI(courseColor: courseColor)
     }
 
@@ -116,7 +93,7 @@ class TaskDetailViewController: UIViewController {
         titleField.returnKeyType = .next
         DesignSystem.Shadow.applyCard(to: titleField.layer)
         view.addSubview(titleField)
-        progTitleField = titleField
+        titleTextField = titleField
 
         // Notes TextView (notebook style)
         let textView = UITextView()
@@ -130,7 +107,7 @@ class TaskDetailViewController: UIViewController {
         textView.keyboardDismissMode = .interactive
         DesignSystem.Shadow.applyCard(to: textView.layer)
         view.addSubview(textView)
-        progNotesTextView = textView
+        notesTextView = textView
 
         NSLayoutConstraint.activate([
             titleField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -151,12 +128,10 @@ class TaskDetailViewController: UIViewController {
     @objc private func keyboardWillShow(_ notification: Notification) {
         guard let kbFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else { return }
         let inset = view.bounds.height - kbFrame.origin.y + 10
-        progNotesTextView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset, right: 0)
         notesTextView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset, right: 0)
     }
 
     @objc private func keyboardWillHide(_ notification: Notification) {
-        progNotesTextView?.contentInset = .zero
         notesTextView?.contentInset = .zero
     }
 
@@ -175,7 +150,7 @@ class TaskDetailViewController: UIViewController {
 
         formattingToolbar.items = [bulletBtn, todoBtn, numBtn, keyBtn, flex, doneBtn]
 
-        (notesTextView ?? progNotesTextView)?.inputAccessoryView = formattingToolbar
+        notesTextView?.inputAccessoryView = formattingToolbar
     }
 
     private func makeToolbarButton(icon: String, action: Selector) -> UIBarButtonItem {
@@ -192,8 +167,7 @@ class TaskDetailViewController: UIViewController {
     @objc private func insertKeyPoint() { insertTextAtCursor("\n💡 Key Concept: ") }
 
     private func insertTextAtCursor(_ text: String) {
-        let tv = notesTextView ?? progNotesTextView
-        guard let textView = tv else { return }
+        guard let textView = notesTextView else { return }
         HapticHelper.lightImpact()
         if let selectedRange = textView.selectedTextRange {
             textView.replace(selectedRange, withText: text)
@@ -246,8 +220,6 @@ class TaskDetailViewController: UIViewController {
         view.addSubview(paginationContainer)
 
         // Determine reference view for bottom constraint
-        let activeTextView = notesTextView ?? progNotesTextView
-
         NSLayoutConstraint.activate([
             paginationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             paginationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
@@ -260,7 +232,7 @@ class TaskDetailViewController: UIViewController {
             pagStack.bottomAnchor.constraint(equalTo: paginationContainer.bottomAnchor)
         ])
 
-        if let tv = activeTextView {
+        if let tv = notesTextView {
             tv.bottomAnchor.constraint(equalTo: paginationContainer.topAnchor, constant: -12).isActive = true
         }
     }
@@ -268,7 +240,7 @@ class TaskDetailViewController: UIViewController {
     // MARK: - Data & Pagination
     private func populateExistingData() {
         if let task = taskToEdit {
-            (titleTextField ?? progTitleField)?.text = task.title
+            titleTextField?.text = task.title
             isCompletedState = task.isDone
             updateCompletionButtonAppearance()
 
@@ -291,13 +263,13 @@ class TaskDetailViewController: UIViewController {
 
     private func saveCurrentPageText() {
         if currentPageIndex < pages.count {
-            pages[currentPageIndex] = (notesTextView ?? progNotesTextView)?.text ?? ""
+            pages[currentPageIndex] = notesTextView?.text ?? ""
         }
     }
 
     private func loadCurrentPageText() {
         if currentPageIndex < pages.count {
-            (notesTextView ?? progNotesTextView)?.text = pages[currentPageIndex]
+            notesTextView?.text = pages[currentPageIndex]
         }
     }
 
@@ -357,10 +329,10 @@ class TaskDetailViewController: UIViewController {
 
     // MARK: - Save & Dismiss
     @IBAction @objc func saveTapped(_ sender: Any) {
-        let titleText = (titleTextField ?? progTitleField)?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let titleText = titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let title = titleText, !title.isEmpty else {
             showAlert(title: "Missing Title", message: "Please enter a title for this lesson.")
-            (titleTextField ?? progTitleField)?.shake()
+            titleTextField?.shake()
             return
         }
 

@@ -10,9 +10,9 @@ import UIKit
 
 class CoursesListViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var emptyStateLabel: UILabel?
+    // MARK: - Views
+    var tableView: UITableView!
+    var emptyStateLabel: UILabel?
 
     // MARK: - Properties
     private var courses: [Course] = []
@@ -40,12 +40,11 @@ class CoursesListViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
 
-        if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .plain)
-            tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.addSubview(tv)
-            tableView = tv
-        }
+        let tv = UITableView(frame: view.bounds, style: .plain)
+        tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(tv)
+        tableView = tv
+        tableView.register(CourseCell.self, forCellReuseIdentifier: "CourseCell")
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -287,11 +286,9 @@ extension CoursesListViewController: UITableViewDataSource, UITableViewDelegate 
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedCourse = courses[indexPath.row]
         HapticHelper.lightImpact()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let topicsVC = storyboard.instantiateViewController(withIdentifier: "TopicsListViewController") as? TopicsListViewController {
-            topicsVC.course = selectedCourse
-            navigationController?.pushViewController(topicsVC, animated: true)
-        }
+        let topicsVC = TopicsListViewController()
+        topicsVC.course = selectedCourse
+        navigationController?.pushViewController(topicsVC, animated: true)
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

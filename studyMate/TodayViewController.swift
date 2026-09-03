@@ -10,9 +10,9 @@ import UIKit
 
 class TodayViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var emptyStateLabel: UILabel?
+    // MARK: - Views
+    var tableView: UITableView!
+    var emptyStateLabel: UILabel?
 
     // MARK: - Properties
     private var currentTimeframe: StudyTimeframe = .today
@@ -51,12 +51,11 @@ class TodayViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
 
-        if tableView == nil {
-            let tv = UITableView(frame: view.bounds, style: .plain)
-            tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.addSubview(tv)
-            tableView = tv
-        }
+        let tv = UITableView(frame: view.bounds, style: .plain)
+        tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(tv)
+        tableView = tv
+        tableView.register(TaskCell.self, forCellReuseIdentifier: "TaskCell")
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -446,11 +445,9 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
         HapticHelper.lightImpact()
 
         if let topic = task.topic {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let tasksVC = storyboard.instantiateViewController(withIdentifier: "TasksListViewController") as? TasksListViewController {
-                tasksVC.topic = topic
-                navigationController?.pushViewController(tasksVC, animated: true)
-            }
+            let tasksVC = TasksListViewController()
+            tasksVC.topic = topic
+            navigationController?.pushViewController(tasksVC, animated: true)
         }
     }
 

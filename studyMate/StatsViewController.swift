@@ -10,16 +10,7 @@ import UIKit
 
 class StatsViewController: UIViewController {
 
-    // MARK: - IBOutlets (Storyboard Compatibility)
-    @IBOutlet weak var totalCoursesLabel: UILabel?
-    @IBOutlet weak var totalTopicsLabel: UILabel?
-    @IBOutlet weak var totalTasksLabel: UILabel?
-    @IBOutlet weak var completedTasksLabel: UILabel?
-    @IBOutlet weak var completionRateLabel: UILabel?
-    @IBOutlet weak var progressView: UIProgressView?
-    @IBOutlet weak var motivationLabel: UILabel?
-    @IBOutlet weak var overallProgressCard: UIView?
-    @IBOutlet weak var numbersGridCard: UIView?
+
 
     // MARK: - Programmatic Components
     private let scrollView = UIScrollView()
@@ -42,18 +33,7 @@ class StatsViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemGroupedBackground
 
-        // Style storyboard outlets if present
-        overallProgressCard?.applyCardStyle(cornerRadius: 20)
-        numbersGridCard?.applyCardStyle(cornerRadius: 20)
-        progressView?.layer.cornerRadius = 4
-        progressView?.clipsToBounds = true
-        progressView?.tintColor = DesignSystem.Colors.primary
-        progressView?.trackTintColor = UIColor.separator.withAlphaComponent(0.12)
-
-        // Programmatic scroll layout (when no storyboard)
-        if overallProgressCard == nil {
-            setupScrollLayout()
-        }
+        setupScrollLayout()
     }
 
     private func setupScrollLayout() {
@@ -87,34 +67,10 @@ class StatsViewController: UIViewController {
         let (courses, topics, tasks, completed, rate) = CoreDataManager.shared.getAppStats()
         let insights = CoreDataManager.shared.getCourseMasteryInsights()
 
-        // ---- Update storyboard outlets ----
-        totalCoursesLabel?.text = "\(courses)"
-        totalTopicsLabel?.text = "\(topics)"
-        totalTasksLabel?.text = "\(tasks)"
-        completedTasksLabel?.text = "\(completed)"
-        completionRateLabel?.text = "\(Int(rate))%"
-        let prog: Float = tasks > 0 ? Float(completed) / Float(tasks) : 0
-        progressView?.setProgress(prog, animated: true)
-
-        let lowestCourse = insights.filter { $0.totalLessons > 0 && $0.progress < 1.0 }.min(by: { $0.progress < $1.progress })
-        let totalAI = insights.reduce(0) { $0 + $1.aiSummaryCount }
-        if tasks == 0 {
-            motivationLabel?.text = "🌱 Create courses and lessons to unlock subject mastery metrics!"
-        } else if rate >= 100 {
-            motivationLabel?.text = "🏆 Master Level! You've completed 100% of your curriculum!"
-        } else if let focus = lowestCourse {
-            motivationLabel?.text = "🎯 Focus on \"\(focus.course.name ?? "Subject")\" — \(Int(focus.progress * 100))% mastered."
-        } else {
-            motivationLabel?.text = "🔥 Great momentum! \(totalAI) AI summaries ready for active recall."
-        }
-
-        // ---- Rebuild programmatic layout ----
-        if overallProgressCard == nil {
-            rebuildProgrammaticDashboard(
-                courses: courses, topics: topics, tasks: tasks,
-                completed: completed, rate: Float(rate), insights: insights
-            )
-        }
+        rebuildProgrammaticDashboard(
+            courses: courses, topics: topics, tasks: tasks,
+            completed: completed, rate: Float(rate), insights: insights
+        )
     }
 
     // MARK: - Programmatic Dashboard Builder

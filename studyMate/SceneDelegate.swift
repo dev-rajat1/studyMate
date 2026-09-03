@@ -33,25 +33,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     // MARK: - Programmatic TabBar Hierarchy Setup
     private func createRootTabBarController() -> UITabBarController {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
         // 1. Tab 1: Study Planner (Multi-Timeframe Timeline)
-        let todayVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "TodayViewController")
+        let todayVC = TodayViewController()
         let todayNav = UINavigationController(rootViewController: todayVC)
         todayNav.tabBarItem = UITabBarItem(title: "Planner", image: UIImage(systemName: "calendar.badge.clock"), selectedImage: UIImage(systemName: "calendar"))
         
         // 2. Tab 2: Courses
-        let coursesVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "CoursesListViewController")
+        let coursesVC = CoursesListViewController()
         let coursesNav = UINavigationController(rootViewController: coursesVC)
         coursesNav.tabBarItem = UITabBarItem(title: "Courses", image: UIImage(systemName: "books.vertical"), selectedImage: UIImage(systemName: "books.vertical.fill"))
         
         // 3. Tab 3: Analytics
-        let statsVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "StatsViewController")
+        let statsVC = StatsViewController()
         let statsNav = UINavigationController(rootViewController: statsVC)
         statsNav.tabBarItem = UITabBarItem(title: "Analytics", image: UIImage(systemName: "chart.bar.xaxis"), selectedImage: UIImage(systemName: "chart.bar.xaxis"))
         
         // 4. Tab 4: Settings
-        let settingsVC: UIViewController = storyboard.instantiateViewController(withIdentifier: "SettingsViewController")
+        let settingsVC = SettingsViewController()
         let settingsNav = UINavigationController(rootViewController: settingsVC)
         settingsNav.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), selectedImage: UIImage(systemName: "gearshape.fill"))
         
