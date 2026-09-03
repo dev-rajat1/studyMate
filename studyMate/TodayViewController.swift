@@ -27,11 +27,13 @@ class TodayViewController: UIViewController {
 
     // Custom Pill Segment Container
     private let segmentScrollView = UIScrollView()
+    private let pillStack = UIStackView()
     private var pillButtons: [UIButton] = []
     private let pillLabels = ["📅 Today", "🌅 Tomorrow", "📆 Week", "🗓️ Month", "📋 All"]
     private var activePillIndex: Int = 0
 
     // Empty State View
+    private let emptyStateAreaGuide = UILayoutGuide()
     private let emptyStateContainer = UIView()
     private let emptyStateIconContainer = UIView()
     private let emptyStateIconView = UIImageView()
@@ -94,17 +96,18 @@ class TodayViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 96
+        tableView.estimatedRowHeight = 88
         tableView.backgroundColor = .systemGroupedBackground
-        tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 28, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 90, right: 0)
     }
     
-    // MARK: - Search Setup
+    // MARK: - Search Controller
     private func setupSearchController() {
         searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search Lessons..."
+        searchController.searchBar.placeholder = "Search upcoming lessons & tasks..."
+        searchController.searchBar.searchBarStyle = .minimal
         searchController.searchBar.tintColor = DesignSystem.Colors.primary
         
         navigationItem.searchController = searchController
@@ -112,169 +115,171 @@ class TodayViewController: UIViewController {
         definesPresentationContext = true
     }
 
-    // MARK: - Custom Pill Segment Bar
+    // MARK: - Multi-Timeframe Pill Bar (Horizontal Scroll)
     private func setupPillSegmentBar() {
         segmentScrollView.showsHorizontalScrollIndicator = false
-        segmentScrollView.showsVerticalScrollIndicator = false
+        segmentScrollView.backgroundColor = .clear
         segmentScrollView.contentInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        segmentScrollView.alwaysBounceHorizontal = true
 
-        for (index, label) in pillLabels.enumerated() {
-            let btn = UIButton(type: .system)
-            btn.setTitle(label, for: .normal)
+        pillStack.axis = .horizontal
+        pillStack.spacing = 8
+        pillStack.alignment = .center
+        pillStack.distribution = .fillProportionally
+        segmentScrollView.addSubview(pillStack)
+
+        pillButtons.removeAll()
+        for (index, title) in pillLabels.enumerated() {
+            let btn = UIButton(type: .custom)
+            btn.setTitle(title, for: .normal)
             btn.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
             btn.layer.cornerRadius = 16
-            btn.clipsToBounds = true
-            btn.tag = index
+            btn.layer.borderWidth = 1
             btn.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+            btn.tag = index
             btn.addTarget(self, action: #selector(pillTapped(_:)), for: .touchUpInside)
-            segmentScrollView.addSubview(btn)
+
+            if index == 0 {
+                // Active pill styling
+                btn.backgroundColor = DesignSystem.Colors.primary
+                btn.setTitleColor(.white, for: .normal)
+                btn.layer.borderColor = UIColor.clear.cgColor
+                btn.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 16)
+                DesignSystem.Shadow.applyGlow(to: btn.layer, color: DesignSystem.Colors.primary)
+            } else {
+                // Inactive pill styling
+                btn.backgroundColor = .secondarySystemGroupedBackground
+                btn.setTitleColor(.secondaryLabel, for: .normal)
+                btn.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
+            }
+
             pillButtons.append(btn)
+            pillStack.addArrangedSubview(btn)
         }
-        updatePillAppearance()
     }
 
     private func layoutPills() {
-        var x: CGFloat = 0
-        for btn in pillButtons {
-            btn.sizeToFit()
-            let width = btn.intrinsicContentSize.width + 28
-            btn.frame = CGRect(x: x, y: 4, width: width, height: 32)
-            x += width + 8
-        }
-        segmentScrollView.contentSize = CGSize(width: x, height: 40)
-    }
-
-    private func updatePillAppearance() {
-        for (i, btn) in pillButtons.enumerated() {
-            if i == activePillIndex {
-                btn.backgroundColor = DesignSystem.Colors.primary // Fallback
-                btn.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 16)
-                btn.setTitleColor(.white, for: .normal)
-                DesignSystem.Shadow.applyGlow(to: btn.layer, color: DesignSystem.Colors.primary)
-            } else {
-                btn.layer.sublayers?.removeAll(where: { $0.name == "SMGradientLayer" })
-                btn.backgroundColor = UIColor.secondarySystemGroupedBackground
-                btn.setTitleColor(.secondaryLabel, for: .normal)
-                btn.layer.shadowOpacity = 0
-            }
-        }
+        pillStack.frame = CGRect(x: 16, y: 0, width: 0, height: 44)
+        pillStack.sizeToFit()
+        segmentScrollView.contentSize = CGSize(width: pillStack.frame.width + 32, height: 44)
     }
 
     @objc private func pillTapped(_ sender: UIButton) {
+        guard sender.tag != activePillIndex else { return }
         HapticHelper.lightImpact()
+
+        // Update previous active button
+        let prevBtn = pillButtons[activePillIndex]
+        prevBtn.backgroundColor = .secondarySystemGroupedBackground
+        prevBtn.setTitleColor(.secondaryLabel, for: .normal)
+        prevBtn.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
+        prevBtn.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        prevBtn.layer.shadowOpacity = 0
+
+        // Update newly tapped button
         activePillIndex = sender.tag
-        if let tf = StudyTimeframe(rawValue: sender.tag) {
-            currentTimeframe = tf
-        }
-        updatePillAppearance()
-        UIView.transition(with: tableView, duration: 0.22, options: .transitionCrossDissolve, animations: {
-            self.loadTasksForCurrentTimeframe()
-        }, completion: nil)
+        sender.backgroundColor = DesignSystem.Colors.primary
+        sender.setTitleColor(.white, for: .normal)
+        sender.layer.borderColor = UIColor.clear.cgColor
+        sender.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 16)
+        DesignSystem.Shadow.applyGlow(to: sender.layer, color: DesignSystem.Colors.primary)
+
+        // Scroll pill into view smoothly
+        segmentScrollView.scrollRectToVisible(sender.frame.insetBy(dx: -20, dy: 0), animated: true)
+
+        // Map index to StudyTimeframe
+        currentTimeframe = StudyTimeframe(rawValue: sender.tag) ?? .today
+        loadTasksForCurrentTimeframe()
     }
 
-    // MARK: - Gradient Hero Header
+    // MARK: - Dynamic Hero Greeting Card
     private func setupDashboardHeader() {
-        let count = filteredTasks.count
-        let doneCount = filteredTasks.filter { $0.isDone }.count
-        let total = filteredTasks.count
-        let pct: Float = total > 0 ? Float(doneCount) / Float(total) : 0
+        let (coursesCount, _, totalTasks, completedTasks, _) = CoreDataManager.shared.getAppStats()
+        let pct = totalTasks > 0 ? Float(completedTasks) / Float(totalTasks) : 0.0
 
         let headerWidth = tableView.bounds.width > 0 ? tableView.bounds.width : view.bounds.width
-        let headerHeight: CGFloat = 210
+        let headerHeight: CGFloat = 246
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: headerWidth, height: headerHeight))
         headerView.backgroundColor = .clear
 
+        // Add segment pill bar to header
         segmentScrollView.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(segmentScrollView)
-        layoutPills()
 
+        // Hero Card (Dynamic Time Greeting)
         let heroCard = UIView()
         heroCard.translatesAutoresizingMaskIntoConstraints = false
-        heroCard.layer.cornerRadius = 24
-        heroCard.layer.masksToBounds = false
+        heroCard.applyCardStyle(cornerRadius: 20)
         heroCard.clipsToBounds = true
-        headerView.addSubview(heroCard)
-
-        heroCard.backgroundColor = DesignSystem.Colors.primary
+        heroCard.backgroundColor = DesignSystem.Colors.navy
         heroCard.applyGradientBackground(
-            colors: DesignSystem.Gradients.hero,
+            colors: [DesignSystem.Colors.navy.cgColor, UIColor(red: 0.12, green: 0.12, blue: 0.32, alpha: 1.0).cgColor],
             startPoint: CGPoint(x: 0, y: 0),
             endPoint: CGPoint(x: 1, y: 1),
-            cornerRadius: 24
+            cornerRadius: 20
         )
+        headerView.addSubview(heroCard)
 
-        heroCard.layer.masksToBounds = false
-        heroCard.clipsToBounds = true
-
-        let dateLabel = UILabel()
-        dateLabel.text = Date().formattedGreetingDate()
-        dateLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        dateLabel.textColor = UIColor.white.withAlphaComponent(0.70)
-
+        // Greeting Header
         let hour = Calendar.current.component(.hour, from: Date())
-        let greeting = hour < 12 ? "Good Morning ☀️" : hour < 17 ? "Good Afternoon ⚡" : "Good Evening 🌙"
+        let greeting: String
+        switch hour {
+        case 5..<12: greeting = "Good Morning ☀️"
+        case 12..<17: greeting = "Good Afternoon 🌤️"
+        case 17..<21: greeting = "Good Evening 🌅"
+        default: greeting = "Good Night 🌙"
+        }
+
         let greetingLabel = UILabel()
         greetingLabel.text = greeting
         greetingLabel.font = .systemFont(ofSize: 22, weight: .black)
         greetingLabel.textColor = .white
 
-        let targetLabel = UILabel()
-        if count == 0 {
-            targetLabel.text = "🎉 All caught up for \(currentTimeframe.title.lowercased())!"
-            targetLabel.textColor = DesignSystem.Colors.teal
-        } else {
-            targetLabel.text = "⚡ \(count) \(count == 1 ? "Lesson" : "Lessons") Scheduled"
-            targetLabel.textColor = UIColor.white.withAlphaComponent(0.90)
-        }
-        targetLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        let subGreetingLabel = UILabel()
+        let dueCount = filteredTasks.count
+        subGreetingLabel.text = dueCount == 0 ? "All caught up for \(currentTimeframe.title)!" : "⚡ \(dueCount) \(dueCount == 1 ? "Lesson" : "Lessons") Scheduled"
+        subGreetingLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        subGreetingLabel.textColor = UIColor.white.withAlphaComponent(0.80)
 
-        let subLabel = UILabel()
-        subLabel.font = .systemFont(ofSize: 13, weight: .regular)
-        subLabel.textColor = UIColor.white.withAlphaComponent(0.60)
-        subLabel.numberOfLines = 2
-        switch currentTimeframe {
-        case .today:
-            subLabel.text = count == 0 ? "Review notes or test yourself with an AI quiz." : "Focus and check off each lesson as you finish."
-        case .tomorrow:
-            subLabel.text = count == 0 ? "No deadlines tomorrow — relax or plan ahead!" : "Get a head-start on tomorrow's lessons today."
-        case .thisWeek:
-            subLabel.text = count == 0 ? "All weekly targets met! Outstanding consistency." : "Steady daily pace to conquer all weekly goals."
-        case .thisMonth:
-            subLabel.text = count == 0 ? "Monthly curriculum complete! Great momentum." : "Track your monthly roadmap and master all topics."
-        case .all:
-            subLabel.text = count == 0 ? "No lessons found. Create a course to start." : "Complete curriculum roadmap across all subjects."
-        }
-        
-        let leftContentStack = UIStackView.make(axis: .vertical, spacing: 4)
-        leftContentStack.addArrangedSubview(dateLabel)
-        leftContentStack.addArrangedSubview(greetingLabel)
-        leftContentStack.setCustomSpacing(10, after: greetingLabel)
-        leftContentStack.addArrangedSubview(targetLabel)
-        leftContentStack.setCustomSpacing(6, after: targetLabel)
-        leftContentStack.addArrangedSubview(subLabel)
+        let greetingStack = UIStackView.make(axis: .vertical, spacing: 3)
+        greetingStack.addArrangedSubview(greetingLabel)
+        greetingStack.addArrangedSubview(subGreetingLabel)
 
-        let progressRing = ProgressRingView()
+        // Progress Ring inside hero
+        let progressRing = CircularProgressView(frame: CGRect(x: 0, y: 0, width: 62, height: 62))
         progressRing.translatesAutoresizingMaskIntoConstraints = false
-        progressRing.lineWidth = 7
-        progressRing.ringColor = DesignSystem.Colors.teal
-        progressRing.trackColor = UIColor.white.withAlphaComponent(0.15)
-        progressRing.widthAnchor.constraint(equalToConstant: 72).isActive = true
-        progressRing.heightAnchor.constraint(equalToConstant: 72).isActive = true
+        progressRing.lineWidth = 6
+        progressRing.configure(progress: CGFloat(pct), ringColor: DesignSystem.Colors.teal)
 
-        let mainStack = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
-        mainStack.addArrangedSubview(leftContentStack)
-        mainStack.addArrangedSubview(progressRing)
-        
+        let heroTopRow = UIStackView.make(axis: .horizontal, spacing: 12, alignment: .center)
+        heroTopRow.addArrangedSubview(greetingStack)
+        heroTopRow.addArrangedSubview(progressRing)
+        NSLayoutConstraint.activate([
+            progressRing.widthAnchor.constraint(equalToConstant: 62),
+            progressRing.heightAnchor.constraint(equalToConstant: 62)
+        ])
+
+        // Hero Stats Bar: Courses enrolled & overall completion rate
+        let coursesStat = buildHeroPill(icon: "book.closed.fill", text: "\(coursesCount) Courses")
+        let completedStat = buildHeroPill(icon: "checkmark.circle.fill", text: "\(completedTasks)/\(totalTasks) Done")
+        let paceStat = buildHeroPill(icon: "chart.line.uptrend.xyaxis", text: "\(Int(pct * 100))% Mastered")
+
+        let statsBar = UIStackView.make(axis: .horizontal, spacing: 8, alignment: .center, distribution: .fillEqually)
+        statsBar.addArrangedSubview(coursesStat)
+        statsBar.addArrangedSubview(completedStat)
+        statsBar.addArrangedSubview(paceStat)
+
+        let mainStack = UIStackView.make(axis: .vertical, spacing: 14)
+        mainStack.addArrangedSubview(heroTopRow)
+        mainStack.addArrangedSubview(statsBar)
         heroCard.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
-            segmentScrollView.topAnchor.constraint(equalTo: headerView.topAnchor),
-            segmentScrollView.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor),
-            segmentScrollView.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor),
+            segmentScrollView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 4),
+            segmentScrollView.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            segmentScrollView.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             segmentScrollView.heightAnchor.constraint(equalToConstant: 44),
 
-            heroCard.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 48),
+            heroCard.topAnchor.constraint(equalTo: segmentScrollView.bottomAnchor, constant: 10),
             heroCard.leadingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             heroCard.trailingAnchor.constraint(equalTo: headerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             heroCard.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
@@ -286,16 +291,25 @@ class TodayViewController: UIViewController {
         ])
 
         tableView.tableHeaderView = headerView
+    }
 
-        DispatchQueue.main.async {
-            progressRing.setNeedsLayout()
-            progressRing.layoutIfNeeded()
-            progressRing.configure(progress: CGFloat(pct), ringColor: DesignSystem.Colors.teal)
-        }
+    private func buildHeroPill(icon: String, text: String) -> UIView {
+        let hStack = UIStackView.make(axis: .horizontal, spacing: 6)
+        let img = UIImageView(image: UIImage(systemName: icon))
+        img.tintColor = .white.withAlphaComponent(0.6)
+        let lbl = UILabel()
+        lbl.text = text
+        lbl.font = .systemFont(ofSize: 11, weight: .semibold)
+        lbl.textColor = .white.withAlphaComponent(0.9)
+        hStack.addArrangedSubview(img)
+        hStack.addArrangedSubview(lbl)
+        return hStack
     }
 
     // MARK: - Premium Empty State View
     private func setupEmptyStateView() {
+        view.addLayoutGuide(emptyStateAreaGuide)
+
         emptyStateContainer.translatesAutoresizingMaskIntoConstraints = false
         emptyStateContainer.backgroundColor = .clear
         emptyStateContainer.isHidden = true
@@ -303,12 +317,12 @@ class TodayViewController: UIViewController {
 
         emptyStateIconContainer.translatesAutoresizingMaskIntoConstraints = false
         emptyStateIconContainer.backgroundColor = DesignSystem.Colors.primary.withAlphaComponent(0.12)
-        emptyStateIconContainer.layer.cornerRadius = 42
+        emptyStateIconContainer.layer.cornerRadius = 38
         emptyStateIconContainer.clipsToBounds = false
         emptyStateIconContainer.layer.shadowColor = DesignSystem.Colors.primary.cgColor
         emptyStateIconContainer.layer.shadowOpacity = 0.28
         emptyStateIconContainer.layer.shadowOffset = CGSize(width: 0, height: 8)
-        emptyStateIconContainer.layer.shadowRadius = 18
+        emptyStateIconContainer.layer.shadowRadius = 16
 
         emptyStateIconView.translatesAutoresizingMaskIntoConstraints = false
         emptyStateIconView.contentMode = .scaleAspectFit
@@ -316,7 +330,7 @@ class TodayViewController: UIViewController {
         emptyStateIconContainer.addSubview(emptyStateIconView)
 
         emptyStateTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateTitleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        emptyStateTitleLabel.font = .systemFont(ofSize: 19, weight: .bold)
         emptyStateTitleLabel.textColor = .label
         emptyStateTitleLabel.textAlignment = .center
 
@@ -332,7 +346,7 @@ class TodayViewController: UIViewController {
         emptyStateExploreButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
         emptyStateExploreButton.layer.cornerRadius = 22
         emptyStateExploreButton.clipsToBounds = false
-        emptyStateExploreButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 24, bottom: 12, right: 24)
+        emptyStateExploreButton.contentEdgeInsets = UIEdgeInsets(top: 11, left: 22, bottom: 11, right: 22)
         emptyStateExploreButton.applyGradientBackground(colors: DesignSystem.Gradients.primary, cornerRadius: 22)
         DesignSystem.Shadow.applyGlow(to: emptyStateExploreButton.layer, color: DesignSystem.Colors.primary)
         emptyStateExploreButton.addTarget(self, action: #selector(exploreCoursesTapped), for: .touchUpInside)
@@ -346,31 +360,42 @@ class TodayViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = 14
-        stack.setCustomSpacing(18, after: emptyStateIconContainer)
-        stack.setCustomSpacing(20, after: emptyStateMsgLabel)
+        stack.spacing = 10
+        stack.setCustomSpacing(14, after: emptyStateIconContainer)
+        stack.setCustomSpacing(16, after: emptyStateMsgLabel)
         emptyStateContainer.addSubview(stack)
 
+        let centerYConstraint = emptyStateContainer.centerYAnchor.constraint(equalTo: emptyStateAreaGuide.centerYAnchor)
+        centerYConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
-            emptyStateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
-            emptyStateContainer.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
-            emptyStateContainer.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            emptyStateContainer.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: 20),
-            emptyStateContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 420),
+            // Layout guide covers the visible region between bottom of greeting header and bottom tab bar
+            emptyStateAreaGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 250),
+            emptyStateAreaGuide.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            emptyStateAreaGuide.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            emptyStateAreaGuide.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+
+            emptyStateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: emptyStateAreaGuide.leadingAnchor, constant: 24),
+            emptyStateContainer.trailingAnchor.constraint(lessThanOrEqualTo: emptyStateAreaGuide.trailingAnchor, constant: -24),
+            emptyStateContainer.centerXAnchor.constraint(equalTo: emptyStateAreaGuide.centerXAnchor),
+            centerYConstraint,
+            emptyStateContainer.topAnchor.constraint(greaterThanOrEqualTo: emptyStateAreaGuide.topAnchor, constant: 12),
+            emptyStateContainer.bottomAnchor.constraint(lessThanOrEqualTo: emptyStateAreaGuide.bottomAnchor, constant: -12),
+            emptyStateContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 400),
 
             stack.topAnchor.constraint(equalTo: emptyStateContainer.topAnchor),
             stack.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: emptyStateContainer.trailingAnchor),
             stack.bottomAnchor.constraint(equalTo: emptyStateContainer.bottomAnchor),
 
-            emptyStateIconContainer.widthAnchor.constraint(equalToConstant: 84),
-            emptyStateIconContainer.heightAnchor.constraint(equalToConstant: 84),
+            emptyStateIconContainer.widthAnchor.constraint(equalToConstant: 76),
+            emptyStateIconContainer.heightAnchor.constraint(equalToConstant: 76),
             emptyStateIconView.centerXAnchor.constraint(equalTo: emptyStateIconContainer.centerXAnchor),
             emptyStateIconView.centerYAnchor.constraint(equalTo: emptyStateIconContainer.centerYAnchor),
-            emptyStateIconView.widthAnchor.constraint(equalToConstant: 38),
-            emptyStateIconView.heightAnchor.constraint(equalToConstant: 38),
+            emptyStateIconView.widthAnchor.constraint(equalToConstant: 34),
+            emptyStateIconView.heightAnchor.constraint(equalToConstant: 34),
 
-            emptyStateExploreButton.heightAnchor.constraint(equalToConstant: 48)
+            emptyStateExploreButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
 
@@ -394,6 +419,7 @@ class TodayViewController: UIViewController {
         if filteredTasks.isEmpty {
             emptyStateContainer.isHidden = false
             emptyStateLabel?.isHidden = true
+            tableView.isScrollEnabled = false
 
             let iconName: String
             let titleText: String
@@ -418,12 +444,12 @@ class TodayViewController: UIViewController {
                 msgText = "No lessons due this month.\nExplore new subjects or review AI summaries."
             case .all:
                 iconName = "books.vertical.fill"
-                titleText = "📚 No Active Lessons!"
-                msgText = "Create your first Course and add modules\nto start your study roadmap."
+                titleText = "📚 All Lessons Completed!"
+                msgText = "Your curriculum is in perfect shape.\nHead to courses to add new subjects."
             }
 
-            let iconConfig = UIImage.SymbolConfiguration(pointSize: 36, weight: .bold)
-            emptyStateIconView.image = UIImage(systemName: iconName, withConfiguration: iconConfig)
+            let config = UIImage.SymbolConfiguration(pointSize: 34, weight: .bold)
+            emptyStateIconView.image = UIImage(systemName: iconName, withConfiguration: config)
             emptyStateTitleLabel.text = titleText
             emptyStateMsgLabel.text = msgText
 

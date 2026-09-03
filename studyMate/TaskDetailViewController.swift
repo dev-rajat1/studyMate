@@ -36,16 +36,12 @@ class TaskDetailViewController: UIViewController {
 
     private var completionBarButton: UIBarButtonItem!
 
-    // Formatting Toolbar
-    private let formattingToolbar = UIToolbar()
-
     private let pageDelimiter = "\n\n--- [STUDYMATE_PAGE_BREAK] ---\n\n"
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupKeyboardToolbar()
         setupPaginationIsland()
         populateExistingData()
     }
@@ -164,47 +160,6 @@ class TaskDetailViewController: UIViewController {
 
     @objc private func keyboardWillHide(_ notification: Notification) {
         notesTextView?.contentInset = .zero
-    }
-
-    // MARK: - Keyboard Formatting Toolbar (Icon-Only)
-    private func setupKeyboardToolbar() {
-        formattingToolbar.sizeToFit()
-        formattingToolbar.barTintColor = .secondarySystemGroupedBackground
-
-        let bulletBtn = makeToolbarButton(icon: "list.bullet", action: #selector(insertBullet))
-        let todoBtn = makeToolbarButton(icon: "checkmark.square", action: #selector(insertTodo))
-        let numBtn = makeToolbarButton(icon: "list.number", action: #selector(insertNumbered))
-        let keyBtn = makeToolbarButton(icon: "star.fill", action: #selector(insertKeyPoint))
-        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneBtn = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(dismissKeyboard))
-        doneBtn.tintColor = DesignSystem.Colors.primary
-
-        formattingToolbar.items = [bulletBtn, todoBtn, numBtn, keyBtn, flex, doneBtn]
-
-        notesTextView?.inputAccessoryView = formattingToolbar
-    }
-
-    private func makeToolbarButton(icon: String, action: Selector) -> UIBarButtonItem {
-        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
-        let btn = UIBarButtonItem(image: UIImage(systemName: icon, withConfiguration: config), style: .plain, target: self, action: action)
-        btn.tintColor = DesignSystem.Colors.primary
-        return btn
-    }
-
-    @objc private func dismissKeyboard() { view.endEditing(true) }
-    @objc private func insertBullet() { insertTextAtCursor("\n• ") }
-    @objc private func insertTodo() { insertTextAtCursor("\n[ ] ") }
-    @objc private func insertNumbered() { insertTextAtCursor("\n1. ") }
-    @objc private func insertKeyPoint() { insertTextAtCursor("\n💡 Key Concept: ") }
-
-    private func insertTextAtCursor(_ text: String) {
-        guard let textView = notesTextView else { return }
-        HapticHelper.lightImpact()
-        if let selectedRange = textView.selectedTextRange {
-            textView.replace(selectedRange, withText: text)
-        } else {
-            textView.text.append(text)
-        }
     }
 
     // MARK: - Pagination Island
