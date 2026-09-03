@@ -436,28 +436,6 @@ extension TodayViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let task = filteredTasks[indexPath.row]
 
-        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completion) in
-            self?.showConfirmationAlert(
-                title: "Delete Lesson?",
-                message: "Are you sure you want to delete '\(task.title ?? "this lesson")' and its notes?",
-                confirmTitle: "Delete",
-                isDestructive: true,
-                onConfirm: {
-                    CoreDataManager.shared.deleteTask(task)
-                    self?.loadTasksForCurrentTimeframe()
-                    self?.showToast(message: "Lesson deleted.", icon: "trash.fill", tintColor: DesignSystem.Colors.coral)
-                    completion(true)
-                }
-            )
-        }
-        deleteAction.image = UIImage(systemName: "trash")
-
-        return UISwipeActionsConfiguration(actions: [deleteAction])
-    }
-    
-    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let task = filteredTasks[indexPath.row]
-
         let completeAction = UIContextualAction(style: .normal, title: task.isDone ? "Undo" : "Done") { [weak self] (_, _, completion) in
             guard let self = self else { return }
             HapticHelper.success()
