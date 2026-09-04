@@ -1,150 +1,159 @@
-# 🎓 StudyMate AI — Smart Study & Task Manager for iOS
+# 🎓 StudyMate AI — Modern iOS Study & Task Management App
 
 [![iOS](https://img.shields.io/badge/iOS-14.3%2B-blue?logo=apple&logoColor=white)](https://developer.apple.com/ios/)
 [![Swift](https://img.shields.io/badge/Swift-5.0-orange?logo=swift&logoColor=white)](https://swift.org/)
-[![UI Framework](https://img.shields.io/badge/UI-UIKit%20%2B%20Storyboards-purple)](https://developer.apple.com/documentation/uikit)
+[![UI Framework](https://img.shields.io/badge/UI-100%25%20Programmatic%20UIKit-purple?logo=uikit)](https://developer.apple.com/documentation/uikit)
+[![Architecture](https://img.shields.io/badge/Architecture-No%20Storyboards%20%7C%20AutoLayout-darkcyan)](https://developer.apple.com/)
 [![Database](https://img.shields.io/badge/Storage-Core%20Data-green)](https://developer.apple.com/documentation/coredata)
-[![AI Model](https://img.shields.io/badge/AI%20Engine-Gemini%203.7%20Flash-blueviolet?logo=google)](https://ai.google.dev/)
+[![AI Engine](https://img.shields.io/badge/AI%20Engine-Google%20Gemini%20API-blueviolet?logo=google)](https://ai.google.dev/)
 
-
-> **StudyMate AI** is a modern, offline-first iOS study management app built with **Swift, UIKit, and Core Data**, powered by **Google Gemini 3.7 Flash AI**. It helps students structure coursework hierarchically (**Course ➡️ Module ➡️ Lesson ➡️ Notes**), generates tailored multi-question practice quizzes based on notes length, and tracks real-time academic productivity.
+> **StudyMate AI** is a production-grade, offline-first iOS academic productivity app built **100% programmatically in Swift & UIKit without Storyboards**. It is powered by **Core Data** and **Google Gemini AI**, offering students a structured hierarchical coursework flow (**Course ➔ Module ➔ Lesson ➔ Notes**), an interactive ChatGPT-style AI study tutor, automated dynamic quiz generation with tap-to-reveal answers, and comprehensive study analytics.
 
 ---
 
-## 📱 App Highlights & Architecture Flow
+## 💡 Architectural Highlight: 100% Programmatic UI (No Storyboards)
+
+This project completely eliminates **Main.storyboard** and **Interface Builder (XIB)** files in favor of pure, clean, and maintainable programmatic Swift code:
+* **Zero Merge Conflicts:** No complex XML conflict resolution in team Git workflows.
+* **Declarative Auto Layout:** Built entirely using modern `NSLayoutConstraint` anchors and dynamic `UIStackView` layouts.
+* **Dynamic Self-Sizing Cells:** Custom table view cells with automatic dimension sizing for rich AI responses and collapsible quiz cards.
+* **Programmatic Navigation & Hierarchy:** Window, TabBar, and Navigation Controllers are cleanly initialized and bound in `SceneDelegate.swift`.
+* **High Performance:** Instant view instantiations without storyboard XML decoding overhead.
+
+---
+
+## 📱 App Flow & Architecture Hierarchy
 
 ```
-📚 Course (e.g. Data Structures & Algorithms)
-   └── 📖 Module (e.g. Module 1: Binary Search Trees)
-        └── 📝 Lesson (e.g. Lesson 1: Tree Traversal)
-             ├── 📄 Multi-Page Notes Reader (Page 1 of N)
-             ├── 🤖 AI Deep Revision Summary
-             └── 🎯 Scalable Practice Quiz (MCQs scaled to notes length)
+📚 Course (e.g. Data Structures & Algorithms, Operating Systems)
+   └── 📖 Topic / Module (e.g. Binary Search Trees, Memory Management)
+        └── 📝 Lesson / Task (e.g. Tree Traversal, Paging & Segmentation)
+             ├── 📄 Notes Reader (Paginated study notes & lessons)
+             ├── 🤖 AI Study Tutor (Context-aware Q&A grounded in student notes)
+             ├── ⚡ AI Instant Revision Summary (Bullet points, key formulas, takeaways)
+             └── 🎯 Interactive Practice Quiz (Dynamic MCQs with tap-to-reveal answers)
 ```
 
 ---
 
 ## ✨ Key Features
 
-### 1. 🎯 4-Level Academic Hierarchy
-* **Level 1 — Courses:** Create study courses with custom color tags, progress bars, and module counters.
-* **Level 2 — Modules:** Organize sub-topics within each course with persistent header breadcrumbs.
-* **Level 3 — Lessons:** Manage individual lessons, target deadlines, and completion states.
-* **Level 4 — Paginated Notes:** Full-screen distraction-free notes notebook with `[◀ Prev]` `📄 Page 1 of N` `[Next ▶]` `[➕ Add Page]` navigation.
+### 1. 📅 Tab 1: Study Planner & Timeline
+* **Timeframe Filters:** Segmented pill bar allowing quick switching across **Today, Tomorrow, This Week, This Month, and All Tasks**.
+* **Daily Streak & Motivation:** Live streak counter with animated fire badge and motivational progress metrics.
+* **Interactive Checkbox:** Spring-animated completion toggle with automatic strikethrough styling and haptic feedback.
 
-### 2. 🤖 Gemini 3.7 Flash AI Study Assistant
-* **Dynamic Quiz Scaling:** Automatically analyzes the depth and length of student notes to generate **4 to 18+ high-yield Multiple Choice Questions (MCQs)** with correct answers and explanations.
-* **Comprehensive Revision Summaries:** Executive overview, key takeaways per lesson, formulas & definitions, common pitfalls, and rapid revision checklists.
-* **Offline-First Fallback:** Seamlessly generates simulated revision material even without an active internet connection.
+### 2. 📚 Tab 2: Courses & Deep Coursework
+* **Level 1 — Courses:** Course cards with custom color themes, progress gauges, and lesson counters.
+* **Level 2 — Topics / Modules:** Course sub-modules with completion percentages and deadline status badges (Overdue, Today, Tomorrow).
+* **Level 3 — Tasks & Lessons:** Granular study tasks with priority tags (High, Medium, Low) and notes preview.
+* **Level 4 — Task Notes Reader:** Full-featured study notes workspace with multi-page support.
 
-### 3. 🗓️ Today's Focus Dashboard (Tab 1)
-* Live greeting card with today's formatted date and daily streak indicator.
-* Filtered pending lessons with interactive checkmark tap scaling and haptic feedback.
+### 3. 🤖 Interactive AI Study Tutor & Quiz Generator
+* **Context-Aware Q&A:** Chat with an AI tutor that specifically reads the notes written for that module to answer questions accurately.
+* **Instant Revision Summarizer:** Generates executive chapter summaries, formulas, and rapid revision checklists in one tap.
+* **Practice Quiz Mode:** Dynamically generates multiple-choice questions (MCQs) tailored to notes length, featuring hidden answers with interactive reveal buttons and explanations.
+* **Direct Save to Core Data:** One-tap button to persist generated summaries directly into local Core Data.
 
-### 4. 📊 Visual Study Analytics (Tab 3)
-* Real-time **Overall Progress Gauge** with animated progress bar and completion rate.
-* **4-Metric Study Matrix:** Active Courses, Total Modules, Total Lessons, and Completed Tasks.
-* Dynamic motivational feedback adapting to study milestones.
+### 4. 📊 Tab 3: Study Analytics & Mastery Insights
+* **Mastery Gauge:** Visual breakdown of completed lessons vs pending modules.
+* **Key Metric Grid:** Active courses, total lessons, completed tasks, and current streaks.
+* **Study Tips Card:** Dynamic academic advice that adapts based on user completion rate.
 
-### 5. 🎨 Modern Design & Micro-Animations
-* Staggered **glide-in entrance animations** on TableView cells.
-* Spring-scale touch feedback on card interactions.
-* Support for **Light, Dark, and System Theme** modes.
-* Floating haptic HUD toast notifications.
+### 5. ⚙️ Tab 4: Settings & Customization
+* **Appearance Engine:** Live theme toggle supporting **System, Light Mode, and Dark Mode** using `UserDefaultsManager`.
+* **AI API Key Management:** Flexible configuration allowing users to input their own Google Gemini API key.
+* **Sample Data Seeder:** One-tap button to load structured mock courses and notes for instant testing and demonstration.
+* **Reset & Cleanup:** Safe database clearing and reset options.
 
 ---
 
-## 📂 Project Architecture
+## 📂 Codebase Structure
 
 ```
 📁 studyMate/
 │
-├── 📂 App & Resources/
-│   ├── AppDelegate.swift               # App Lifecycle & CoreData context initialization
-│   ├── SceneDelegate.swift             # Window scene setup & background save triggers
-│   ├── Main.storyboard                 # Clean, responsive Interface Builder layouts
-│   ├── LaunchScreen.storyboard         # Splash screen with branding & Gemini badge
-│   ├── Assets.xcassets                 # Color palettes, icons, and asset catalog
-│   └── Info.plist                      # Application configuration properties
+├── 📂 App Lifecycle & Setup/
+│   ├── AppDelegate.swift                  # Application lifecycle & background context triggers
+│   ├── SceneDelegate.swift                # Programmatic UIWindow, TabBar & Navigation hierarchy setup
+│   ├── SplashScreenViewController.swift   # Animated launch logo, glow aura & cross-dissolve transition
+│   └── Info.plist                         # App bundle configuration
 │
-├── 📂 Controllers/
-│   ├── TodayViewController.swift       # Tab 1: Today's Focus & pending study dashboard
-│   ├── CoursesListViewController.swift # Tab 2 (L1): Courses list with progress tracking
-│   ├── TopicsListViewController.swift  # Tab 2 (L2): Course Modules & persistent banner
-│   ├── TasksListViewController.swift   # Tab 2 (L3): Module Lessons & AI trigger
-│   ├── TaskDetailViewController.swift  # Tab 2 (L4): Full-screen Paginated Notes reader
-│   ├── AISummaryViewController.swift   # AI Assistant modal for Summaries & Quizzes
-│   ├── StatsViewController.swift       # Tab 3: Study Analytics & 4-metric matrix
-│   └── SettingsViewController.swift    # Tab 4: Theme, AI API Key, & Data management
+├── 📂 Screens & Controllers/
+│   ├── TodayViewController.swift          # Tab 1: Study planner timeline with pill segment bar
+│   ├── CoursesListViewController.swift    # Tab 2 (L1): Courses grid with progress calculation
+│   ├── TopicsListViewController.swift     # Tab 2 (L2): Course modules & topic management
+│   ├── TasksListViewController.swift      # Tab 2 (L3): Lesson tasks list & AI action triggers
+│   ├── TaskDetailViewController.swift     # Tab 2 (L4): Lesson details, priority, deadlines & notes
+│   ├── AISummaryViewController.swift      # ChatGPT-style AI study tutor with practice quizzes
+│   ├── StatsViewController.swift          # Tab 3: Study analytics, mastery progress & charts
+│   └── SettingsViewController.swift       # Tab 4: Theme switcher, API configuration & data tools
 │
-├── 📂 Views & Cells/
-│   ├── CourseCell.swift                # Course card with color pill & progress bar
-│   ├── TopicCell.swift                 # Module card with deadline badge & progress
-│   └── TaskCell.swift                  # Lesson card with animated checkbox
+├── 📂 Custom Views & Cells/
+│   ├── CourseCell.swift                   # Programmatic course card with dynamic progress bar
+│   ├── TopicCell.swift                    # Module card with deadline chip & lesson count badge
+│   └── TaskCell.swift                     # Lesson row with spring animated checkbox & strikethrough
 │
-├── 📂 Services & AI/
-│   ├── AIService.swift                 # Gemini 3.7 Flash API URLSession integration
-│   └── APIError.swift                  # Strongly-typed API error definitions
+├── 📂 Services & Networking/
+│   ├── AIService.swift                    # Google Gemini REST API integration via URLSession
+│   └── APIError.swift                     # Strongly-typed network and decoding errors
 │
-├── 📂 Managers & CoreData/
-│   ├── CoreDataManager.swift          # Centralized CRUD operations & progress math
-│   ├── UserDefaultsManager.swift       # App preferences, theme state, & API keys
-│   └── studyMate.xcdatamodeld          # CoreData SQLite Entities (Course, Topic, Task, AISummary)
+├── 📂 Persistence & Database/
+│   ├── CoreDataManager.swift             # Centralized Core Data CRUD manager (Course, Topic, Task, AISummary)
+│   ├── UserDefaultsManager.swift          # Key-Value store for Themes, Streaks, and App preferences
+│   └── studyMate.xcdatamodeld             # CoreData SQLite relational schema with cascade deletion rules
 │
-└── 📂 Helpers & Extensions/
-    ├── Extensions.swift                # Micro-animations, haptic feedback, toast alerts
-    └── ColorHelper.swift               # Accent color palette mapping
+└── 📂 Utilities & Helpers/
+    ├── Extensions.swift                   # UIView card styling, HapticHelper, toast popups & date formats
+    └── ColorHelper.swift                  # Design system color palettes, hex helpers & gradients
 ```
 
 ---
 
-## 🛠️ Tech Stack & Requirements
+## 🛠️ Technical Specifications
 
-| Technology | Specification |
+| Parameter | Details |
 | :--- | :--- |
 | **Language** | Swift 5.0+ |
-| **UI Framework** | UIKit (Storyboard + AutoLayout Constraints) |
-| **Minimum iOS Target** | iOS 14.3+ (Supports iOS 15, 16, 17, 18) |
-| **Database** | Core Data (SQLite Persistent Store with Cascade Rules) |
-| **Networking** | Standard `URLSession` dataTask (no heavy 3rd-party dependencies) |
-| **AI Integration** | Google Generative Language REST API (`gemini-3.7-flash`) |
-| **Design Patterns** | MVC, Singleton, Delegation, Completion Closures |
+| **UI Framework** | **100% Programmatic UIKit** (Auto Layout, No Storyboards) |
+| **Minimum iOS Target** | iOS 14.3+ (Fully compatible with iOS 15, 16, 17, 18) |
+| **Local Database** | Core Data (SQLite relational schema with Cascade delete rules) |
+| **Networking** | Native `URLSession` data tasks (Zero 3rd-party dependencies) |
+| **AI Integration** | Google Generative Language REST API (`Gemini 1.5/2.0/3.7`) |
+| **Architecture** | MVC with Service & Manager layers, Singleton patterns, Delegation & Completion closures |
+| **Haptics** | `UIImpactFeedbackGenerator` & `UINotificationFeedbackGenerator` |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone the Repository
+### 1. Clone the repository
 ```bash
 git clone https://github.com/dev-rajat1/studyMate.git
 cd studyMate
 ```
 
-### 2. Open in Xcode
-Open `studyMate.xcodeproj` in Xcode (Xcode 14 / 15 / 16 recommended on macOS).
-
+### 2. Open project in Xcode
 ```bash
 open studyMate.xcodeproj
 ```
 
 ### 3. Build & Run
-1. Select an iOS Simulator (e.g., **iPhone 15 Pro** or **iPhone 16**) or a physical device.
+1. Select an iOS Simulator (e.g., **iPhone 15 Pro** / **iPhone 16**) or your connected iOS device.
 2. Press **`Cmd + R`** to build and run.
-3. Tap **Tab 4 (Settings)** ➡️ **"🌱 Load Sample Study Data"** to immediately populate courses, modules, lessons, and sample notes for testing!
+3. If launched on an empty simulator, go to **Settings (Tab 4)** ➡️ tap **"🌱 Load Sample Study Data"** to instantly populate realistic sample courses, topics, and lesson notes!
 
 ---
 
-## 🔑 AI API Configuration
+## 🔑 AI API Setup
 
-StudyMate AI comes pre-configured with support for **Google Gemini 3.7 Flash**:
-1. Open the app and navigate to **Settings (Tab 4)**.
-2. Enter your Gemini API key in the **Gemini API Key** field and tap **Save API Key**.
-3. *Note: If no custom key is provided, the app will smoothly fallback to its intelligent offline study simulator.*
+1. Launch StudyMate and open **Settings (Tab 4)**.
+2. Enter your **Google Gemini API Key** (from [Google AI Studio](https://aistudio.google.com/)).
+3. Tap **Save API Key**. You're now ready to use the AI Study Tutor and Practice Quiz generator!
 
 ---
 
-## 👨‍💻 Author & Credits
+## 👨‍💻 Author & Contributions
 
-* **Developer:** ([@dev-rajat1](https://github.com/dev-rajat1))
-* **Architecture:** Native Swift UIKit with Core Data & Google Gemini AI.
----
+* **Developer:** [Rajat](https://github.com/dev-rajat1)
+* **License:** MIT License
