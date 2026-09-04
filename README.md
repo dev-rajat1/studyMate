@@ -156,4 +156,3 @@ open studyMate.xcodeproj
 ## 👨‍💻 Author & Contributions
 
 * **Developer:** [Rajat](https://github.com/dev-rajat1)
-* **License:** MIT License
